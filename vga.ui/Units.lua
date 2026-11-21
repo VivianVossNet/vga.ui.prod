@@ -1,8 +1,8 @@
 -- Copyright 2026 Vivian Voss. Code by Vivian Voss. Licensed under the BSD-3-Clause.
 -- SPDX-License-Identifier: BSD-3-Clause
--- Scope: vga.ui's player frame, target frame and pet frame, each where Blizzard's own stands in the player's layout: the level's shield, the name and its class or kind, health and power, the target mirrored to the player, the portrait's rim one smooth, rounded frame in one colour over the picture, its corners and sides cut from one texture - seven outside, three thick, four inside -, clicked to target; Blizzard's own frames hidden. In a resting place - an inn, a city - the same pulse round the player's portrait glows blue instead of red; in a fight the red wins and the blue rests until the fight is over (K0551).
+-- Scope: vga.ui's player frame, target frame and pet frame, each where Blizzard's own stands in the player's layout: the level's shield, the name and its class or kind, health and power, the target mirrored to the player, the portrait's rim one smooth, rounded frame in one colour over the picture, its corners and sides cut from one texture - seven outside, three thick, four inside -, clicked to target; the group's leader marked by a small filled gold crown sitting centred on the portrait's top edge (K0614); Blizzard's own frames hidden. In a resting place - an inn, a city - the same pulse round the player's portrait glows blue instead of red; in a fight the red wins and the blue rests until the fight is over (K0551).
 
--- {K0481} {K0551} {K0267} {K0268} {K0275} {K0276} {K0294} {K0297} {K0299} {K0300} {K0302} {K0329} {K0330} {K0334} {K0342} {K0345} {K0346} {K0360}
+-- {K0481} {K0551} {K0267} {K0268} {K0275} {K0276} {K0294} {K0297} {K0299} {K0300} {K0302} {K0329} {K0330} {K0334} {K0342} {K0345} {K0346} {K0360} {K0614}
 
 local _, vga = ...
 local library = LibVGA
@@ -114,6 +114,7 @@ local function update_identity(frame)
     local unit = frame.unit
     if not UnitExists(unit) then return end
     frame.name:SetText(library.read_unit_name(unit))
+    frame.crown:SetShown(unit ~= "pet" and UnitIsGroupLeader(unit) == true)
     local level = UnitLevel(unit)
     frame.level:SetText(level and level > 0 and level or "??")
     frame.level_colour = vga.read_level_colour(unit, BADGE_TEXT)
@@ -237,6 +238,10 @@ local function create_frame(unit, mirrored)
     frame.rounding:SetAllPoints()
     frame.rounding:SetFrameLevel(frame:GetFrameLevel() + 12)
     frame.edges = create_rim(frame.rounding)
+    frame.crown = frame.rounding:CreateTexture(nil, "OVERLAY")
+    frame.crown:SetTexture(library.media .. "Crown")
+    frame.crown:SetVertexColor(colours.gold[1], colours.gold[2], colours.gold[3], 1)
+    frame.crown:Hide()
     frame.shield = CreateFrame("Frame", nil, frame)
     frame.shield:SetFrameLevel(frame:GetFrameLevel() + 13)
     frame.shield.outer = library.create_surface(frame.shield, "BACKGROUND", 0)
@@ -334,6 +339,10 @@ local function update_portrait_layout(frame)
     frame.portrait:SetPoint("CENTER", frame.rim, "CENTER")
     frame.well:ClearAllPoints()
     frame.well:SetAllPoints(frame.portrait)
+    local crown = library.read_size(2)
+    frame.crown:SetSize(crown, crown)
+    frame.crown:ClearAllPoints()
+    frame.crown:SetPoint("CENTER", frame.rim, "TOP", 0, math.floor(crown * 0.2 + 0.5))
     if frame.fight then
         local glow = (portrait + 2 * rim) * FIGHT_SPREAD
         frame.fight:SetSize(glow, glow)
@@ -402,14 +411,14 @@ local function update_event(event, unit)
         library.create_place(pet, "pet", "TOPRIGHT", player, 0, -(library.read_cast_room() + 2 * library.read_size(-4)), "BOTTOMRIGHT")
         delete_blizzard_frames()
         library.create_element("units", { title = UNITFRAME_LABEL or "Units", update = update_units })
-        for _, name in ipairs({ "PLAYER_TARGET_CHANGED", "UNIT_HEALTH", "UNIT_MAXHEALTH", "UNIT_POWER_UPDATE", "UNIT_MAXPOWER", "UNIT_DISPLAYPOWER", "UNIT_LEVEL", "UNIT_NAME_UPDATE", "UNIT_PORTRAIT_UPDATE", "UNIT_CLASSIFICATION_CHANGED", "PLAYER_ENTERING_WORLD", "UNIT_PET", "PLAYER_REGEN_ENABLED", "PLAYER_REGEN_DISABLED", "UNIT_MODEL_CHANGED", "QUEST_LOG_UPDATE", "UNIT_QUEST_LOG_CHANGED", "COMBAT_TEXT_UPDATE", "PLAYER_UPDATE_RESTING" }) do
+        for _, name in ipairs({ "PLAYER_TARGET_CHANGED", "UNIT_HEALTH", "UNIT_MAXHEALTH", "UNIT_POWER_UPDATE", "UNIT_MAXPOWER", "UNIT_DISPLAYPOWER", "UNIT_LEVEL", "UNIT_NAME_UPDATE", "UNIT_PORTRAIT_UPDATE", "UNIT_CLASSIFICATION_CHANGED", "PLAYER_ENTERING_WORLD", "UNIT_PET", "PLAYER_REGEN_ENABLED", "PLAYER_REGEN_DISABLED", "UNIT_MODEL_CHANGED", "QUEST_LOG_UPDATE", "UNIT_QUEST_LOG_CHANGED", "COMBAT_TEXT_UPDATE", "PLAYER_UPDATE_RESTING", "PARTY_LEADER_CHANGED", "GROUP_ROSTER_UPDATE" }) do
             pcall(events.RegisterEvent, events, name)
         end
         update_units()
         C_Timer.After(1, function() library.update_safely("units portrait", update_units) end)
     elseif event == "PLAYER_REGEN_DISABLED" or event == "PLAYER_UPDATE_RESTING" then
         update_fight_glow()
-    elseif event == "PLAYER_TARGET_CHANGED" or event == "PLAYER_ENTERING_WORLD" or event == "UNIT_PET" or event == "PLAYER_REGEN_ENABLED" or event == "QUEST_LOG_UPDATE" or event == "UNIT_QUEST_LOG_CHANGED" then
+    elseif event == "PLAYER_TARGET_CHANGED" or event == "PLAYER_ENTERING_WORLD" or event == "UNIT_PET" or event == "PLAYER_REGEN_ENABLED" or event == "QUEST_LOG_UPDATE" or event == "UNIT_QUEST_LOG_CHANGED" or event == "PARTY_LEADER_CHANGED" or event == "GROUP_ROSTER_UPDATE" then
         update_fight_glow()
         update_units()
     elseif event == "COMBAT_TEXT_UPDATE" then

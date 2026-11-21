@@ -12,6 +12,7 @@ local DEFAULTS = {
     arc_right = "health",
     arc_shape = "full",
     arc_band = "off",
+    arc_shown = "combat",
     bags_place = { "BOTTOMRIGHT", -417, 332 },
     bar_end_left = "dragon",
     bar_end_right = "dragon",

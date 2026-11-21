@@ -3,7 +3,7 @@
 The Video Game Almanach's interface for **World of Warcraft: Forever** - one calm, consistent look
 for the whole screen, drawn with its own graphics library, LibVGA.
 
-**Version 0.9.0 - beta.** A first version for testing. Settings, places and looks may still change.
+**Version 0.9.12 - beta.** A version for testing. Settings, places and looks may still change.
 
 ## What it brings
 
@@ -14,7 +14,8 @@ for the whole screen, drawn with its own graphics library, LibVGA.
 - A minimap in four by three or square, three sizes, with zone, coordinates, time, a compass rose
   and every other addon's minimap button gathered beneath it
 - A quest tracker with navigation to the nearest or the chosen quest
-- Arcs beside your character for range, threat, the target's cast, health or your resource
+- Arcs beside your character for range, threat, the target's cast, health or your resource, shown in combat only if you wish
+- vga.auctions, an auction window of its own: buy with filters by kind, quality and level, sell with a price history, your own auctions with the undercut ones marked, holdings, a ledger of every purchase and sale, and items to watch; market values from your own readings of the auction house
 - Arranging every element on a free or snapped grid; layouts per character and as named profiles
 - Texts in German, English, Spanish, French, Italian, Portuguese and Russian
 

@@ -1,18 +1,21 @@
 -- Copyright 2026 Vivian Voss. Code by Vivian Voss. Licensed under the BSD-3-Clause.
 -- SPDX-License-Identifier: BSD-3-Clause
--- Scope: The player's buffs as the accepted draft draws .buffs and .buff (manual/view/vga-probe.html): icons with rounded corners in a black line, the time left small beneath each; from the player frame's left edge above it to the right, as many to a row as the frame's width holds, two rows at most; Blizzard's own buff frame hidden. Above the target frame the same, mirrored as the target frame is, from its right edge to the left: the target's buffs, then on a row of their own its debuffs, in a fine red line (K0580). Both are the game's own aura containers (K0584), which the game fills itself, in a fight too, where an addon may not read auras: each icon shows the game's tooltip of its aura under the mouse, and a click on one of the player's own buffs ends it; the time beneath each written short, one letter for its unit, in the smallest face, so neighbours do not run into each other (K0588); a dead target's auras are hidden, and so are the last target's once none is chosen (K0585, K0586); on a change of target the container is told to read its auras anew, which it does not do by itself, so no foe's auras pass to the next (K0591).
+-- Scope: The player's buffs as the accepted draft draws .buffs and .buff (manual/view/vga-probe.html): icons in a ring with gently rounded corners like the bag slots' - green for a helpful effect, red for a harmful one, white for a lasting search such as Find Minerals or Track Beasts, those following the buffs as a group of their own (K0618) -, the ring's full colour drawing back round the rim as the effect runs out, over a darkened ring of the same width and colour that always stays, driven by the game's own cooldown of the aura so it runs in a fight too, a lasting effect staying full (K0620), the time left small beneath each; from the player frame's left edge above it to the right, as many to a row as the frame's width holds, two rows at most; Blizzard's own buff frame hidden. Above the target frame the same, mirrored as the target frame is, from its right edge to the left: the target's buffs, then on a row of their own its debuffs, red (K0580) - the player's own first, each with the bags' shimmer of a light running round its rim and a star flashing at its corner, the others after them on the same row (K0615). Both are the game's own aura containers (K0584), which the game fills itself, in a fight too, where an addon may not read auras: each icon shows the game's tooltip of its aura under the mouse, and a click on one of the player's own buffs ends it; the time beneath each written short, one letter for its unit, in the smallest face, so neighbours do not run into each other (K0588); a dead target's auras are hidden, and so are the last target's once none is chosen (K0585, K0586); on a change of target the container is told to read its auras anew, which it does not do by itself, so no foe's auras pass to the next (K0591).
 
--- {K0261} {K0355} {K0580} {K0584} {K0585} {K0586} {K0588} {K0591}
+-- {K0261} {K0355} {K0580} {K0584} {K0585} {K0586} {K0588} {K0591} {K0615} {K0618} {K0620}
 
 local library = LibVGA
 local colours = library.colours
 local ROWS = 2
-local BLACK = { 0, 0, 0 }
-local HARM = { 0.75, 0.16, 0.14 }
+local GOOD = { 0.247, 0.749, 0.353 }
+local HARM = { 0.886, 0.404, 0.353 }
+local STEADY = { 0.92, 0.92, 0.9 }
+local SPENT = 0.32
+local TRACKING = { [1494] = true, [1284017] = true, [2383] = true, [8387] = true, [2481] = true, [2580] = true, [8388] = true, [5225] = true, [19883] = true, [5500] = true, [5502] = true, [5503] = true, [1241115] = true, [19878] = true, [19879] = true, [19880] = true, [19882] = true, [19884] = true, [19885] = true, [43308] = true }
 local GROW = { right = 1, left = -1, up = 1 }
 local STRIPS = {
-    { unit = "player", frame = "VGAUnitFrame_player", name = "VGABuffs", corner = "BOTTOMLEFT", grow = GROW.right, groups = { { key = "buffs", filter = "HELPFUL", line = BLACK, cancel = true } } },
-    { unit = "target", frame = "VGAUnitFrame_target", name = "VGATargetAuras", corner = "BOTTOMRIGHT", grow = GROW.left, groups = { { key = "buffs", filter = "HELPFUL", line = BLACK }, { key = "debuffs", filter = "HARMFUL", line = HARM } } },
+    { unit = "player", frame = "VGAUnitFrame_player", name = "VGABuffs", corner = "BOTTOMLEFT", grow = GROW.right, groups = { { key = "buffs", filter = "HELPFUL", line = GOOD, cancel = true, candidate = { excludeSpellIDs = TRACKING } }, { key = "tracking", filter = "HELPFUL", line = STEADY, cancel = true, follows = true, candidate = { includeSpellIDs = TRACKING } } } },
+    { unit = "target", frame = "VGAUnitFrame_target", name = "VGATargetAuras", corner = "BOTTOMRIGHT", grow = GROW.left, groups = { { key = "buffs", filter = "HELPFUL", line = GOOD }, { key = "own", filter = "HARMFUL|PLAYER", line = HARM, shimmer = true }, { key = "debuffs", filter = "HARMFUL|!PLAYER", line = HARM, follows = true } } },
 }
 local strips = {}
 
@@ -35,24 +38,42 @@ local function update_time_text(button)
     button:SetDurationText(button.time)
 end
 
+local function read_edge(size)
+    return math.max(2, math.floor(size / 9 + 0.5))
+end
+
 local function update_button_look(button)
     local size = read_icon_size()
-    button.line:SetColorTexture(button.colour[1], button.colour[2], button.colour[3], 1)
-    library.update_notches(button.notches, button, library.read_size(-4), button.colour)
+    local edge = read_edge(size)
+    button:SetSize(size, size)
+    local colour = button.colour
+    button.ring:SetVertexColor(colour[1], colour[2], colour[3], 1)
+    button.ring:SetAllPoints()
+    if button.drain then
+        button.drain:SetAllPoints()
+        button.drain:SetSwipeColor(colour[1] * SPENT, colour[2] * SPENT, colour[3] * SPENT, 1)
+    end
+    library.update_cell_picture(button.art, button, edge)
     button.time:SetFontObject(library.read_frame_font("tiny"))
     button.count:SetFontObject(library.read_frame_font("caption"))
-    button:SetSize(size, size)
 end
 
 local function create_button_parts(button, group)
     button.colour = group.line
-    button.line = button:CreateTexture(nil, "BACKGROUND")
-    button.line:SetAllPoints()
     button.art = button:CreateTexture(nil, "ARTWORK")
-    button.art:SetPoint("TOPLEFT", 1, -1)
-    button.art:SetPoint("BOTTOMRIGHT", -1, 1)
     button.art:SetTexCoord(0.08, 0.92, 0.08, 0.92)
-    button.notches = library.create_notches(button, "OVERLAY", 0)
+    button.ring = button:CreateTexture(nil, "OVERLAY", nil, 2)
+    button.ring:SetTexture(library.media .. "AuraRing")
+    if button.SetDurationCooldown then
+        button.drain = CreateFrame("Cooldown", nil, button)
+        button.drain:SetFrameLevel(button:GetFrameLevel() + 2)
+        button.drain:SetSwipeTexture(library.media .. "AuraRing")
+        button.drain:SetDrawEdge(false)
+        button.drain:SetDrawBling(false)
+        button.drain:SetHideCountdownNumbers(true)
+        button.drain:SetReverse(true)
+        button:SetDurationCooldown(button.drain)
+    end
     button.count = library.create_text(button, "caption")
     button.count:SetPoint("BOTTOMRIGHT", button, "BOTTOMRIGHT", 1, -1)
     button.time = library.create_text(button, "small", colours.ink)
@@ -61,6 +82,7 @@ local function create_button_parts(button, group)
     update_time_text(button)
     button:SetApplicationCount(button.count)
     if group.cancel then button:SetCancelAuraButtons("LeftButtonUp RightButtonUp") end
+    if group.shimmer then library.create_running_shimmer(button, read_icon_size()) end
     update_button_look(button)
 end
 
@@ -71,9 +93,9 @@ local function create_initializer(strip, group)
     end
 end
 
-local function read_group_layout(index)
+local function read_group_layout(index, group)
     local size, gap = read_icon_size()
-    return { elementWidth = size, elementHeight = size, elementSpacing = gap, lineSpacing = library.read_size(-1) + 2 + gap, forceNewLine = index > 1, layoutIndex = index }
+    return { elementWidth = size, elementHeight = size, elementSpacing = gap, lineSpacing = library.read_size(-1) + 2 + gap, forceNewLine = index > 1 and not group.follows, layoutIndex = index }
 end
 
 local function update_strip(strip)
@@ -86,7 +108,7 @@ local function update_strip(strip)
     container:SetPoint(strip.corner, frame, strip.corner == "BOTTOMLEFT" and "TOPLEFT" or "TOPRIGHT", 0, gap + library.read_size(-1) + 2)
     container:SetFlowLayoutMaximumLineSize(frame:GetWidth())
     for index, group in ipairs(strip.groups) do
-        container:SetAuraGroupLayout(group.key, read_group_layout(index))
+        container:SetAuraGroupLayout(group.key, read_group_layout(index, group))
         container:SetAuraGroupMaxFrameCount(group.key, per_row * ROWS)
     end
     for _, button in ipairs(strip.buttons) do pcall(update_button_look, button) end
@@ -117,7 +139,7 @@ local function create_strip(shape)
     container:SetFlowLayoutAnchorPoint(shape.corner)
     container:SetFlowLayoutGrowthDirection(shape.grow, GROW.up)
     for index, group in ipairs(shape.groups) do
-        container:AddAuraGroup(group.key, group.filter, { initializeFrame = create_initializer(strip, group), layout = read_group_layout(index) })
+        container:AddAuraGroup(group.key, group.filter, { initializeFrame = create_initializer(strip, group), layout = read_group_layout(index, group), candidateFilters = group.candidate })
     end
     strip.container = container
     strips[#strips + 1] = strip

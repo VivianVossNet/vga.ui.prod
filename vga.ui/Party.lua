@@ -1,8 +1,8 @@
 -- Copyright 2026 Vivian Voss. Code by Vivian Voss. Licensed under the BSD-3-Clause.
 -- SPDX-License-Identifier: BSD-3-Clause
--- Scope: vga.ui's party frame as the accepted draft draws .party and .pm (manual/view/vga-probe.html): one widget with one gold corner for the whole group; a row per member divided by hairlines - the level in gold, the class's dot, the name, a thin health bar -, the whole row in grey while the member is offline, an OFFLINE in capitals, four pixels below the small face, beneath the bar where the pet's bar would stand, a pet being gone with its owner, a pet as a second, shorter bar inside its owner's row, without name or level, there for the healer to click; every row and pet bar a secure button that targets on click; Blizzard's own party frame hidden; ours stands left-aligned 120 pixels above the player frame, as tall as the group, its members stacked upward from the first; a protected pet bar is anchored to its protected row, never to a plain region.
+-- Scope: vga.ui's party frame as the accepted draft draws .party and .pm (manual/view/vga-probe.html): one widget with one gold corner for the whole group; a row per member divided by hairlines - the level in gold, the class's dot, the name, a thin health bar -, the whole row in grey while the member is offline, an OFFLINE in capitals, four pixels below the small face, beneath the bar where the pet's bar would stand, a pet being gone with its owner, a pet as a second, shorter bar inside its owner's row, without name or level, there for the healer to click; every row and pet bar a secure button that targets on click; Blizzard's own party frame hidden; ours stands left-aligned 120 pixels above the player frame, as tall as the group, its members stacked upward from the first; a protected pet bar is anchored to its protected row, never to a plain region. The group's leader carries a small filled gold crown right after the name (K0614). Shown and sized by a secure state driver on how many party units exist, so a group formed in a fight appears at once, not after it (K0630).
 
--- {K0277} {K0278} {K0279} {K0354} {K0379}
+-- {K0277} {K0278} {K0279} {K0354} {K0379} {K0614} {K0630}
 
 local library = LibVGA
 local colours = library.colours
@@ -12,6 +12,17 @@ local LEVEL_TEXT = { 0.945, 0.812, 0.431 }
 local HAIRLINE = { 1, 1, 1, 0.063 }
 local OFFLINE = { 0.5, 0.5, 0.52 }
 local OFFLINE_SMALLER = 4
+local MEMBERS_SHOWN = "[group:raid] 0; [@party4,exists] 4; [@party3,exists] 3; [@party2,exists] 2; [@party1,exists] 1; 0"
+local RESIZE_PARTY = [[
+    local party = self:GetFrameRef("party")
+    local count = tonumber(newstate) or 0
+    if count == 0 then
+        party:Hide()
+        return
+    end
+    party:SetHeight(2 * self:GetAttribute("pad") + count * self:GetAttribute("row"))
+    party:Show()
+]]
 local party
 
 local function create_secure(name, parent, unit)
@@ -34,6 +45,10 @@ local function create_member(index)
     row.name = library.create_text(row, "bold")
     row.name:SetJustifyH("LEFT")
     row.name:SetWordWrap(false)
+    row.crown = row:CreateTexture(nil, "OVERLAY")
+    row.crown:SetTexture(library.media .. "Crown")
+    row.crown:SetVertexColor(colours.gold[1], colours.gold[2], colours.gold[3], 1)
+    row.crown:Hide()
     row.health = library.create_bar(row, "health")
     row.offline = library.create_text(row, "small", OFFLINE)
     row.offline:SetText(string.upper(PLAYER_OFFLINE or "Offline"))
@@ -108,6 +123,11 @@ local function update_member(row)
     row.level:SetText(level and level > 0 and level or "??")
     row.level:SetTextColor(unpack(online and LEVEL_TEXT or OFFLINE))
     row.name:SetText(library.read_unit_name(unit))
+    local crown = library.read_size(0)
+    row.crown:SetSize(crown, crown)
+    row.crown:ClearAllPoints()
+    row.crown:SetPoint("LEFT", row.name, "LEFT", math.ceil(row.name:GetStringWidth()) + library.read_size(-4), 0)
+    row.crown:SetShown(UnitIsGroupLeader(unit) == true)
     row.name:SetTextColor(unpack(online and colours.ink or OFFLINE))
     update_dot(row, online and read_class_colour(unit) or OFFLINE)
     library.update_bar_kind(row.health, online and "health" or "tapped")
@@ -123,8 +143,11 @@ local function update_party_layout()
     library.update_frame(party)
     for index, row in ipairs(party.rows) do update_member_layout(row, index) end
     local pad = library.read_size(-2)
+    local row = library.read_size(4) + 2 * pad
+    party.driver:SetAttribute("pad", pad)
+    party.driver:SetAttribute("row", row)
     local count = math.max(1, math.min(MEMBERS, GetNumSubgroupMembers and GetNumSubgroupMembers() or MEMBERS))
-    party:SetSize(library.read_size(6) * 4, 2 * pad + count * (library.read_size(4) + 2 * pad))
+    party:SetSize(library.read_size(6) * 4, 2 * pad + count * row)
     party:SetShown(IsInGroup() and not IsInRaid())
 end
 
@@ -143,11 +166,20 @@ local function delete_blizzard_party()
     end
 end
 
+local function create_party_driver()
+    local driver = CreateFrame("Frame", nil, UIParent, "SecureHandlerStateTemplate")
+    driver:SetFrameRef("party", party)
+    driver:SetAttribute("_onstate-members", RESIZE_PARTY)
+    RegisterStateDriver(driver, "members", MEMBERS_SHOWN)
+    return driver
+end
+
 local function create_party()
     party = library.create_frame("VGAPartyFrame", UIParent)
     party.corner:SetScript("OnClick", function(corner) library.update_safely("options", library.render_widget, corner, "party") end)
     party.rows = {}
     for index = 1, MEMBERS do party.rows[index] = create_member(index) end
+    party.driver = create_party_driver()
     library.create_place(party, "party", "BOTTOMLEFT", VGAUnitFrame_player or UIParent, 0, GAP_ABOVE_PLAYER, "TOPLEFT")
     delete_blizzard_party()
     library.create_element("party", { title = PARTY or "Party", update = update_party })
@@ -168,7 +200,7 @@ local function update_event(event, unit)
 end
 
 local events = CreateFrame("Frame")
-for _, name in ipairs({ "PLAYER_LOGIN", "GROUP_ROSTER_UPDATE", "PLAYER_ENTERING_WORLD", "PLAYER_REGEN_ENABLED", "UNIT_HEALTH", "UNIT_MAXHEALTH", "UNIT_PET", "UNIT_LEVEL", "UNIT_NAME_UPDATE", "UNIT_CONNECTION", "PARTY_MEMBER_ENABLE", "PARTY_MEMBER_DISABLE" }) do
+for _, name in ipairs({ "PLAYER_LOGIN", "GROUP_ROSTER_UPDATE", "PLAYER_ENTERING_WORLD", "PLAYER_REGEN_ENABLED", "UNIT_HEALTH", "UNIT_MAXHEALTH", "UNIT_PET", "UNIT_LEVEL", "UNIT_NAME_UPDATE", "UNIT_CONNECTION", "PARTY_MEMBER_ENABLE", "PARTY_MEMBER_DISABLE", "PARTY_LEADER_CHANGED" }) do
     pcall(events.RegisterEvent, events, name)
 end
 events:SetScript("OnEvent", function(_, event, unit)

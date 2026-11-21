@@ -1,8 +1,8 @@
 -- Copyright 2026 Vivian Voss. Code by Vivian Voss. Licensed under the BSD-3-Clause.
 -- SPDX-License-Identifier: BSD-3-Clause
--- Scope: Two transparent arcs either side of the character, wide enough to clear it and centred on its middle, as manual/view/vga-hud.html draws them (D): twelve segments each, lit one by one - or, as the settings say (arc_shape), half arcs, half as high, of six segments for the same values, the beads closer together -; behind each arc, as the settings say (»Rahmen«, off by default), a broad stroke of the frames' own ground and opacity, rounded at its ends, eight draft pixels clear of the segments and beads all round, so the arc reads on a light ground (K0563); an arc with nothing to show fades slowly out, each on its own, and back in when it has. Each side shows what the settings choose - the range, the threat, the target's cast or its health, the player's own health - filled in green as the target's, with or without a target -, the player's own resource, named as the game names the class's power - Mana, Wut, Energie, for a druid all three -, filling the arc in the power bar's colour, with or without a target, a rogue's or cat's combo points as five beads beside it, lit in VGA's orange when earned -, or nothing -, by default the range at the left and the threat at the right. The range to an attackable target filling from its foot as the target comes nearer - the distance known in steps by the game's own range checks - the player's harmful spells and a few items, each at the range the game gives its spell, and the interact distances of 10 and 28 yards -, shown as the smallest step the target stands within, »>« before the largest when beyond it -, its lit segments in one colour that tells the reach - red when the target stands near, through orange and yellow to a deep green at the edge of the best range of the player's class, by the steps' yards -; every segment grey where it stands beyond that range or beyond every step; the threat drawn from the target fills in the threat meter's five colours, the health in green, each segment set by the game from the value even where it is secret; the target's cast fills as it runs, gold while it can be interrupted, grey while not, its spell's name at the head - for the moment to interrupt. Each arc's value stands at its head or its foot, or not at all, as the settings say. At each arc's foot a small gold corner, the only part of the arcs that takes the mouse, opens the settings on the arcs' tab, where every change shows live; there each arc is one row with a pop-up menu whose sections are »Ich« - the resource, the own health - and »Ziel« - range, threat, cast, health -, then none (K0564, K0565). Free to be placed while arranging.
+-- Scope: Two transparent arcs either side of the character, wide enough to clear it and centred on its middle, as manual/view/vga-hud.html draws them (D): twelve segments each, lit one by one - or, as the settings say (arc_shape), half arcs, half as high, of six segments for the same values, the beads closer together -; behind each arc, as the settings say (»Rahmen«, off by default), a broad stroke of the frames' own ground and opacity, rounded at its ends, eight draft pixels clear of the segments and beads all round, so the arc reads on a light ground (K0563); an arc with nothing to show fades slowly out, each on its own, and back in when it has. Each side shows what the settings choose - the range, the threat, the target's cast or its health, the player's own health - filled in green as the target's, with or without a target -, the player's own resource, named as the game names the class's power - Mana, Wut, Energie, for a druid all three -, filling the arc in the power bar's colour, with or without a target, a rogue's or cat's combo points as five beads beside it, lit in VGA's orange when earned -, or nothing -, by default the range at the left and the threat at the right. The range to an attackable target filling from its foot as the target comes nearer - the distance known in steps by the game's own range checks - the player's harmful spells and a few items, each at the range the game gives its spell, and the interact distances of 10 and 28 yards -, shown as the smallest step the target stands within, »>« before the largest when beyond it -, its lit segments in one colour that tells the reach - red when the target stands near, through orange and yellow to a deep green at the edge of the best range of the player's class, by the steps' yards -; every segment grey where it stands beyond that range or beyond every step; the threat drawn from the target fills in the threat meter's five colours, the health in green, each segment set by the game from the value even where it is secret; the target's cast fills as it runs, gold while it can be interrupted, grey while not, its spell's name at the head - for the moment to interrupt. Each arc's value stands at its head or its foot, or not at all, as the settings say. At each arc's foot a small gold corner, the only part of the arcs that takes the mouse, opens the settings on the arcs' tab, where every change shows live; there each arc is one row with a pop-up menu whose sections are »Ich« - the resource, the own health - and »Ziel« - range, threat, cast, health -, then none (K0564, K0565). Free to be placed while arranging. As the settings say (»Sichtbar«, »Im Kampf« by default), out of combat both arcs fade slowly out, over three seconds, and show at once, without a fade, the moment a fight begins; with »Immer« they stand as before; an arc's preview eye shows it out of combat too (K0675). Each arc's gold corner fades with its arc and takes no mouse while the arc is gone (K0677).
 
--- {K0392} {K0393} {K0395} {K0400} {K0416} {K0417} {K0418} {K0501} {K0502} {K0563} {K0564} {K0574} {K0581} {K0582} {K0583}
+-- {K0392} {K0393} {K0395} {K0400} {K0416} {K0417} {K0418} {K0501} {K0502} {K0563} {K0564} {K0574} {K0581} {K0582} {K0583} {K0675} {K0677}
 
 local _, vga = ...
 local library = LibVGA
@@ -13,6 +13,7 @@ local RADIUS = 150
 local RANGE_MOST = 40
 local STEP = 0.01
 local FADE = 1.5
+local FADE_CALM = 3
 local TRACK = { 0, 0, 0, 0.35 }
 local GREY = { 0.54, 0.55, 0.57 }
 local MELEE = 10
@@ -65,11 +66,22 @@ local function create_segment(side)
     return segment
 end
 
+local function update_corner_faded(side)
+    local corner = side.corner
+    if not corner then return end
+    local alpha = side:IsShown() and side:GetAlpha() or 0
+    if corner:GetAlpha() == alpha then return end
+    corner:SetAlpha(alpha)
+    corner:EnableMouse(alpha > 0)
+end
+
 local function update_fade(side, elapsed)
     local alpha = side:GetAlpha()
+    update_corner_faded(side)
     if alpha == side.wanted then return end
-    local step = elapsed / FADE
+    local step = elapsed / (side.fade or FADE)
     side:SetAlpha(side.wanted > alpha and math.min(side.wanted, alpha + step) or math.max(side.wanted, alpha - step))
+    update_corner_faded(side)
 end
 
 local function read_count()
@@ -365,6 +377,12 @@ local function update_preview(side, show, target)
     if show == "cast" then side.value:SetText(library.texts.cast_arc) end
 end
 
+local function update_calm(side)
+    local calm = LibVGASettings.arc_shown ~= "always" and not UnitAffectingCombat("player") and not previews[side.key]
+    side.fade = calm and FADE_CALM or FADE
+    if calm then side.wanted = 0 end
+end
+
 local function update_values()
     if not arcs then return end
     local target = check_target()
@@ -381,6 +399,16 @@ local function update_values()
             SHOWS[show](side)
         end
         if previews[side.key] and show then update_preview(side, show, target) end
+        update_calm(side)
+        update_corner_faded(side)
+    end
+end
+
+local function update_fight_begun()
+    update_values()
+    for _, side in ipairs({ arcs.left, arcs.right }) do
+        if side.wanted > 0 then side:SetAlpha(side.wanted) end
+        update_corner_faded(side)
     end
 end
 
@@ -431,6 +459,10 @@ local function write_arc_band(index)
     library.update_choice_setting("arc_band", index == 2 and "on" or "off")
 end
 
+local function write_arc_shown(index)
+    library.update_choice_setting("arc_shown", index == 1 and "always" or "combat")
+end
+
 local function write_arc_shape(index)
     library.update_choice_setting("arc_shape", index == 2 and "half" or "full")
 end
@@ -444,6 +476,7 @@ local function create_arcs_page(page)
             library.update_choice_setting("arc_values", PLACES[index])
         end),        library.create_choice_row(page, texts.arc_shape, { texts.full_arc, texts.half_arc }, LibVGASettings.arc_shape == "half" and 2 or 1, write_arc_shape),
         library.create_choice_row(page, texts.frame, { texts.off, texts.on }, LibVGASettings.arc_band == "on" and 2 or 1, write_arc_band),
+        library.create_choice_row(page, texts.arcs_shown, { texts.always, texts.in_fight }, LibVGASettings.arc_shown == "always" and 1 or 2, write_arc_shown),
     }
 end
 
@@ -472,9 +505,12 @@ local events = CreateFrame("Frame")
 events:RegisterEvent("PLAYER_LOGIN")
 events:RegisterEvent("PLAYER_TARGET_CHANGED")
 events:RegisterEvent("SPELLS_CHANGED")
+events:RegisterEvent("PLAYER_REGEN_DISABLED")
+events:RegisterEvent("PLAYER_REGEN_ENABLED")
 events:SetScript("OnEvent", function(_, event)
     if event == "PLAYER_LOGIN" then library.update_safely("arcs login", create_arcs) end
     if event == "SPELLS_CHANGED" and arcs then library.update_safely("arcs checks", write_checks) end
+    if event == "PLAYER_REGEN_DISABLED" and arcs then return library.update_safely("arcs fight", update_fight_begun) end
     library.update_safely("arcs", update_values)
 end)
 

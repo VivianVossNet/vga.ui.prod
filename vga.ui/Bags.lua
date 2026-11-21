@@ -1,8 +1,8 @@
 -- Copyright 2026 Vivian Voss. Code by Vivian Voss. Licensed under the BSD-3-Clause.
 -- SPDX-License-Identifier: BSD-3-Clause
--- Scope: vga.ui's bags as the accepted drafts draw them (manual/view/vga-reference.html §3, vga-windows.html A, vga-rewards.html): a dialog of the template, always framed, the backpack and its bags as one grid of ten columns in the game's order, no sorted sections; beneath it every special bag - a profession's bag in one of the four places, the reagent bag in its own - as an area set apart, its name in small capitals above it, a quiver or an ammunition pouch always last; at its head a search field, »Taschen durchsuchen«, and the segmented filters - Alle as a word, then as icons with their word as tooltip: Ausrüstung a breastplate, Verbrauch a bottle, Handwerk a hammer, Quest a question mark, Plunder - the poor, grey items - a teddy -, what does not match darkened whole in its place - icon and edges together, through the frame's own alpha, since the game's item button narrows SetAlpha to its icon and border - so nothing moves; each slot in the template's inset metal, our edge laid over the game's slot, three pixels wide with gently rounded corners - an item's quality from uncommon up in its colour, a new one too, a quest item in gold, an empty slot in the metal's grey -, a quest item with a small gold question mark in its lower left corner, a little in from the icon's edge, a kept corner for our rarity's gem once vga.data brings it; an item new for five minutes - stamped when the game first calls it new, kept over a reload - brighter, without a glow behind it, its edge its quality's, every three seconds a shimmer running once round its rim that ends in a star flashing at its corner, until its five minutes are over; at the foot the slots in use of all and the money with the accepted coins. The game's own bags open and close as ever - B, the bag bar, a merchant, the mailbox -, kept under a hidden parent before they show, so they never appear and never clear their new items, while ours follow them and sound as they did; the bank stays the game's. At the filters' right end a button with the sorting arrows opens the settings on the tab »Taschen«, where the order is chosen (Bagsettings.lua); their size, place and pin are Bagplace.lua's. Using, dragging, selling and the tooltip are the game's own item buttons'.
+-- Scope: vga.ui's bags as the accepted drafts draw them (manual/view/vga-reference.html §3, vga-windows.html A, vga-rewards.html): a dialog of the template, always framed, the backpack and its bags as one grid of ten columns in the game's order, no sorted sections; beneath it every special bag - a profession's bag in one of the four places, the reagent bag in its own - as an area set apart, its name in small capitals above it, a quiver or an ammunition pouch always last; at its head a search field, »Taschen durchsuchen«, and the segmented filters - Alle as a word, then as icons with their word as tooltip: Ausrüstung a breastplate, Verbrauch a bottle, Handwerk a hammer, Quest a question mark, Plunder - the poor, grey items - a teddy -, what does not match darkened whole in its place - icon and edges together, through the frame's own alpha, since the game's item button narrows SetAlpha to its icon and border - so nothing moves; each slot in the template's inset metal, our edge laid over the game's slot, three pixels wide with gently rounded corners - an item's quality from uncommon up in its colour, a new one too, a quest item in gold, an empty slot in the metal's grey -, a quest item with a small gold question mark in its lower left corner, a little in from the icon's edge, a kept corner for our rarity's gem once vga.data brings it; an item new for five minutes - stamped when the game first calls it new, kept over a reload - brighter, without a glow behind it, its edge its quality's, every three seconds a shimmer running once round its rim that ends in a star flashing at its corner, until its five minutes are over; at the foot the slots in use of all and the money with the accepted coins. The game's own bags open and close as ever - B, the bag bar, a merchant, the mailbox -, kept under a hidden parent before they show, so they never appear and never clear their new items, while ours follow them and sound as they did; the bank stays the game's. At the filters' right end a button with the sorting arrows opens the settings on the tab »Taschen«, where the order is chosen (Bagsettings.lua); their size, place and pin are Bagplace.lua's. Using, dragging, selling and the tooltip are the game's own item buttons'. Right of the sorting button the button »Aufräumen« pushes every item together from the top left (vga.ui/Bagtidy.lua, K0644).
 
--- {K0258} {K0259} {K0303} {K0403} {K0405} {K0406} {K0407} {K0409} {K0410} {K0411} {K0412} {K0413} {K0414}
+-- {K0258} {K0259} {K0303} {K0403} {K0405} {K0406} {K0407} {K0409} {K0410} {K0411} {K0412} {K0413} {K0414} {K0644}
 
 local _, vga = ...
 local library = LibVGA
@@ -335,9 +335,12 @@ local function update_bags()
     bags.field:SetWidth(inner)
     bags.filter:ClearAllPoints()
     bags.filter:SetPoint("TOPLEFT", bags.field, "BOTTOMLEFT", 0, -read_draft(8))
+    library.update_choice(bags.tidy)
+    bags.tidy:ClearAllPoints()
+    bags.tidy:SetPoint("TOPRIGHT", bags.field, "BOTTOMRIGHT", 0, -read_draft(8))
     library.update_choice(bags.sort)
     bags.sort:ClearAllPoints()
-    bags.sort:SetPoint("TOPRIGHT", bags.field, "BOTTOMRIGHT", 0, -read_draft(8))
+    bags.sort:SetPoint("RIGHT", bags.tidy, "LEFT", -read_draft(6), 0)
     local tools_height = pad + read_draft(FIELD) + read_draft(8) + library.read_size(2) + pad
     bags.grid:ClearAllPoints()
     bags.grid:SetPoint("TOPLEFT", bags.body, "TOPLEFT", pad, -(tools_height + 1 + pad))
@@ -355,6 +358,15 @@ end
 
 local function update_bags_safely()
     library.update_safely("bags", update_bags)
+end
+
+local function render_tidy()
+    bags.tidy.chosen = 0
+    library.update_choice(bags.tidy)
+    local main, special = read_groups()
+    local groups = { main }
+    for _, bag in ipairs(special) do groups[#groups + 1] = { bag } end
+    vga.render_bag_tidy(groups)
 end
 
 local function render_sorting()
@@ -497,6 +509,7 @@ local function create_bags()
     bags:SetScript("OnUpdate", update_shimmer_safely)
     create_watch()
     bags.sort = library.create_choice(bags.body, { { icon = "Sort", tip = texts.sort_tip } }, 0, render_sorting)
+    bags.tidy = library.create_choice(bags.body, { { icon = "Tidy", tip = texts.tidy_tip } }, 0, render_tidy)
     library.create_element("bags", { update = update_bags, title = texts.bags, icon = "TabBags", tab = vga.create_bags_page })
 end
 

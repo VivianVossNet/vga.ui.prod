@@ -1,8 +1,8 @@
 -- Copyright 2026 Vivian Voss. Code by Vivian Voss. Licensed under the BSD-3-Clause.
 -- SPDX-License-Identifier: BSD-3-Clause
--- Scope: vga.ui's one settings dialog as the accepted draft orders it (manual/view/vga-settings.html), standing high on the screen, its top fixed, as tall as the tab shown and growing or shrinking downward with a soft, eased animation, as wide as its sidebar and its widest page: at the left a sidebar in the way of the macOS System Settings (Sidebar.lua, K0565) - Darstellung: Allgemein; Im Kampf: Einheiten, Plaketten, Bögen; Leisten: Aktionsleisten, Erfahrung; Welt: Quests, Minimap, Taschen; set apart Anordnen and Profile -, at the right the chosen page under its title, at most seven rows a page; Allgemein ending in the red »Alles zurücksetzen …«, which asks once; the last tab, Anordnen, reached from everywhere, with the alignment - free or on a grid of eight or of sixteen pixels - and the gold »Anordnen …«, which closes the dialog and shows the handles; every choice working at once - a new face measured again a moment later, when the game has loaded its file, so that every width follows it; the one menu there is - a widget's gold corner opens it on the widget's tab, the widget's own settings in the group »Widgets« at the tab's foot; and the command /vga.
+-- Scope: vga.ui's one settings dialog as the accepted draft orders it (manual/view/vga-settings.html), standing high on the screen, its top fixed, as tall as its tallest tab, whichever is shown, so no content ever changes the dialog's size (K0637), as wide as its sidebar and its widest page: at the left a sidebar in the way of the macOS System Settings (Sidebar.lua, K0565) - Darstellung: Allgemein; Im Kampf: Einheiten, Plaketten, Bögen; Leisten: Aktionsleisten, Erfahrung; Welt: Quests, Minimap, Taschen; set apart Anordnen and Profile -, at the right the chosen page under its title, at most seven rows a page; Allgemein ending in the red »Alles zurücksetzen …«, which asks once; the last tab, Anordnen, reached from everywhere, with the alignment - free or on a grid of eight or of sixteen pixels - and the gold »Anordnen …«, which closes the dialog and shows the handles; every choice working at once - a new face measured again a moment later, when the game has loaded its file, so that every width follows it; the one menu there is - a widget's gold corner opens it on the widget's tab, the widget's own settings in the group »Widgets« at the tab's foot; and the command /vga.
 
--- {K0268} {K0311} {K0316} {K0324} {K0330} {K0337} {K0383} {K0384} {K0430} {K0565}
+-- {K0268} {K0311} {K0316} {K0324} {K0330} {K0337} {K0383} {K0384} {K0430} {K0565} {K0637}
 
 local library = LibVGA
 
@@ -15,27 +15,13 @@ local GROUPS = {
     { title = "world", keys = { "quests", "map", "bags" } },
     { keys = { "arrange", "profiles" } },
 }
-local GROW = 0.25
 local FROM_TOP = 0.12
 local FONT_LOADED = 0.3
 
-local function update_grown(dialog)
-    local share = math.min((GetTime() - dialog.grow_from) / GROW, 1)
-    local eased = 1 - (1 - share) * (1 - share) * (1 - share)
-    dialog:SetHeight(dialog.grow_start + (dialog.grow_to - dialog.grow_start) * eased)
-    if share >= 1 then dialog:SetScript("OnUpdate", nil) end
-end
-
 local function update_height()
-    local page = settings.pages[settings.chosen]
-    if not page or not page.wanted then return end
-    local target = settings.frame_height + page.wanted
-    if math.abs(target - settings:GetHeight()) < 1 or not settings:IsShown() then
-        settings:SetHeight(target)
-        return
-    end
-    settings.grow_from, settings.grow_start, settings.grow_to = GetTime(), settings:GetHeight(), target
-    settings:SetScript("OnUpdate", update_grown)
+    local tallest = 0
+    for _, page in pairs(settings.pages) do tallest = math.max(tallest, page.wanted or 0) end
+    if tallest > 0 then settings:SetHeight(settings.frame_height + tallest) end
 end
 
 local function update_tab(name)

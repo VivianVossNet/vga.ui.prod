@@ -1,8 +1,8 @@
 -- Copyright 2026 Vivian Voss. Code by Vivian Voss. Licensed under the BSD-3-Clause.
 -- SPDX-License-Identifier: BSD-3-Clause
--- Scope: LibVGA's money as the accepted draft draws it (manual/view/vga-windows.html .money): gold, silver and copper, each figure followed by its coin, the coin centred on the figure's line, two draft pixels between figure and coin and six between the groups, closer than the draft's four and twelve since the owner's word of 20 November 2026 (K0539), so a separator beside the money reads as one; leading empty groups left out, the copper always shown; shared by every element that shows money.
+-- Scope: LibVGA's money as the accepted draft draws it (manual/view/vga-windows.html .money): gold, silver and copper, each figure followed by its coin, the coin centred on the figure's line, two draft pixels between figure and coin and six between the groups, closer than the draft's four and twelve since the owner's word of 20 November 2026 (K0539), so a separator beside the money reads as one; leading empty groups left out, the copper always shown; shared by every element that shows money; read as text with the coins as inline pictures for lines of text and tooltips (library.read_money_text, K0632).
 
--- {K0258} {K0388} {K0403} {K0539}
+-- {K0258} {K0388} {K0403} {K0539} {K0632}
 
 local library = LibVGA
 local DRAFT_BASE = 13
@@ -48,4 +48,14 @@ function library.update_money(money, copper)
     end
     money:SetWidth(math.max(1, x - apart))
     money:SetHeight(math.ceil(money.groups[#COINS].text:GetStringHeight()))
+end
+
+function library.read_money_text(copper)
+    local parts = {}
+    for index, coin in ipairs(COINS) do
+        local count = math.floor(copper / coin[1])
+        if index > 1 then count = count % 100 end
+        if count > 0 or (index == #COINS and #parts == 0) then parts[#parts + 1] = count .. "|T" .. library.media .. coin[2] .. ":0|t" end
+    end
+    return table.concat(parts, " ")
 end

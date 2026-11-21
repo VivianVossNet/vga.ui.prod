@@ -1,8 +1,8 @@
 -- Copyright 2026 Vivian Voss. Code by Vivian Voss. Licensed under the BSD-3-Clause.
 -- SPDX-License-Identifier: BSD-3-Clause
--- Scope: LibVGA's segmented choice, the chosen part in gold; one size for every part, the weight alone changing, every part as wide as the widest in its bold state, or as a given width allows, so a choice moves nothing; a part may show an icon in place of its word, the word then its tooltip; the parts joined over a black ground, its outer corners rounded, as vga-scale.html and vga-probe.html's .vt-seg draw it. A choice of off and on is a switch instead, in the way of macOS: a rounded track, gold while on, a light knob at its end (K0565).
+-- Scope: LibVGA's segmented choice, the chosen part in gold; one size for every part, the weight alone changing, every part as wide as the widest in its bold state, or as a given width allows, so a choice moves nothing; a part may show an icon in place of its word, the word then its tooltip; the parts joined over a black ground, its outer corners rounded, as vga-scale.html and vga-probe.html's .vt-seg draw it. A choice of off and on is a switch instead, in the way of macOS: a rounded track, gold while on, a light knob at its end (K0565). Its parts can be named anew and their number changed (library.update_choice_labels), and a choice marked natural gives each part its own width where equal parts would not fit (K0634). Given a most width, a choice wider than that gives every part an equal share and its word ends in »…« (K0637). Every part's width, place and the seam between parts lie on whole screen pixels, so no part slides half over its neighbour and leaves a hairline (K0653).
 
--- {K0256} {K0330} {K0334} {K0337} {K0409} {K0565}
+-- {K0256} {K0330} {K0334} {K0337} {K0409} {K0565} {K0634} {K0637} {K0653}
 
 local library = LibVGA
 local SWITCH_RATIO = 1.65
@@ -34,6 +34,42 @@ local function read_part_width(button, pad)
     return math.ceil(button.text:GetStringWidth()) + 2 * pad
 end
 
+local function render_part(button)
+    local choice = button:GetParent()
+    choice.chosen = button.index
+    library.update_choice(choice)
+    choice.on_choose(button.index)
+end
+
+local function create_part(choice, index, label)
+    local button = CreateFrame("Button", nil, choice)
+    button.index = index
+    button.face = button:CreateTexture(nil, "BACKGROUND")
+    button.face:SetAllPoints()
+    button.face:SetColorTexture(1, 1, 1, 1)
+    button.text = library.create_text(button, "small")
+    button.text:SetPoint("CENTER")
+    if type(label) == "table" then create_icon(button, label) else button.text:SetText(label) end
+    button:SetScript("OnClick", render_part)
+    return button
+end
+
+local function read_parts(choice)
+    local parts = {}
+    for index = 1, choice.count or #choice.buttons do parts[index] = choice.buttons[index] end
+    return parts
+end
+
+function library.update_choice_labels(choice, labels, chosen)
+    for index, label in ipairs(labels) do
+        choice.buttons[index] = choice.buttons[index] or create_part(choice, index, label)
+        choice.buttons[index].text:SetText(label)
+        choice.buttons[index]:Show()
+    end
+    for index = #labels + 1, #choice.buttons do choice.buttons[index]:Hide() end
+    choice.count, choice.chosen = #labels, chosen
+end
+
 function library.create_choice(parent, labels, chosen, on_choose)
     local choice = CreateFrame("Frame", nil, parent)
     choice.ground = library.create_surface(choice, "BACKGROUND", 0)
@@ -41,33 +77,23 @@ function library.create_choice(parent, labels, chosen, on_choose)
     choice.rounding:SetAllPoints()
     choice.rounding:SetFrameLevel(choice:GetFrameLevel() + 3)
     choice.notches = library.create_notches(choice.rounding, "OVERLAY", 0)
-    choice.buttons = {}
-    for index, label in ipairs(labels) do
-        local button = CreateFrame("Button", nil, choice)
-        button.face = button:CreateTexture(nil, "BACKGROUND")
-        button.face:SetAllPoints()
-        button.face:SetColorTexture(1, 1, 1, 1)
-        button.text = library.create_text(button, "small")
-        button.text:SetPoint("CENTER")
-        if type(label) == "table" then create_icon(button, label) else button.text:SetText(label) end
-        button:SetScript("OnClick", function()
-            choice.chosen = index
-            library.update_choice(choice)
-            on_choose(index)
-        end)
-        choice.buttons[index] = button
-    end
+    choice.buttons, choice.on_choose = {}, on_choose
+    for index, label in ipairs(labels) do choice.buttons[index] = create_part(choice, index, label) end
+    choice.count = #labels
     choice.chosen = chosen
     return choice
 end
 
 function library.read_choice_width(choice)
     local pad, widest = library.read_size(-2), 0
-    for _, button in ipairs(choice.buttons) do
+    local parts, total = read_parts(choice), 0
+    for _, button in ipairs(parts) do
         button.text:SetFontObject(library.read_font("caption"))
         widest = math.max(widest, read_part_width(button, pad))
+        total = total + read_part_width(button, pad)
     end
-    return widest * #choice.buttons + #choice.buttons - 1
+    if choice.natural then return total + #parts - 1 end
+    return widest * #parts + #parts - 1
 end
 
 function library.update_choice(choice, wanted)
@@ -78,15 +104,27 @@ function library.update_choice(choice, wanted)
     end
     choice.wanted = wanted or choice.wanted
     wanted = choice.wanted
-    local height, count = library.read_size(2), #choice.buttons
+    local parts = read_parts(choice)
+    local height, count, pad = library.read_size(2), #parts, library.read_size(-2)
     local width = math.floor((math.max(wanted or 0, library.read_choice_width(choice)) - (count - 1)) / count)
-    local x = 0
-    for index, button in ipairs(choice.buttons) do
+    for _, button in ipairs(parts) do button.text:SetWidth(0) end
+    local too_wide = choice.most and library.read_choice_width(choice) > choice.most
+    local x, seam = 0, library.read_whole_pixels(1, choice)
+    for index, button in ipairs(parts) do
+        button.text:SetFontObject(library.read_font("caption"))
+        button.text:SetWidth(0)
+        local own = choice.natural and read_part_width(button, pad) or width
+        if too_wide then
+            own = math.floor((choice.most - (count - 1)) / count)
+            button.text:SetWidth(own - 2 * pad)
+            button.text:SetWordWrap(false)
+        end
+        own = library.read_whole_pixels(own, choice)
         button.text:SetFontObject(library.read_font(index == choice.chosen and "caption" or "small"))
         button:ClearAllPoints()
-        button:SetSize(width, height)
+        button:SetSize(own, library.read_whole_pixels(height, choice))
         button:SetPoint("LEFT", choice, "LEFT", x, 0)
-        x = x + width + 1
+        x = x + own + seam
         if index == choice.chosen then
             button.face:SetGradient("VERTICAL", CreateColor(0.765, 0.588, 0.184, 1), CreateColor(colours.gold_high[1], colours.gold_high[2], colours.gold_high[3], 1))
             button.text:SetTextColor(0.102, 0.082, 0.043)
@@ -98,7 +136,7 @@ function library.update_choice(choice, wanted)
         end
         if button.icon then button.icon:SetSize(library.read_size(1), library.read_size(1)) end
     end
-    choice:SetSize(x - 1, height)
+    choice:SetSize(x - seam, library.read_whole_pixels(height, choice))
     local radius = library.read_size(-6)
     library.update_surface(choice.ground, -1, radius + 1, { 0, 0, 0 }, { 0, 0, 0 })
     library.update_notches(choice.notches, choice, radius, { 0, 0, 0 })
