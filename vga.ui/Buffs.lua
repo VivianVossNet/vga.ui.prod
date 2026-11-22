@@ -1,8 +1,8 @@
 -- Copyright 2026 Vivian Voss. Code by Vivian Voss. Licensed under the BSD-3-Clause.
 -- SPDX-License-Identifier: BSD-3-Clause
--- Scope: The player's buffs as the accepted draft draws .buffs and .buff (manual/view/vga-probe.html): icons in a ring with gently rounded corners like the bag slots' - green for a helpful effect, red for a harmful one, white for a lasting search such as Find Minerals or Track Beasts, those following the buffs as a group of their own (K0618) -, the ring's full colour drawing back round the rim as the effect runs out, over a darkened ring of the same width and colour that always stays, driven by the game's own cooldown of the aura so it runs in a fight too, a lasting effect staying full (K0620), the time left small beneath each; from the player frame's left edge above it to the right, as many to a row as the frame's width holds, two rows at most; Blizzard's own buff frame hidden. Above the target frame the same, mirrored as the target frame is, from its right edge to the left: the target's buffs, then on a row of their own its debuffs, red (K0580) - the player's own first, each with the bags' shimmer of a light running round its rim and a star flashing at its corner, the others after them on the same row (K0615). Both are the game's own aura containers (K0584), which the game fills itself, in a fight too, where an addon may not read auras: each icon shows the game's tooltip of its aura under the mouse, and a click on one of the player's own buffs ends it; the time beneath each written short, one letter for its unit, in the smallest face, so neighbours do not run into each other (K0588); a dead target's auras are hidden, and so are the last target's once none is chosen (K0585, K0586); on a change of target the container is told to read its auras anew, which it does not do by itself, so no foe's auras pass to the next (K0591). Every row stands clear of the times beneath the row below it: the height of a time in its face, its drop of two pixels and four draft pixels more, both between a group's own rows (lineSpacing) and where a group begins a row of its own (groupLineSpacing, which the game's aura container keeps apart and which was nought, so a second row ran into the first row's times), and as much between the frame and the first row (K0694). Above the target of target its own small row of debuffs, after manual/view/vga-tot.html: the icons scaled as that frame is to the target frame, no time, only the ring running down, growing from its right edge, a child of that frame so it shows and hides with it (K0696). Besides, at the top of the screen, an area of its own for the player and one for the target, each showing exactly what its frame's shows, in the same look, but every aura, growing downwards: by default straight above its frame at the screen's top edge, a place of its own to be moved; the units' settings choose for each, apart, whether its auras stand at the frame, at the top or both, at the frame by default; at the frame at most two rows a group, as before, at the top up to forty (K0713); a top area made only once it is chosen, so at the frame alone each unit has one aura container, as before (K0718). The own debuffs' shimmer is laid guarded, so its failure never keeps a debuff from showing - Forever's missing SetCurve hid every own debuff on foes until K0719 (K0719).
+-- Scope: The player's buffs as the accepted draft draws .buffs and .buff (manual/view/vga-probe.html): icons in a ring with gently rounded corners like the bag slots' - green for a helpful effect, red for a harmful one, white for a lasting search such as Find Minerals or Track Beasts, those following the buffs as a group of their own (K0618) -, the ring's full colour drawing back round the rim as the effect runs out, over a darkened ring of the same width and colour that always stays, driven by the game's own cooldown of the aura so it runs in a fight too, a lasting effect staying full (K0620), the time left small beneath each; from the player frame's left edge above it to the right, as many to a row as the frame's width holds, two rows at most; Blizzard's own buff frame hidden. Above the target frame the same, mirrored as the target frame is, from its right edge to the left: the target's buffs, then on a row of their own its debuffs, red (K0580) - the player's own first, each with the bags' shimmer of a light running round its rim and a star flashing at its corner, the others after them on the same row (K0615). Both are the game's own aura containers (K0584), which the game fills itself, in a fight too, where an addon may not read auras: each icon shows the game's tooltip of its aura under the mouse, and a click on one of the player's own buffs ends it; the time beneath each written short, one letter for its unit, in the smallest face, so neighbours do not run into each other (K0588); a dead target's auras are hidden, and so are the last target's once none is chosen (K0585, K0586); on a change of target the container is told to read its auras anew, which it does not do by itself, so no foe's auras pass to the next (K0591). Every row stands clear of the times beneath the row below it: the height of a time in its face, its drop of two pixels and four draft pixels more, both between a group's own rows (lineSpacing) and where a group begins a row of its own (groupLineSpacing, which the game's aura container keeps apart and which was nought, so a second row ran into the first row's times), and as much between the frame and the first row (K0694). Above the target of target its own small row of debuffs, after manual/view/vga-tot.html: the icons scaled as that frame is to the target frame, no time, only the ring running down, growing from its right edge, a child of that frame so it shows and hides with it (K0696). Besides, at the top of the screen, an area of its own for the player and one for the target, each showing exactly what its frame's shows, in the same look, but every aura, growing downwards: by default straight above its frame at the screen's top edge, a place of its own to be moved; the units' settings choose for each, apart, whether its auras stand at the frame, at the top or both, at the frame by default; at the frame at most two rows a group, as before, at the top up to forty (K0713); a top area made only once it is chosen, so at the frame alone each unit has one aura container, as before (K0718). An aura's stack count lies above the ring that runs down, on a layer of its own, so the ring never covers it (K0735). The game's own buff frame, hidden in play but shown by the game's edit mode, and its debuff frame, which shows the player's own debuffs, stand left of our map, eight draft pixels from it, the debuffs beneath the buffs, laid there again whenever the edit mode begins or ends and whenever the elements are laid, never in a fight (K0742). The own debuffs' shimmer is laid guarded, so its failure never keeps a debuff from showing - Forever's missing SetCurve hid every own debuff on foes until K0719 (K0719).
 
--- {K0261} {K0355} {K0580} {K0584} {K0585} {K0586} {K0588} {K0591} {K0615} {K0618} {K0620} {K0694} {K0696} {K0713} {K0718} {K0719}
+-- {K0261} {K0355} {K0580} {K0584} {K0585} {K0586} {K0588} {K0591} {K0615} {K0618} {K0620} {K0694} {K0696} {K0713} {K0718} {K0719} {K0735} {K0742}
 
 local library = LibVGA
 local colours = library.colours
@@ -26,6 +26,8 @@ local TOP_CORNERS = { BOTTOMLEFT = "TOPLEFT", BOTTOMRIGHT = "TOPRIGHT" }
 local SCALE = 0.6
 local TIME_DROP = 2
 local ROW_GAP = 4
+local DOCK_GAP = 8
+local DOCKING = {}
 local time_probe
 
 local function read_scale()
@@ -91,7 +93,10 @@ local function create_button_parts(button, group, strip)
         button.drain:SetReverse(true)
         button:SetDurationCooldown(button.drain)
     end
-    button.count = library.create_text(button, "caption")
+    button.lift = CreateFrame("Frame", nil, button)
+    button.lift:SetAllPoints()
+    button.lift:SetFrameLevel(button:GetFrameLevel() + 3)
+    button.count = library.create_text(button.lift, "caption")
     button.count:SetPoint("BOTTOMRIGHT", button, "BOTTOMRIGHT", 1, -1)
     button.time = library.create_text(button, "small", colours.ink)
     button.time:SetPoint("TOP", button, "BOTTOM", 0, -TIME_DROP)
@@ -164,7 +169,21 @@ local function update_new_target()
     update_dead_target()
 end
 
+local function update_game_auras_docked()
+    if InCombatLockdown() or not (VGAMapFrame and BuffFrame and DebuffFrame) then return end
+    local gap = library.read_draft_size(DOCK_GAP)
+    BuffFrame:ClearAllPoints()
+    BuffFrame:SetPoint("TOPRIGHT", VGAMapFrame, "TOPLEFT", -gap, 0)
+    DebuffFrame:ClearAllPoints()
+    DebuffFrame:SetPoint("TOPRIGHT", BuffFrame, "BOTTOMRIGHT", 0, -gap)
+end
+
+local function update_game_auras_safely()
+    library.update_safely("game auras docked", update_game_auras_docked)
+end
+
 local function update_buffs()
+    update_game_auras_docked()
     update_top_strips_made()
     for _, strip in ipairs(strips) do update_strip(strip) end
     update_dead_target()
@@ -215,6 +234,10 @@ local function create_buffs()
         BuffFrame:SetAlpha(0)
     end
     library.create_element("buffs", { update = update_buffs })
+    if EventRegistry then
+        EventRegistry:RegisterCallback("EditMode.Enter", update_game_auras_safely, DOCKING)
+        EventRegistry:RegisterCallback("EditMode.Exit", update_game_auras_safely, DOCKING)
+    end
 end
 
 local events = CreateFrame("Frame")

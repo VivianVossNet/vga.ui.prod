@@ -1,8 +1,8 @@
 -- Copyright 2026 Vivian Voss. Code by Vivian Voss. Licensed under the BSD-3-Clause.
 -- SPDX-License-Identifier: BSD-3-Clause
--- Scope: What concerns one widget, in its tab of the one settings dialog, as the accepted draft draws it (manual/view/vga-settings-one.html): a group »Widgets« at the tab's foot, its title naming what its columns set - Deckkraft des Hintergrunds, and Größe where a widget has sizes -, a row a widget - its name, its background reading »wie alle« until moved, a double click setting it back, and K / N / G for its size where it has sizes; a widget's gold corner opens the dialog on that tab, and its row shines gold a moment and fades.
+-- Scope: What concerns one widget, in its tab of the one settings dialog, as the accepted draft draws it (manual/view/vga-settings-one.html): a group »Widgets« at the tab's foot, its title naming what its columns set - Deckkraft des Hintergrunds, and Größe where a widget has sizes -, a row a widget - its name, its background reading »wie Allgemein« until moved, following the general background, a double click setting it back (K0734), room kept at the right for the widest of its words so they never run past the row (K0733) -, and beneath it, where a widget has sizes, a row of its own »Größe« choosing Klein, Normal or Groß, written out, named after its widget where a page has several (K0727); a widget's gold corner opens the dialog on that tab, and its row shines gold a moment and fades.
 
--- {K0267} {K0319} {K0382} {K0383} {K0384}
+-- {K0267} {K0319} {K0382} {K0383} {K0384} {K0727} {K0733} {K0734}
 
 local library = LibVGA
 local colours = library.colours
@@ -40,13 +40,19 @@ local function create_widget_row(page, entry)
     row.control.row = row
     row.control:HookScript("OnMouseUp", update_reset)
     update_like(row)
+    return row
+end
+
+local function create_size_row(page, entry, named)
+    local texts = library.texts
     local _, chosen = library.read_size_step(entry.key)
     local index = ({ small = 1, normal = 2, large = 3 })[chosen]
-    row.size = library.create_choice(row, { texts.size_small_short, texts.size_normal_short, texts.size_large_short }, index, function(place)
-        LibVGASettings.sizes[row.key] = SIZES[place]
+    local word = named and (texts.size .. " · " .. entry.title) or texts.size
+    local row = library.create_choice_row(page, word, { texts.small, texts.size_normal, texts.large }, index, function(place)
+        LibVGASettings.sizes[entry.key] = SIZES[place]
         library.update_elements()
     end)
-    row.size:SetShown(entry.sized or false)
+    row.when = entry.when
     return row
 end
 
@@ -59,33 +65,37 @@ local function check_group_shown(heading)
 end
 
 function library.create_widget_rows(page, page_key, entries)
-    local texts, sized = library.texts, false
-    for _, entry in ipairs(entries) do sized = sized or entry.sized or false end
-    local title = texts.widgets .. " · " .. texts.ground_opacity .. (sized and " · " .. texts.size or "")
-    local heading = library.create_row(page, title, "heading")
+    local texts, sized = library.texts, 0
+    for _, entry in ipairs(entries) do sized = sized + (entry.sized and 1 or 0) end
+    local heading = library.create_row(page, texts.widgets .. " · " .. texts.ground_opacity, "heading")
     local rows = { heading }
     for _, entry in ipairs(entries) do
         local row = create_widget_row(page, entry)
         rows[#rows + 1] = row
         places[entry.key] = { page = page_key, row = row }
+        if entry.sized then rows[#rows + 1] = create_size_row(page, entry, sized > 1) end
     end
     heading.group, heading.when = rows, check_group_shown
     heading.members = { unpack(rows, 2) }
     return rows
 end
 
+local probe
+
+local function read_label_room()
+    probe = probe or UIParent:CreateFontString(nil, "OVERLAY")
+    probe:SetFontObject(library.read_font("small"))
+    return math.max(library.read_widest_text(probe, library.texts.like_all), library.read_widest_text(probe, "100 %"))
+end
+
 function library.read_widget_row_width()
-    return library.read_slider_width() + library.read_size(-2) + library.read_size(2) * 3 + 2
+    return library.read_slider_width() - library.read_size(4) + read_label_room()
 end
 
 function library.update_widget_row(row, right)
-    local size_width = library.read_size(2) * 3 + 2
     library.update_slider(row.control, library.read_slider_width())
-    library.update_choice(row.size, size_width)
-    row.size:ClearAllPoints()
-    row.size:SetPoint("RIGHT", row, "RIGHT", -right, 0)
     row.control:ClearAllPoints()
-    row.control:SetPoint("RIGHT", row, "RIGHT", -right - size_width - library.read_size(-2) - library.read_size(4) - row.control.reach, 0)
+    row.control:SetPoint("RIGHT", row, "RIGHT", -right - read_label_room() - library.read_size(-2) - row.control.reach, 0)
 end
 
 local function create_shine(row)

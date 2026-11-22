@@ -1,8 +1,8 @@
 -- Copyright 2026 Vivian Voss. Code by Vivian Voss. Licensed under the BSD-3-Clause.
 -- SPDX-License-Identifier: BSD-3-Clause
--- Scope: LibVGA's dialog as the accepted drafts draw it (manual/view/vga-scale.html .dlg, vga-template.css .vt): the metal frame, the head with the mark, the gold title and the close button, further buttons of the same make with an icon to its left where a dialog asks for them, its rows divided by hairlines; always free to move, its ground down to a floor. Rows that stand together outside a fieldset stand on one rounded, faintly lighter card, in the way of the macOS System Settings (K0565). A stepper in a row is measured as it is laid (K0721).
+-- Scope: LibVGA's dialog as the accepted drafts draw it (manual/view/vga-scale.html .dlg, vga-template.css .vt): the metal frame, the head with the mark, the gold title and the close button, further buttons of the same make with an icon to its left where a dialog asks for them, its rows divided by hairlines; always free to move, its ground down to a floor. Rows that stand together outside a fieldset stand on one rounded, faintly lighter card, in the way of the macOS System Settings (K0565). A stepper in a row is measured as it is laid (K0721). The dialog opened or clicked last stands in front of every other, whole, so no two dialogs interleave (K0737). A row may carry a mark before its label - the elite's chevron turned to point right at the label, four draft pixels before it, in a colour of the library's -, standing in the row's inset so the label never moves; the profiles mark the active one so in orange (K0729).
 
--- {K0256} {K0296} {K0299} {K0324} {K0330} {K0337} {K0415} {K0565} {K0721}
+-- {K0256} {K0296} {K0299} {K0324} {K0330} {K0337} {K0415} {K0565} {K0721} {K0729} {K0737}
 
 local library = LibVGA
 local CARD = { 1, 1, 1 }
@@ -71,9 +71,15 @@ local function update_close(close, size)
     end
 end
 
+local function update_raised(dialog)
+    dialog:Raise()
+end
+
 function library.create_dialog(name, title)
     local dialog = CreateFrame("Frame", name, UIParent)
     dialog:SetFrameStrata("DIALOG")
+    dialog:SetToplevel(true)
+    dialog:HookScript("OnShow", update_raised)
     dialog:SetClampedToScreen(true)
     dialog:SetMovable(true)
     dialog:EnableMouse(true)
@@ -294,11 +300,27 @@ local function update_row_control(row, parent, pad, inset, column, width)
     end
 end
 
+function library.create_row_mark(row, colour)
+    row.mark = row:CreateTexture(nil, "ARTWORK")
+    row.mark:SetTexture(library.media .. "Chevron")
+    row.mark:SetRotation(-math.pi / 2)
+    row.mark:SetVertexColor(colours[colour][1], colours[colour][2], colours[colour][3], 1)
+    return row.mark
+end
+
+local function update_row_mark(row)
+    local size = library.read_size(-4)
+    row.mark:SetSize(size, size)
+    row.mark:ClearAllPoints()
+    row.mark:SetPoint("RIGHT", row.label, "LEFT", -library.read_draft_size(4), 0)
+end
+
 local function update_row_label(row, pad, inset)
     row.label:SetFontObject(library.read_font(row.kind == "heading" and "small" or "body"))
     if row.kind == "heading" then row.label:SetTextColor(unpack(colours.quiet)) end
     row.label:ClearAllPoints()
     row.label:SetPoint("LEFT", row, "LEFT", row.kind == "heading" and inset + pad - math.max(3, library.read_size(-6)) or pad, 0)
+    if row.mark then update_row_mark(row) end
 end
 
 local function update_cards(parent, runs)

@@ -1,8 +1,8 @@
 -- Copyright 2026 Vivian Voss. Code by Vivian Voss. Licensed under the BSD-3-Clause.
 -- SPDX-License-Identifier: BSD-3-Clause
--- Scope: The navigation arrow centred between the player frame and the target frame: three gold chevrons, the foremost strongest and each behind it fainter, laid on the ground as if they lay on the way, each tilted back on its own, with room between them, the farther a little smaller - turned towards the nearest open quest's target as the player sees it - the quest set as the game's tracked one, so the game's own navigation tells where its target stands on the screen, and the arrow points from the screen's middle there, turning with the camera however it is turned, behind the camera pointing back; where the game knows no place for the quest, a map waypoint of the game's is set on the arrow's target and tracked instead, so its place on the screen is known too (K0570); only where neither gives one, by the character's facing - and tilted back (K0545) -, its distance beneath it; shown whenever the tracker has such a target, in a fight too, gone without one.
+-- Scope: The navigation arrow centred between the player frame and the target frame: three gold chevrons, the foremost strongest and each behind it fainter, laid on the ground as if they lay on the way, each tilted back on its own, with room between them, the farther a little smaller - turned towards the nearest open quest's target as the player sees it - the quest set as the game's tracked one, so the game's own navigation tells where its target stands on the screen, and the arrow points from the screen's middle there, turning with the camera however it is turned, behind the camera pointing back; where the game knows no place for the quest, a map waypoint of the game's is set on the arrow's target and tracked instead, so its place on the screen is known too (K0570) - remembered as the arrow's own and cleared again as soon as the quest has a place of its own, the arrow has no target, or on entering the world after a session that left it; a waypoint the player set is never overwritten nor cleared, the arrow then going by the character's facing (K0728); only where neither gives one, by the character's facing - and tilted back (K0545) -, its distance beneath it; shown whenever the tracker has such a target, in a fight too, gone without one.
 
--- {K0370} {K0372} {K0398} {K0399} {K0545} {K0570}
+-- {K0370} {K0372} {K0398} {K0399} {K0545} {K0570} {K0728}
 
 local _, vga = ...
 local library = LibVGA
@@ -73,7 +73,8 @@ local function update_place()
     return true
 end
 
-local waypoint_set, navigation_way
+local navigation_way
+local SAME_SPOT = 0.0001
 
 local function update_tracked(aim)
     if not (aim.id and C_SuperTrack and C_SuperTrack.SetSuperTrackedQuestID) then return end
@@ -84,13 +85,35 @@ local function check_screen_place()
     return C_Navigation and C_Navigation.GetFrame and C_Navigation.GetFrame() and C_Navigation.HasValidScreenPosition and C_Navigation.HasValidScreenPosition()
 end
 
+local function read_map_waypoint()
+    if not (C_Map.HasUserWaypoint and C_Map.HasUserWaypoint() and C_Map.GetUserWaypoint) then return nil end
+    return C_Map.GetUserWaypoint()
+end
+
+local function check_spot(point, map, x, y)
+    local spot = point and point.position
+    return spot ~= nil and point.uiMapID == map and math.abs(spot.x - x) < SAME_SPOT and math.abs(spot.y - y) < SAME_SPOT
+end
+
+local function check_waypoint_ours(point)
+    local own = LibVGASettings.navigation_waypoint
+    return own ~= nil and check_spot(point, own[1], own[2], own[3])
+end
+
+local function update_waypoint_cleared()
+    if not LibVGASettings.navigation_waypoint then return end
+    if check_waypoint_ours(read_map_waypoint()) and C_Map.ClearUserWaypoint then C_Map.ClearUserWaypoint() end
+    LibVGASettings.navigation_waypoint = nil
+end
+
 local function update_waypoint(aim)
     local map = C_Map.GetBestMapForUnit("player")
     if not (map and aim.point and C_Map.SetUserWaypoint and UiMapPoint and C_SuperTrack.SetSuperTrackedUserWaypoint) then return end
-    local wanted = map .. ":" .. aim.point[1] .. ":" .. aim.point[2]
-    if waypoint_set ~= wanted then
+    local point = read_map_waypoint()
+    if point and not check_waypoint_ours(point) then return end
+    if not check_spot(point, map, aim.point[1], aim.point[2]) then
         C_Map.SetUserWaypoint(UiMapPoint.CreateFromCoordinates(map, aim.point[1], aim.point[2]))
-        waypoint_set = wanted
+        LibVGASettings.navigation_waypoint = { map, aim.point[1], aim.point[2] }
     end
     if not (C_SuperTrack.IsSuperTrackingUserWaypoint and C_SuperTrack.IsSuperTrackingUserWaypoint()) then C_SuperTrack.SetSuperTrackedUserWaypoint(true) end
 end
@@ -105,7 +128,9 @@ end
 function vga.read_screen_heading(aim)
     update_tracked(aim)
     local way = "quest"
-    if not check_screen_place() then
+    if check_screen_place() then
+        update_waypoint_cleared()
+    else
         update_waypoint(aim)
         way = "waypoint"
     end
@@ -124,6 +149,7 @@ end
 local function update_navigation()
     local aim = vga.quest_aim
     local heading = aim and aim.point and (vga.read_screen_heading(aim) or vga.read_heading(aim.point))
+    if not heading then update_waypoint_cleared() end
     navigation:SetShown(heading ~= nil and update_place())
     if not heading then return end
     update_chevrons(heading)
@@ -139,7 +165,9 @@ end
 
 local events = CreateFrame("Frame")
 events:RegisterEvent("PLAYER_LOGIN")
-events:SetScript("OnEvent", function()
+events:RegisterEvent("PLAYER_ENTERING_WORLD")
+events:SetScript("OnEvent", function(_, event)
+    if event == "PLAYER_ENTERING_WORLD" then return library.update_safely("navigation waypoint", update_waypoint_cleared) end
     library.update_safely("navigation login", create_navigation)
     events:SetScript("OnUpdate", update_navigation_safely)
 end)

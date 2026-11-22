@@ -1,8 +1,8 @@
 -- Copyright 2026 Vivian Voss. Code by Vivian Voss. Licensed under the BSD-3-Clause.
 -- SPDX-License-Identifier: BSD-3-Clause
--- Scope: vga.auctions' page Verkaufen as the accepted draft draws it (manual/view/vga-auctions.html »Seite Verkaufen«, K0603, K0617, K0619, K0632), every part in LibVGA's groups: at the left the bags' items the auction house takes in LibVGA's list (K0631) - picture, name in its quality's colour with the count and the required level beneath it (K0647), the market value at the right -, the chosen one ringed in gold on a faint gold ground; at the right the figures in one group divided by hairlines - market value, lowest now, the seven days as a chip, the quantity on offer -, the graph in its group with its legend - median, seven-day mean, lowest to median, on offer - and the range 7, 30 or 90 days, the item's current offers in LibVGA's list under their heads, each sorting them (K0655) - the rating against the market as a chip, the quantity, the price each, the player's own marked -, the posting row - the price each in LibVGA's money field, the quantity in its stepper, 12, 24 or 48 hours, the gold »Einstellen« -, the player's average cost and the result after the cut as a chip, and the note how the price is proposed and what the deposit is: one copper under the cheapest offer neither the player's own nor a bargain. Offers asked for as the game's own window asks (K0629), anew on every visit (K0625).
+-- Scope: vga.auctions' page Verkaufen as the accepted draft draws it (manual/view/vga-auctions.html »Seite Verkaufen«, K0603, K0617, K0619, K0632), every part in LibVGA's groups: at the left the bags' items the auction house takes in LibVGA's list (K0631) - picture, name in its quality's colour with the count and the required level beneath it (K0647), the market value at the right -, the chosen one ringed in gold on a faint gold ground; at the right the figures in one group divided by hairlines - market value, lowest now, the seven days as a chip, the quantity on offer -, the graph in its group with its legend - median, seven-day mean, lowest to median, on offer - and the range 7, 30 or 90 days, the item's current offers in LibVGA's list under their heads, each sorting them (K0655) - the rating against the market as a chip, the quantity, the price each, the player's own marked -, the posting row - the price each in LibVGA's money field, the quantity in its stepper, 12, 24 or 48 hours, the gold »Einstellen« -, the player's average cost and the result after the cut as a chip, and the note how the price is proposed and what the deposit is: one copper under the cheapest offer neither the player's own nor a bargain. Offers asked for as the game's own window asks (K0629), anew on every visit (K0625). The bags read for it are every bag the player carries, the reagent bag too, and the profession bags in the bag slots (K0738).
 
--- {K0617} {K0619} {K0625} {K0628} {K0693} {K0629} {K0631} {K0632} {K0647} {K0648} {K0655}
+-- {K0617} {K0619} {K0625} {K0628} {K0693} {K0629} {K0631} {K0632} {K0647} {K0648} {K0655} {K0738}
 
 local _, vga = ...
 local library = LibVGA
@@ -21,8 +21,8 @@ local render_search
 
 local function read_bag_items()
     local found, order = {}, {}
-    for bag = 0, NUM_BAG_SLOTS or 4 do
-        for slot = 1, C_Container.GetContainerNumSlots(bag) do
+    for bag = 0, vga.read_final_bag() do
+        for slot = 1, C_Container.GetContainerNumSlots(bag) or 0 do
             local content = C_Container.GetContainerItemInfo(bag, slot)
             local location = content and not content.isBound and ItemLocation:CreateFromBagAndSlot(bag, slot)
             if location and C_AuctionHouse.IsSellItemValid(location, false) then
@@ -631,3 +631,5 @@ events:SetScript("OnEvent", function(_, event)
         library.update_safely("auctions offers", update_results)
     end
 end)
+
+vga.read_sellable_items = read_bag_items

@@ -524,7 +524,7 @@ local function create_bags()
     end
     bags.foot = create_foot()
     bags.foot_line = bags.body:CreateTexture(nil, "BORDER")
-    bags:SetScript("OnShow", update_opened)
+    bags:HookScript("OnShow", update_opened)
     bags:SetScript("OnHide", update_closed)
     bags:SetScript("OnUpdate", update_shimmer_safely)
     create_watch()
@@ -546,5 +546,6 @@ events:SetScript("OnEvent", function(_, event)
     end
 end)
 vga.read_bag_slots = read_bag_slots
+vga.read_final_bag = read_final_bag
 
 vga.read_bag_edge = read_edge

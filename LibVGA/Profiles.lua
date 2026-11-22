@@ -1,12 +1,12 @@
 -- Copyright 2026 Vivian Voss. Code by Vivian Voss. Licensed under the BSD-3-Clause.
 -- SPDX-License-Identifier: BSD-3-Clause
--- Scope: Each character's own layout and the account's named profiles: a character keeps its settings - places, sizes, grounds, every choice - for itself; a layout is saved under a name for the whole account and loaded by any character; a new character starts with the profile saved or loaded last, the first one after this change with the layout the account had before, and on a fresh installation with the delivered layout; the settings' tab »Profile« - a name and behind it »Speichern«, active only once the name holds at least three characters, each a letter of a European script, a digit, an apostrophe, a hyphen or a space inside it (K0576), then every saved profile with »Laden«, »Überschreiben« - the present layout saved over it - and »Löschen«, the last two asking once.
+-- Scope: Each character's own layout and the account's named profiles: a character keeps its settings - places, sizes, grounds, every choice - for itself; a layout is saved under a name for the whole account and loaded by any character; a new character starts with the profile saved or loaded last, the first one after this change with the layout the account had before, and on a fresh installation with the delivered layout; the settings' tab »Profile« - a name and behind it »Speichern«, active only once the name holds at least three characters, each a letter of a European script, a digit, an apostrophe, a hyphen or a space inside it (K0576), then every saved profile with »Laden«, »Überschreiben« - the present layout saved over it - and »Löschen«, the last two asking once; the active profile - the one saved or loaded last - marked by an orange chevron before its name, pointing at it (K0729). The mark that a character's chat font was set to its 12 pixels stays with the character and is never saved in a profile, as the game keeps the chat's font per character, so a new character starting from a profile gets its 12 pixels too (K0730); the same holds for the mark that its chat window was given vga.ui's size once (K0731).
 
--- {K0387} {K0449} {K0576}
+-- {K0387} {K0449} {K0576} {K0729} {K0730} {K0731}
 
 local library = LibVGA
 local colours = library.colours
-local NOT_IN_PROFILE = { faults = true, measures = true, friendly = true, reach = true, quest_pins = true, history = true, bag_fresh = true, key_fresh = true }
+local NOT_IN_PROFILE = { faults = true, measures = true, friendly = true, reach = true, quest_pins = true, history = true, bag_fresh = true, key_fresh = true, chat_font_set = true, chat_sized = true, plates_simple = true }
 
 local function read_copy(source)
     if type(source) ~= "table" then return source end
@@ -81,6 +81,7 @@ end
 local function create_profile_row(page, name)
     local texts = library.texts
     local row = library.create_row(page, name)
+    if LibVGAAccount.last_profile == name then library.create_row_mark(row, "orange") end
     row.control = CreateFrame("Frame", nil, row)
     local load = library.create_button(row.control, texts.load, "plain", function() update_profile(name) end)
     local overwrite = library.create_button(row.control, texts.overwrite, "plain", function() write_profile(name) end)

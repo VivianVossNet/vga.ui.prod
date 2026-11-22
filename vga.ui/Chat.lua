@@ -1,8 +1,8 @@
 -- Copyright 2026 Vivian Voss. Code by Vivian Voss. Licensed under the BSD-3-Clause.
 -- SPDX-License-Identifier: BSD-3-Clause
--- Scope: Blizzard's chat in the accepted draft's look (manual/view/vga-probe.html .chat, .tabs2, .msgs, .in): Blizzard's background, border, tab and input art cleared; vga.ui's widget laid beneath tabs, lines and input, its ground the frames' setting, the small gold corner; the tabs quiet, the chosen one gold with a gold line beneath, always at full strength - the game's fading of the tabs while the mouse is away set to none (K0558) -; the lines in Geologica at the player's own size, spaced by three tenths of it; the lines at 12 pixels by default, set once, the player's own size kept after (K0510); the widget's left edge the chat's own, never a docked tab's, so a docked window - the combat log with its quick buttons too - lies wholly inside it; the input let into the ground, dark, with a fine line, as wide as the lines above it, its line turning gold and its ground a shade lighter while it is typed into, a gold caret blinking after the last letter typed; once, a default size after the draft (420 by 150 at a 13-pixel base), the player's own resizing kept after. Blizzard's chat itself - channels, links, history, input - is untouched.
+-- Scope: Blizzard's chat in the accepted draft's look (manual/view/vga-probe.html .chat, .tabs2, .msgs, .in): Blizzard's background, border, tab and input art cleared; vga.ui's widget laid beneath tabs, lines and input, its ground the frames' setting, the small gold corner; the tabs quiet, the chosen one gold with a gold line beneath, always at full strength - the game's fading of the tabs while the mouse is away set to none (K0558) -; the lines in Geologica at the player's own size, spaced by three tenths of it; the lines at 12 pixels by default, set once, the player's own size kept after (K0510); the widget's left edge the chat's own, never a docked tab's, so a docked window - the combat log with its quick buttons too - lies wholly inside it; the input let into the ground, dark, with a fine line, as wide as the lines above it, its line turning gold and its ground a shade lighter while it is typed into, a gold caret blinking where the game's own cursor stands, as the game tells it on every move (OnCursorChanged), so with a long entry, whose text the game scrolls, it stays inside the input (K0739); once, a default size after the draft (420 by 150 at a 13-pixel base), the player's own resizing kept after. Blizzard's chat itself - channels, links, history, input - is untouched.
 
--- {K0264} {K0266} {K0358} {K0359} {K0362} {K0363} {K0510} {K0558}
+-- {K0264} {K0266} {K0358} {K0359} {K0362} {K0363} {K0510} {K0558} {K0739}
 
 local library = LibVGA
 local colours = library.colours
@@ -37,12 +37,23 @@ local function update_caret(input, skin, elapsed)
     caret:SetAlpha(math.floor(caret.time / BLINK) % 2 == 0 and 1 or 0)
     local face, size = input:GetFont()
     if not face then return end
-    skin.input.measure:SetFont(face, size, "")
-    skin.input.measure:SetText((input:GetText() or ""):sub(1, input:GetCursorPosition()))
-    local left = input:GetTextInsets()
-    caret:SetSize(math.max(2, math.floor(size / 8 + 0.5)), size)
+    local left, right = input:GetTextInsets()
+    local width = math.max(2, math.floor(size / 8 + 0.5))
+    local x = skin.input.cursor_x
+    if not x then
+        skin.input.measure:SetFont(face, size, "")
+        skin.input.measure:SetText((input:GetText() or ""):sub(1, input:GetCursorPosition()))
+        x = skin.input.measure:GetStringWidth() + 1
+    end
+    local most = input:GetWidth() - (right or 0) - width
+    caret:SetSize(width, size)
     caret:ClearAllPoints()
-    caret:SetPoint("LEFT", input, "LEFT", (left or 0) + skin.input.measure:GetStringWidth() + 1, 0)
+    caret:SetPoint("LEFT", input, "LEFT", math.max(left or 0, math.min((left or 0) + x, most)), 0)
+end
+
+local function update_cursor_seen(input, x)
+    local skin = input.vga_caret_skin
+    if skin then skin.cursor_x = x end
 end
 
 local function create_caret(input, skin)
@@ -52,6 +63,8 @@ local function create_caret(input, skin)
     skin.input.measure = skin.input:CreateFontString(nil, "OVERLAY")
     skin.input.measure:SetFont(library.read_font("body"):GetFont(), 12, "")
     skin.input.measure:Hide()
+    input.vga_caret_skin = skin.input
+    input:HookScript("OnCursorChanged", update_cursor_seen)
     skin.input:SetScript("OnUpdate", function(_, elapsed) library.update_safely("chat caret", update_caret, input, skin, elapsed) end)
     input:HookScript("OnEditFocusGained", function() skin.input.caret.time = 0 update_input_look(input, skin) end)
     input:HookScript("OnEditFocusLost", function() update_input_look(input, skin) end)

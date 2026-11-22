@@ -1,8 +1,8 @@
 -- Copyright 2026 Vivian Voss. Code by Vivian Voss. Licensed under the BSD-3-Clause.
 -- SPDX-License-Identifier: BSD-3-Clause
--- Scope: The main bar's page switcher as manual/view/vga-gamemenu.html draws it (K0511): right beside bar 1, five draft pixels apart and belonging to it, a narrow column of the bar's height - 24 by 38 draft pixels, without an edge or a ground of its own, so it reads as part of bar 1 -, at its top a thin chevron up, in its middle the sub-bar's letter in gold, A or B, free between them, at its foot a chevron down; a click on either arrow turns bar 1 between its sub-bars A and B - the game's action pages one and two, not bar 2 -, through the game's own secure paging (type actionbar, action »1, 2«, which turns to the other of the two), so it turns in a fight too, the click taken on press and on release, as the game's setting to act on key down asks - taken on release only, it never arrived (K0538); the letter follows the game's page however it was turned, a page beyond two by its number. Placed by the main bar (Actionbars.lua) as a child of bar 1, so it scales and moves with it.
+-- Scope: The main bar's page switcher as manual/view/vga-gamemenu.html draws it (K0511): right beside bar 1, five draft pixels apart and belonging to it, a narrow column of the bar's height - 24 by 38 draft pixels, without an edge or a ground of its own, so it reads as part of bar 1 -, at its top a thin chevron up, in its middle the sub-bar's letter in gold, A or B, free between them, at its foot a chevron down; a click on either arrow turns bar 1 between its sub-bars A and B - the game's action pages one and two, not bar 2 -, through the game's own secure paging (type actionbar, action »1, 2«, which turns to the other of the two), so it turns in a fight too, the click taken on press and on release, as the game's setting to act on key down asks - taken on release only, it never arrived (K0538); the letter follows the game's page however it was turned, a page beyond two by its number. Placed by the main bar (Actionbars.lua) as a child of bar 1, so it scales and moves with it. Its arrows say in a tooltip what they do (K0726).
 
--- {K0511} {K0521} {K0522} {K0538}
+-- {K0511} {K0521} {K0522} {K0538} {K0726}
 
 local _, vga = ...
 local library = LibVGA
@@ -41,6 +41,7 @@ local function create_arrow(switch, point, turned)
     local ink = library.colours.ink
     arrow.sign:SetVertexColor(ink[1], ink[2], ink[3], 1)
     arrow.point = point
+    vga.create_text_tip(arrow, library.texts.page_switch_tip)
     return arrow
 end
 

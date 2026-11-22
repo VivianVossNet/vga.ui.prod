@@ -1,8 +1,8 @@
 -- Copyright 2026 Vivian Voss. Code by Vivian Voss. Licensed under the BSD-3-Clause.
 -- SPDX-License-Identifier: BSD-3-Clause
--- Scope: vga.ui's own stance bar, built as the pet bar (Petbar.lua): a protected key of our own for each of the player's stances, forms, auras or presences, each casting its form's spell, dressed as the main bar's keys - rounded, a black line, the icon cropped, edged as the bags' slots - three pixels with gently rounded corners over the icon, the slot's grey, gold while its form is taken -, bound to the player's own stance keys, a click taken on press and on release; shown while the player has a form; standing four pixels above the main bar's widget, its left edge sixteen draft pixels in from the widget's, in the one-row and two-row forms alike, at the bars' scale, free to be placed on its own in the edit mode. Blizzard's stance bar is put away; nothing protected is moved or changed in a fight, a form learnt in one is laid after it.
+-- Scope: vga.ui's own stance bar, built as the pet bar (Petbar.lua): a protected key of our own for each of the player's stances, forms, auras or presences, each casting its form's spell, dressed as the main bar's keys - rounded, a black line, the icon cropped, edged as the bags' slots - three pixels with gently rounded corners over the icon, the slot's grey, gold while its form is taken -, bound to the player's own stance keys, a click taken on press and on release; shown while the player has a form; standing four pixels above the main bar's widget, its left edge sixteen draft pixels in from the widget's, in the one-row and two-row forms alike, at the bars' scale, free to be placed on its own in the edit mode. Blizzard's stance bar is put away; nothing protected is moved or changed in a fight, a form learnt in one is laid after it. Each key shows the game's tooltip of its form (K0726).
 
--- {K0377} {K0518}
+-- {K0377} {K0518} {K0726}
 
 local _, vga = ...
 local library = LibVGA
@@ -34,6 +34,7 @@ local function create_key(index)
     key.hotkey = library.create_text(key, "caption")
     key:SetHighlightTexture("Interface\\Buttons\\WHITE8X8")
     key:GetHighlightTexture():SetVertexColor(1, 1, 1, 0.15)
+    vga.create_key_tip(key, "SetShapeshift", index)
     return key
 end
 

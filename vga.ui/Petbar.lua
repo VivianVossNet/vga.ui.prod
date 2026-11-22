@@ -1,8 +1,8 @@
 -- Copyright 2026 Vivian Voss. Code by Vivian Voss. Licensed under the BSD-3-Clause.
 -- SPDX-License-Identifier: BSD-3-Clause
--- Scope: vga.ui's own pet bar: ten protected keys of our own on the pet's actions, dressed as the main bar's keys - rounded, a black line, the icon cropped, edged as the bags' slots - three pixels with gently rounded corners over the icon, the slot's grey, gold while an action is on or casts by itself -, bound to the player's own pet keys, a click taken on press and on release, as the game's setting to act on key down asks; shown while there is a pet with a bar; standing centred four pixels above the main bar's widget, at the bars' scale, free to be placed in the edit mode. Blizzard's pet bar is put away; nothing protected is moved in a fight.
+-- Scope: vga.ui's own pet bar: ten protected keys of our own on the pet's actions, dressed as the main bar's keys - rounded, a black line, the icon cropped, edged as the bags' slots - three pixels with gently rounded corners over the icon, the slot's grey, gold while an action is on or casts by itself -, bound to the player's own pet keys, a click taken on press and on release, as the game's setting to act on key down asks; shown while there is a pet with a bar; standing centred four pixels above the main bar's widget, at the bars' scale, free to be placed in the edit mode. Blizzard's pet bar is put away; nothing protected is moved in a fight. Each key shows the game's tooltip of its action (K0726).
 
--- {K0377}
+-- {K0377} {K0726}
 
 local _, vga = ...
 local library = LibVGA
@@ -37,6 +37,7 @@ local function create_key(index)
     key.hotkey = library.create_text(key, "caption")
     key:SetHighlightTexture("Interface\\Buttons\\WHITE8X8")
     key:GetHighlightTexture():SetVertexColor(1, 1, 1, 0.15)
+    vga.create_key_tip(key, "SetPetAction", index)
     return key
 end
 

@@ -1,8 +1,8 @@
 -- Copyright 2026 Vivian Voss. Code by Vivian Voss. Licensed under the BSD-3-Clause.
 -- SPDX-License-Identifier: BSD-3-Clause
--- Scope: vga.ui's damage meter as the accepted draft draws variant A (manual/view/vga-meter.html, K0721): one widget in the quest tracker's look - its ground, its gold corner, a head with the mark, the chosen type in the tracker's gold and at the right the fight with its time -, beneath it a row per player as a bar in the class's colour, the raid cell's gradient darkened to 55 and 45 per cent, rank, name, amount and, quieter, the second figure; the own row with the gold edge at the left and its rank in gold; alone, the player's own spells beneath the own row; more players than rows, the own row added with its real rank behind a dotted line, the wheel scrolling, a foot naming how many and the total. The figures come from the game's own meter, C_DamageMeter: plain they are written short - whole below 10 000, three places with k or M above -, secret in an instance's fight they are handed to the game as they come. No menu of its own: the head's words and the gold corner open the meter's page of the one settings dialog - type and fight as pop-up menus, rows, the second figure, what it does out of combat, its widget row, and »Alle Kämpfe löschen …«. It starts in the screen's top left corner, 8 draft pixels from the top and from the left. The game's own meter window is hidden and kept hidden whenever the game shows it again; its data still come (K0722).
+-- Scope: vga.ui's damage meter as the accepted draft draws variant A (manual/view/vga-meter.html, K0721): one widget in the quest tracker's look - its ground, its gold corner, a head with the mark, the chosen type in the tracker's gold and at the right the fight with its time -, beneath it a row per player as a bar in the class's colour, the raid cell's gradient darkened to 55 and 45 per cent, rank, name, amount and, quieter, the second figure; the own row with the gold edge at the left and its rank in gold; alone, the player's own spells beneath the own row; more players than rows, the own row added with its real rank behind a dotted line, the wheel scrolling, a foot naming how many and the total. The figures come from the game's own meter, C_DamageMeter: plain they are written short - whole below 10 000, three places with k or M above -, secret in an instance's fight they are handed to the game as they come. It can be switched off whole, at the head of its page (K0734). No menu of its own: the head's words and the gold corner open the meter's page of the one settings dialog - type and fight as pop-up menus, rows, the second figure, what it does out of combat, its widget row, and »Alle Kämpfe löschen …«. It starts in the screen's top left corner, 8 draft pixels from the top and from the left, at the small size until another is chosen (K0732). The game's own meter window is hidden and kept hidden whenever the game shows it again; its data still come (K0722).
 
--- {K0721} {K0722}
+-- {K0721} {K0722} {K0732} {K0734}
 
 local _, vga = ...
 local library = LibVGA
@@ -37,6 +37,7 @@ local TYPES = {
 }
 local NO_PER_SECOND = { deaths = true, interrupts = true, dispels = true }
 local meter
+library.size_defaults.meter = "small"
 
 local function read_type_entry()
     for _, entry in ipairs(TYPES) do
@@ -362,7 +363,12 @@ local function update_foot(board)
     return draft(6) + math.ceil(meter.foot:GetStringHeight())
 end
 
+local function check_meter_off()
+    return LibVGASettings.meter_shown == "off"
+end
+
 local function update_shown()
+    if check_meter_off() then return meter:Hide() end
     local idle = LibVGASettings.meter_idle or "show"
     local fighting = InCombatLockdown() or (UnitAffectingCombat and UnitAffectingCombat("player"))
     meter:SetShown(fighting or idle ~= "hide")
@@ -374,6 +380,7 @@ local function update_meter()
     meter:SetScale(library.read_size_step("meter"))
     library.update_frame(meter)
     update_shown()
+    if check_meter_off() then return end
     local board = read_board()
     meter.fight:SetText(read_fight_word(board.held))
     local head = update_head()
@@ -459,8 +466,14 @@ local function create_index_row(page, word, key, values, labels)
     return library.create_choice_row(page, word, labels, chosen, function(index) write(values[index]) end)
 end
 
+local function write_meter_shown(index)
+    LibVGASettings.meter_shown = index == 2 and "off" or nil
+    update_meter()
+end
+
 local function create_meter_page(page)
     local texts = library.texts
+    local shown = library.create_choice_row(page, texts.meter, { texts.on, texts.off }, check_meter_off() and 2 or 1, write_meter_shown)
     local kind = library.create_row(page, texts.meter_type)
     kind.control = library.create_popup(kind, read_type_sections(), LibVGASettings.meter_type or "damage", write_meter_setting("meter_type"))
     page.fight = library.create_row(page, texts.meter_fight)
@@ -469,7 +482,7 @@ local function create_meter_page(page)
     rows.control = library.create_stepper(rows, write_rows)
     library.update_stepper(rows.control, read_rows_wanted())
     page.rows = {
-        kind, page.fight, rows,
+        shown, kind, page.fight, rows,
         create_index_row(page, texts.meter_second, "meter_second", { "per_second", "share", "none" }, { texts.meter_per_second, texts.meter_share, texts.meter_none }),
         create_index_row(page, texts.meter_idle, "meter_idle", { "show", "faint", "hide" }, { texts.meter_show, texts.meter_faint, texts.meter_hide }),
     }
