@@ -1,8 +1,8 @@
 -- Copyright 2026 Vivian Voss. Code by Vivian Voss. Licensed under the BSD-3-Clause.
 -- SPDX-License-Identifier: BSD-3-Clause
--- Scope: The experience bar as the accepted draft draws it (manual/view/vga-xp.html, V1a): above it the level and the share in the light ink at the left, the rested bonus white at the right, without one a quiet »kein Bonus«, both set in far enough that the gryphons never cover them, after the level and share, in brackets, the time left to the next level, »Stufe 22 · 71 % (~28 m)«, reckoned from the experience of the last fifteen minutes and refreshed every minute or after every fight as the settings say, the brackets left out whole while no time is known; all three to be switched off; then the frame rate, the world latency and the addons' memory, 60 fps · 42 ms · 38 MB, the memory white below 200 MB, yellow from 200 to red at 300 (K0587), and the money with the accepted coins (manual/view/vga-windows.html), each switched on and off, and the bag slots in use of all, »35/40«, yellow with ten or fewer left, orange with fewer than five, red when none is; the row laid as a table of equal columns over the width between the insets - level with its time, values, money and slots together in one column, parted by a small dot as the system values are, »2 · 7/24«, bonus -, the first column's content left-aligned, the last's right-aligned, every middle one's centred, and a column switched off or not needed gone, the others sharing its room; on its own tab of the settings, its colour chosen from three swatches; the bar the mage's blue by default, without the fine light streaks - silver or violet as the settings say, never green (K0567) -, its colour darkened a little towards grey while no rested bonus is left, rounded, in a black line, with ten fine divisions, moving like every other bar of LibVGA; the rested bonus, as the game shows it, a fainter underlay of the bar's colour at 0.3 opacity, swept by the bars' slanted shine at the same opacity whenever it grows - resting in a city, an inn or a camp - reaching beyond the fill as far as the bonus goes. While a faction is watched the bar shows its reputation instead, in a colour of its own chosen from three swatches - the hunter's green by default, gold or our orange, never blue -, hatched with light diagonal strokes: »Ruf« with the standing's name and the share at the left, the faction's name at the right, without a time column - or, as the settings say (»Ruf und Erfahrung: Beide«), both at once, each bar half as high, two pixels apart, the experience above with its texts, the reputation beneath (K0549). Laid by the main bar between its rows.
+-- Scope: The experience bar as the accepted draft draws it (manual/view/vga-xp.html, V1a): above it the level and the share in the light ink at the left, the rested bonus white at the right, without one a quiet »kein Bonus«, both set in far enough that the gryphons never cover them, after the level and share, in brackets, the time left to the next level, »Stufe 22 · 71 % (~28 m)«, reckoned from the experience of the last fifteen minutes and refreshed every minute or after every fight as the settings say, the brackets left out whole while no time is known; all three to be switched off; then the frame rate, the world latency and the addons' memory, 60 fps · 42 ms · 38 MB, the memory white below 200 MB, yellow from 200 to red at 300 (K0587), and the money with the accepted coins (manual/view/vga-windows.html), each switched on and off, and the bag slots in use of all, »35/40«, yellow with ten or fewer left, orange with fewer than five, red when none is; the row laid as a table of equal columns over the width between the insets - level with its time, values, money and slots together in one column, parted by a small dot as the system values are, »2 · 7/24«, bonus -, the first column's content left-aligned, the last's right-aligned, every middle one's centred, and a column switched off or not needed gone, the others sharing its room; on its own tab of the settings, its colour chosen from the same seven swatches as the reputation bar's - blue, green, silver, violet, gold, orange, bronze -, the player's choice, blue for experience and green for reputation by default, a choice made earlier kept (K0695); the bar the mage's blue by default, without the fine light streaks - any of the seven as the settings say (K0567, K0695) -, its colour darkened a little towards grey while no rested bonus is left, rounded, in a black line, with ten fine divisions, moving like every other bar of LibVGA; the rested bonus, as the game shows it, a fainter underlay of the bar's colour at 0.3 opacity, swept by the bars' slanted shine at the same opacity whenever it grows - resting in a city, an inn or a camp - reaching beyond the fill as far as the bonus goes. While a faction is watched the bar shows its reputation instead, in a colour of its own chosen from three swatches - the hunter's green by default, gold or our orange, never blue -, hatched with light diagonal strokes: »Ruf« with the standing's name and the share at the left, the faction's name at the right, without a time column - or, as the settings say (»Ruf und Erfahrung: Beide«), both at once, each bar half as high, two pixels apart, the experience above with its texts, the reputation beneath (K0549). Laid by the main bar between its rows.
 
--- {K0298} {K0300} {K0375} {K0378} {K0383} {K0388} {K0397} {K0404} {K0428} {K0430} {K0437} {K0451} {K0483} {K0516} {K0519} {K0526} {K0531} {K0549} {K0567} {K0587}
+-- {K0298} {K0300} {K0375} {K0378} {K0383} {K0388} {K0397} {K0404} {K0428} {K0430} {K0437} {K0451} {K0483} {K0516} {K0519} {K0526} {K0531} {K0549} {K0567} {K0587} {K0695}
 
 local _, vga = ...
 local library = LibVGA
@@ -11,8 +11,7 @@ local DIVISIONS = 10
 local INSET = 40
 local BOTH_GAP = 2
 local PURSE_APART = 4
-local XP_SHADES = { "mage", "silver", "violet" }
-local REPUTATION_SHADES = { "hunter", "gold", "orange" }
+local SHADES = { "mage", "hunter", "silver", "violet", "gold", "orange", "bronze" }
 local SWATCHES = { violet = { 0.706, 0.565, 0.945 }, gold = { 0.894, 0.718, 0.314 }, silver = { 0.788, 0.808, 0.839 }, bronze = { 0.753, 0.541, 0.322 }, orange = { 0.941, 0.541, 0.165 }, hunter = { 0.498, 0.69, 0.29 }, mage = { 0.353, 0.604, 0.878 } }
 local WINDOW = 900
 local MINUTE = 60
@@ -172,19 +171,20 @@ local function update_extras(block)
     update_purse(block)
 end
 
-local function read_shade(chosen, shades)
-    for index, shade in ipairs(shades) do
-        if shade == chosen then return index, shade end
+local function read_shade(chosen, fallback)
+    local wanted = chosen or fallback
+    for index, shade in ipairs(SHADES) do
+        if shade == wanted then return index, shade end
     end
-    return 1, shades[1]
+    return read_shade(fallback, fallback)
 end
 
 function vga.read_experience_shade()
-    return read_shade(LibVGASettings.xp_colour, XP_SHADES)
+    return read_shade(LibVGASettings.xp_colour, "mage")
 end
 
 function vga.read_reputation_shade()
-    return read_shade(LibVGASettings.reputation_colour, REPUTATION_SHADES)
+    return read_shade(LibVGASettings.reputation_colour, "hunter")
 end
 
 local function create_shade_row(page, title, shades, chosen, key)
@@ -217,8 +217,8 @@ local function create_experience_page(page)
         library.create_choice_row(page, texts.money, { texts.on, texts.off }, LibVGASettings.xp_money == "off" and 2 or 1, function(index)
             library.update_choice_setting("xp_money", index == 1 and "on" or "off")
         end),
-        create_shade_row(page, texts.xp_colour, XP_SHADES, vga.read_experience_shade(), "xp_colour"),
-        create_shade_row(page, texts.reputation_colour, REPUTATION_SHADES, vga.read_reputation_shade(), "reputation_colour"),
+        create_shade_row(page, texts.xp_colour, SHADES, vga.read_experience_shade(), "xp_colour"),
+        create_shade_row(page, texts.reputation_colour, SHADES, vga.read_reputation_shade(), "reputation_colour"),
         library.create_choice_row(page, texts.xp_and_reputation, { texts.one_bar, texts.both_bars }, LibVGASettings.xp_both == "both" and 2 or 1, write_both),
         library.create_choice_row(page, texts.xp_time, { texts.every_minute, texts.after_fight }, LibVGASettings.xp_pace == "fight" and 2 or 1, function(index)
             library.update_choice_setting("xp_pace", index == 2 and "fight" or "minute")

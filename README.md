@@ -3,14 +3,14 @@
 The Video Game Almanach's interface for **World of Warcraft: Forever** - one calm, consistent look
 for the whole screen, drawn with its own graphics library, LibVGA.
 
-**Version 0.9.12 - beta.** A version for testing. Settings, places and looks may still change.
+**Version 0.9.13 - beta.** A version for testing. Settings, places and looks may still change.
 
 ## What it brings
 
-- Player, target and pet frames, the party frame, cast bars, buffs and nameplates in one style
+- Player, target and pet frames, the target's pet and the target of target, the party frame, cast bars, buffs and nameplates in one style; every frame a target for spells, a dead unit's portrait grey
 - Eight action bars of its own, in one row, two rows or freely placed
 - The experience bar with rested bonus, reputation, system values, money and bag slots
-- One bag window with search, filters, sorting and special bags set apart
+- One bag window with search, filters, sorting, tidying and special bags set apart; the loot as a dialog in the same look; items you cannot use veiled in red
 - A minimap in four by three or square, three sizes, with zone, coordinates, time, a compass rose
   and every other addon's minimap button gathered beneath it
 - A quest tracker with navigation to the nearest or the chosen quest

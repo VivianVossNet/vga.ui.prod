@@ -1,9 +1,10 @@
 -- Copyright 2026 Vivian Voss. Code by Vivian Voss. Licensed under the BSD-3-Clause.
 -- SPDX-License-Identifier: BSD-3-Clause
--- Scope: vga.ui's party frame as the accepted draft draws .party and .pm (manual/view/vga-probe.html): one widget with one gold corner for the whole group; a row per member divided by hairlines - the level in gold, the class's dot, the name, a thin health bar -, the whole row in grey while the member is offline, an OFFLINE in capitals, four pixels below the small face, beneath the bar where the pet's bar would stand, a pet being gone with its owner, a pet as a second, shorter bar inside its owner's row, without name or level, there for the healer to click; every row and pet bar a secure button that targets on click; Blizzard's own party frame hidden; ours stands left-aligned 120 pixels above the player frame, as tall as the group, its members stacked upward from the first; a protected pet bar is anchored to its protected row, never to a plain region. The group's leader carries a small filled gold crown right after the name (K0614). Shown and sized by a secure state driver on how many party units exist, so a group formed in a fight appears at once, not after it (K0630).
+-- Scope: vga.ui's party frame as the accepted draft draws .party and .pm (manual/view/vga-probe.html): one widget with one gold corner for the whole group; a row per member divided by hairlines - the level in gold, the class's dot, the name, a thin health bar -, the whole row in grey while the member is offline, an OFFLINE in capitals, four pixels below the small face, beneath the bar where the pet's bar would stand, a pet being gone with its owner, a pet as a second, shorter bar inside its owner's row, without name or level, there for the healer to click; every row and pet bar a secure button that targets on click; Blizzard's own party frame hidden; ours stands left-aligned 120 pixels above the player frame, as tall as the group, its members stacked upward from the first; a protected pet bar is anchored to its protected row, never to a plain region. The group's leader carries a small filled gold crown right after the name (K0614). Shown and sized by a secure state driver on how many party units exist, so a group formed in a fight appears at once, not after it (K0630). The member's parts - level, class dot, name, leader's crown, health, offline - are made, laid and filled by vga.create_member_parts, vga.update_member_parts_layout (mirrored or not) and vga.update_member_parts, so the target of target wears the same row, mirrored (K0698).
 
--- {K0277} {K0278} {K0279} {K0354} {K0379} {K0614} {K0630}
+-- {K0277} {K0278} {K0279} {K0354} {K0379} {K0614} {K0630} {K0698}
 
+local _, vga = ...
 local library = LibVGA
 local colours = library.colours
 local MEMBERS = 4
@@ -35,9 +36,7 @@ local function create_secure(name, parent, unit)
     return button
 end
 
-local function create_member(index)
-    local row = create_secure("VGAPartyMember" .. index, party, "party" .. index)
-    row.unit = "party" .. index
+function vga.create_member_parts(row)
     row.level = library.create_text(row, "caption", LEVEL_TEXT)
     row.level:SetJustifyH("RIGHT")
     row.spot = CreateFrame("Frame", nil, row)
@@ -52,6 +51,12 @@ local function create_member(index)
     row.health = library.create_bar(row, "health")
     row.offline = library.create_text(row, "small", OFFLINE)
     row.offline:SetText(string.upper(PLAYER_OFFLINE or "Offline"))
+end
+
+local function create_member(index)
+    local row = create_secure("VGAPartyMember" .. index, party, "party" .. index)
+    row.unit = "party" .. index
+    vga.create_member_parts(row)
     row.line = row:CreateTexture(nil, "BACKGROUND")
     row.line:SetColorTexture(unpack(HAIRLINE))
     row.pet = create_secure("VGAPartyPet" .. index, row, "partypet" .. index)
@@ -61,36 +66,51 @@ local function create_member(index)
     return row
 end
 
-local function update_member_layout(row, index)
+function vga.read_member_size()
+    local pad = library.read_size(-2)
+    return library.read_size(6) * 4, library.read_size(4) + 2 * pad
+end
+
+function vga.update_member_parts_layout(row, mirrored)
     local base, pad = library.read_base(), library.read_size(-2)
-    local width, height = library.read_size(6) * 4, library.read_size(4) + 2 * pad
     local bar, dot = math.max(4, library.read_size(-4)), math.floor(base * 0.77 + 0.5)
     local level = math.floor(base * 1.3 + 0.5)
+    local near, far, sign = mirrored and "RIGHT" or "LEFT", mirrored and "LEFT" or "RIGHT", mirrored and -1 or 1
+    row.level:SetFontObject(library.read_font("caption"))
+    row.level:SetJustifyH(mirrored and "LEFT" or "RIGHT")
+    row.level:ClearAllPoints()
+    row.level:SetPoint(near, row, near, sign * pad, 0)
+    row.level:SetWidth(level)
+    row.spot:ClearAllPoints()
+    row.spot:SetPoint(near, row, near, sign * (2 * pad + level), 0)
+    row.spot:SetSize(dot, dot)
+    row.name:SetFontObject(library.read_frame_font("bold"))
+    row.name:SetJustifyH(near)
+    row.name:ClearAllPoints()
+    row.name:SetPoint("TOP" .. near, row, "TOP" .. near, sign * (2 * pad + level + dot + pad), -pad)
+    row.name:SetPoint(far, row, far, -sign * library.read_size(1), 0)
+    row.health:ClearAllPoints()
+    row.health:SetPoint("TOP" .. near, row.name, "BOTTOM" .. near, 0, -library.read_size(-6))
+    row.health:SetPoint(far, row, far, -sign * library.read_size(1), 0)
+    row.health:SetHeight(bar)
+    library.update_bar_shape(row.health, library.read_size(-6))
+    return bar, 2 * pad + level + dot + pad
+end
+
+local function update_member_layout(row, index)
+    local pad = library.read_size(-2)
+    local width, height = vga.read_member_size()
     row:ClearAllPoints()
     row:SetSize(width, height)
     row:SetPoint("BOTTOMLEFT", party, "BOTTOMLEFT", 0, pad + (index - 1) * height)
-    row.level:SetFontObject(library.read_font("caption"))
-    row.level:ClearAllPoints()
-    row.level:SetPoint("LEFT", row, "LEFT", pad, 0)
-    row.level:SetWidth(level)
-    row.spot:ClearAllPoints()
-    row.spot:SetPoint("LEFT", row, "LEFT", 2 * pad + level, 0)
-    row.spot:SetSize(dot, dot)
-    row.name:SetFontObject(library.read_frame_font("bold"))
-    row.name:ClearAllPoints()
-    row.name:SetPoint("TOPLEFT", row, "TOPLEFT", 2 * pad + level + dot + pad, -pad)
-    row.name:SetPoint("RIGHT", row, "RIGHT", -library.read_size(1), 0)
-    row.health:ClearAllPoints()
-    row.health:SetPoint("TOPLEFT", row.name, "BOTTOMLEFT", 0, -library.read_size(-6))
-    row.health:SetPoint("RIGHT", row, "RIGHT", -library.read_size(1), 0)
-    row.health:SetHeight(bar)
+    local bar = vga.update_member_parts_layout(row, false)
     local face, size, flags = library.read_font("small"):GetFont()
     row.offline:SetFont(face, math.max(size - OFFLINE_SMALLER, 6), flags or "")
     row.offline:SetTextColor(unpack(OFFLINE))
     row.offline:ClearAllPoints()
     row.offline:SetPoint("TOPLEFT", row.health, "BOTTOMLEFT", 0, -library.read_size(-6))
-    library.update_bar_shape(row.health, library.read_size(-6))
-    local left = 2 * pad + level + dot + pad
+    local base = library.read_base()
+    local left = 2 * pad + math.floor(base * 1.3 + 0.5) + math.floor(base * 0.77 + 0.5) + pad
     local below = pad + library.read_size(1) + library.read_size(-6) + bar + library.read_size(-4)
     row.pet:ClearAllPoints()
     row.pet:SetPoint("TOPLEFT", row, "TOPLEFT", left, -below)
@@ -115,9 +135,9 @@ local function read_class_colour(unit)
     return colours.quiet
 end
 
-local function update_member(row)
+function vga.update_member_parts(row)
     local unit = row.unit
-    if not UnitExists(unit) then return end
+    if not UnitExists(unit) then return false end
     local level = UnitLevel(unit)
     local online = UnitIsConnected(unit)
     row.level:SetText(level and level > 0 and level or "??")
@@ -133,6 +153,12 @@ local function update_member(row)
     library.update_bar_kind(row.health, online and "health" or "tapped")
     row.offline:SetShown(not online)
     library.update_bar_value(row.health, UnitHealth(unit), UnitHealthMax(unit))
+    return true
+end
+
+local function update_member(row)
+    if not vga.update_member_parts(row) then return end
+    local unit = row.unit
     local pet = row.pet.unit or ("partypet" .. unit:match("%d"))
     row.pet.unit = pet
     if UnitExists(pet) then library.update_bar_value(row.pet.health, UnitHealth(pet), UnitHealthMax(pet)) end

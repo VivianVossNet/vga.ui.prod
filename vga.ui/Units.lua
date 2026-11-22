@@ -1,8 +1,8 @@
 -- Copyright 2026 Vivian Voss. Code by Vivian Voss. Licensed under the BSD-3-Clause.
 -- SPDX-License-Identifier: BSD-3-Clause
--- Scope: vga.ui's player frame, target frame and pet frame, each where Blizzard's own stands in the player's layout: the level's shield, the name and its class or kind, health and power, the target mirrored to the player, the portrait's rim one smooth, rounded frame in one colour over the picture, its corners and sides cut from one texture - seven outside, three thick, four inside -, clicked to target; the group's leader marked by a small filled gold crown sitting centred on the portrait's top edge (K0614); Blizzard's own frames hidden. In a resting place - an inn, a city - the same pulse round the player's portrait glows blue instead of red; in a fight the red wins and the blue rests until the fight is over (K0551).
+-- Scope: vga.ui's player frame, target frame and pet frame, each where Blizzard's own stands in the player's layout: the level's shield, the name and its class or kind, health and power, the target mirrored to the player, the portrait's rim one smooth, rounded frame in one colour over the picture, its corners and sides cut from one texture - seven outside, three thick, four inside -, clicked to target; the group's leader marked by a small filled gold crown sitting centred on the portrait's top edge (K0614); Blizzard's own frames hidden. In a resting place - an inn, a city - the same pulse round the player's portrait glows blue instead of red; in a fight the red wins and the blue rests until the fight is over (K0551). A dead unit's portrait - the player's, the target's, a pet's - is drawn grey, the game's picture desaturated and the moving face set still while it is dead or a ghost, so a player looking at a dead one sees it grey too, and it takes its colour back when the unit lives (K0702). Beside them, after manual/view/vga-tot.html: the target's pet below the target frame, the player's pet mirrored in look and place, and the target of target wearing a party member's row, mirrored - level, class dot, name, health, as Party.lua lays it (K0698) -, on a line with the target frame at its right, a place of its own to be moved; it shows only while the game's own setting »Ziel des Ziels« (showTargetOfTarget) is on, which the units' settings switch too; both read anew five times a second, since the game sends no events for those units (K0696).
 
--- {K0481} {K0551} {K0267} {K0268} {K0275} {K0276} {K0294} {K0297} {K0299} {K0300} {K0302} {K0329} {K0330} {K0334} {K0342} {K0345} {K0346} {K0360} {K0614}
+-- {K0481} {K0551} {K0267} {K0268} {K0275} {K0276} {K0294} {K0297} {K0299} {K0300} {K0302} {K0329} {K0330} {K0334} {K0342} {K0345} {K0346} {K0360} {K0614} {K0696} {K0698} {K0702}
 
 local _, vga = ...
 local library = LibVGA
@@ -22,6 +22,14 @@ local BADGE_BOTTOM = { 0.082, 0.09, 0.106 }
 local BADGE_TEXT = { 0.945, 0.812, 0.431 }
 local POWERS = { [0] = "power", [1] = "rage", [2] = "focus", [3] = "energy", [6] = "runic" }
 local frames = {}
+local SMALL = { pet = true, targetpet = true }
+local target_target
+local SLIM = "targettarget"
+local TICK = 0.2
+
+local function check_small(frame)
+    return SMALL[frame.unit] == true
+end
 local FIGHT = { 0.86, 0.12, 0.1 }
 local RESTING = { 0.2, 0.5, 0.95 }
 local FIGHT_LOW = 0.2
@@ -114,13 +122,15 @@ local function update_identity(frame)
     local unit = frame.unit
     if not UnitExists(unit) then return end
     frame.name:SetText(library.read_unit_name(unit))
-    frame.crown:SetShown(unit ~= "pet" and UnitIsGroupLeader(unit) == true)
+    frame.crown:SetShown(not SMALL[unit] and UnitIsGroupLeader(unit) == true)
     local level = UnitLevel(unit)
     frame.level:SetText(level and level > 0 and level or "??")
     frame.level_colour = vga.read_level_colour(unit, BADGE_TEXT)
     update_shield_size(frame)
     SetPortraitTexture(frame.portrait, unit, true)
-    local moving = library.read_faces_moving() and UnitIsVisible(unit)
+    frame.dead = UnitIsDeadOrGhost(unit) == true
+    frame.portrait:SetDesaturated(frame.dead)
+    local moving = library.read_faces_moving() and UnitIsVisible(unit) and not frame.dead
     frame.model:SetShown(moving)
     frame.portrait:SetShown(not moving)
     if moving then
@@ -268,7 +278,7 @@ local function create_frame(unit, mirrored)
         bar.ratio:SetFrameLevel(bar:GetFrameLevel() + 3)
     end
     for _, bar in ipairs({ frame.health, frame.power }) do
-        bar.figures = unit ~= "pet"
+        bar.figures = not SMALL[unit]
         bar.percent = library.create_text(bar, "figure")
         bar.percent:SetPoint("CENTER")
         bar.percent:SetDrawLayer("OVERLAY", 7)
@@ -281,8 +291,13 @@ local function create_frame(unit, mirrored)
     return frame
 end
 
+local update_target_target_shown
+local update_watched_units
+local create_target_target
+local update_target_target_layout
+
 local function update_bars_layout(frame)
-    local small = frame.unit == "pet"
+    local small = check_small(frame)
     local side = frame.mirrored and "RIGHT" or "LEFT"
     local away = frame.mirrored and "LEFT" or "RIGHT"
     local sign = frame.mirrored and -1 or 1
@@ -306,7 +321,7 @@ local function update_bars_layout(frame)
 end
 
 local function update_texts_layout(frame)
-    local small = frame.unit == "pet"
+    local small = check_small(frame)
     local gap = library.read_size(-4)
     frame.name:SetFontObject(library.read_frame_font(small and "caption" or "bold"))
     frame.name:ClearAllPoints()
@@ -325,7 +340,7 @@ local function update_texts_layout(frame)
 end
 
 local function update_portrait_layout(frame)
-    local small = frame.unit == "pet"
+    local small = check_small(frame)
     local portrait, rim, radius = library.read_size(small and 4 or 6), library.read_size(-6), library.read_size(-2)
     local side = frame.mirrored and "RIGHT" or "LEFT"
     local away = frame.mirrored and "LEFT" or "RIGHT"
@@ -380,6 +395,7 @@ local function update_layout(frame)
 end
 
 local function update_units()
+    update_target_target_layout()
     for _, frame in pairs(frames) do
         if not InCombatLockdown() then
             update_layout(frame)
@@ -399,8 +415,59 @@ local function delete_blizzard_frames()
     end
 end
 
+function update_target_target_shown()
+    local frame = target_target
+    if not frame or InCombatLockdown() then return end
+    if GetCVarBool("showTargetOfTarget") then
+        if not frame.unit_watched then RegisterUnitWatch(frame) end
+        frame.unit_watched = true
+    else
+        if frame.unit_watched then UnregisterUnitWatch(frame) end
+        frame.unit_watched = false
+        frame:Hide()
+    end
+end
+
+function update_watched_units()
+    local pet = frames.targetpet
+    if pet and pet:IsShown() then
+        update_identity(pet)
+        update_values(pet)
+    end
+    if target_target and target_target:IsShown() then vga.update_member_parts(target_target) end
+end
+
+function update_target_target_layout()
+    if not target_target or InCombatLockdown() then return end
+    library.update_frame(target_target)
+    target_target:SetSize(vga.read_member_size())
+    vga.update_member_parts_layout(target_target, true)
+end
+
+function create_target_target()
+    local frame = library.create_frame("VGAUnitFrame_" .. SLIM, UIParent, "SecureUnitButtonTemplate")
+    frame.unit = SLIM
+    frame:SetAttribute("unit", SLIM)
+    frame:SetAttribute("*type1", "target")
+    frame:SetAttribute("*type2", "togglemenu")
+    frame:RegisterForClicks("AnyUp")
+    frame.ground_key = "units"
+    frame.corner:SetFrameLevel(frame:GetFrameLevel() + 3)
+    frame.corner:SetScript("OnClick", function(corner) library.update_safely("options", library.render_widget, corner, "units") end)
+    vga.create_member_parts(frame)
+    RegisterUnitWatch(frame)
+    frame.unit_watched = true
+    update_target_target_layout()
+    return frame
+end
+
+function vga.update_target_target_shown()
+    update_target_target_shown()
+end
+
 local events = CreateFrame("Frame")
 events:RegisterEvent("PLAYER_LOGIN")
+events:RegisterEvent("CVAR_UPDATE")
 local function update_event(event, unit)
     if event == "PLAYER_LOGIN" then
         local player = create_frame("player", false)
@@ -409,16 +476,24 @@ local function update_event(event, unit)
         library.create_place(target, "target", "CENTER", TargetFrame or UIParent, 0, 0)
         local pet = create_frame("pet", true)
         library.create_place(pet, "pet", "TOPRIGHT", player, 0, -(library.read_cast_room() + 2 * library.read_size(-4)), "BOTTOMRIGHT")
+        local target_pet = create_frame("targetpet", true)
+        library.create_place(target_pet, "targetpet", "TOPRIGHT", target, 0, -(library.read_cast_room() + 2 * library.read_size(-4)), "BOTTOMRIGHT")
+        target_target = create_target_target()
+        library.create_place(target_target, SLIM, "LEFT", target, library.read_size(0), 0, "RIGHT")
+        update_target_target_shown()
+        C_Timer.NewTicker(TICK, function() library.update_safely("units watched", update_watched_units) end)
         delete_blizzard_frames()
         library.create_element("units", { title = UNITFRAME_LABEL or "Units", update = update_units })
-        for _, name in ipairs({ "PLAYER_TARGET_CHANGED", "UNIT_HEALTH", "UNIT_MAXHEALTH", "UNIT_POWER_UPDATE", "UNIT_MAXPOWER", "UNIT_DISPLAYPOWER", "UNIT_LEVEL", "UNIT_NAME_UPDATE", "UNIT_PORTRAIT_UPDATE", "UNIT_CLASSIFICATION_CHANGED", "PLAYER_ENTERING_WORLD", "UNIT_PET", "PLAYER_REGEN_ENABLED", "PLAYER_REGEN_DISABLED", "UNIT_MODEL_CHANGED", "QUEST_LOG_UPDATE", "UNIT_QUEST_LOG_CHANGED", "COMBAT_TEXT_UPDATE", "PLAYER_UPDATE_RESTING", "PARTY_LEADER_CHANGED", "GROUP_ROSTER_UPDATE" }) do
+        for _, name in ipairs({ "PLAYER_TARGET_CHANGED", "UNIT_HEALTH", "UNIT_MAXHEALTH", "UNIT_POWER_UPDATE", "UNIT_MAXPOWER", "UNIT_DISPLAYPOWER", "UNIT_LEVEL", "UNIT_NAME_UPDATE", "UNIT_PORTRAIT_UPDATE", "UNIT_CLASSIFICATION_CHANGED", "PLAYER_ENTERING_WORLD", "UNIT_PET", "PLAYER_REGEN_ENABLED", "PLAYER_REGEN_DISABLED", "UNIT_MODEL_CHANGED", "QUEST_LOG_UPDATE", "UNIT_QUEST_LOG_CHANGED", "COMBAT_TEXT_UPDATE", "PLAYER_UPDATE_RESTING", "PARTY_LEADER_CHANGED", "GROUP_ROSTER_UPDATE", "PLAYER_DEAD", "PLAYER_ALIVE", "PLAYER_UNGHOST" }) do
             pcall(events.RegisterEvent, events, name)
         end
         update_units()
         C_Timer.After(1, function() library.update_safely("units portrait", update_units) end)
+    elseif event == "CVAR_UPDATE" then
+        update_target_target_shown()
     elseif event == "PLAYER_REGEN_DISABLED" or event == "PLAYER_UPDATE_RESTING" then
         update_fight_glow()
-    elseif event == "PLAYER_TARGET_CHANGED" or event == "PLAYER_ENTERING_WORLD" or event == "UNIT_PET" or event == "PLAYER_REGEN_ENABLED" or event == "QUEST_LOG_UPDATE" or event == "UNIT_QUEST_LOG_CHANGED" or event == "PARTY_LEADER_CHANGED" or event == "GROUP_ROSTER_UPDATE" then
+    elseif event == "PLAYER_TARGET_CHANGED" or event == "PLAYER_ENTERING_WORLD" or event == "UNIT_PET" or event == "PLAYER_REGEN_ENABLED" or event == "QUEST_LOG_UPDATE" or event == "UNIT_QUEST_LOG_CHANGED" or event == "PARTY_LEADER_CHANGED" or event == "GROUP_ROSTER_UPDATE" or event == "PLAYER_DEAD" or event == "PLAYER_ALIVE" or event == "PLAYER_UNGHOST" then
         update_fight_glow()
         update_units()
     elseif event == "COMBAT_TEXT_UPDATE" then
@@ -427,6 +502,7 @@ local function update_event(event, unit)
     elseif frames[unit] then
         if event == "UNIT_HEALTH" or event == "UNIT_MAXHEALTH" or event == "UNIT_POWER_UPDATE" or event == "UNIT_MAXPOWER" then
             update_values(frames[unit])
+            if (UnitIsDeadOrGhost(unit) == true) ~= frames[unit].dead then update_identity(frames[unit]) end
         else
             update_identity(frames[unit])
         end

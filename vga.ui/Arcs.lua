@@ -1,8 +1,8 @@
 -- Copyright 2026 Vivian Voss. Code by Vivian Voss. Licensed under the BSD-3-Clause.
 -- SPDX-License-Identifier: BSD-3-Clause
--- Scope: Two transparent arcs either side of the character, wide enough to clear it and centred on its middle, as manual/view/vga-hud.html draws them (D): twelve segments each, lit one by one - or, as the settings say (arc_shape), half arcs, half as high, of six segments for the same values, the beads closer together -; behind each arc, as the settings say (»Rahmen«, off by default), a broad stroke of the frames' own ground and opacity, rounded at its ends, eight draft pixels clear of the segments and beads all round, so the arc reads on a light ground (K0563); an arc with nothing to show fades slowly out, each on its own, and back in when it has. Each side shows what the settings choose - the range, the threat, the target's cast or its health, the player's own health - filled in green as the target's, with or without a target -, the player's own resource, named as the game names the class's power - Mana, Wut, Energie, for a druid all three -, filling the arc in the power bar's colour, with or without a target, a rogue's or cat's combo points as five beads beside it, lit in VGA's orange when earned -, or nothing -, by default the range at the left and the threat at the right. The range to an attackable target filling from its foot as the target comes nearer - the distance known in steps by the game's own range checks - the player's harmful spells and a few items, each at the range the game gives its spell, and the interact distances of 10 and 28 yards -, shown as the smallest step the target stands within, »>« before the largest when beyond it -, its lit segments in one colour that tells the reach - red when the target stands near, through orange and yellow to a deep green at the edge of the best range of the player's class, by the steps' yards -; every segment grey where it stands beyond that range or beyond every step; the threat drawn from the target fills in the threat meter's five colours, the health in green, each segment set by the game from the value even where it is secret; the target's cast fills as it runs, gold while it can be interrupted, grey while not, its spell's name at the head - for the moment to interrupt. Each arc's value stands at its head or its foot, or not at all, as the settings say. At each arc's foot a small gold corner, the only part of the arcs that takes the mouse, opens the settings on the arcs' tab, where every change shows live; there each arc is one row with a pop-up menu whose sections are »Ich« - the resource, the own health - and »Ziel« - range, threat, cast, health -, then none (K0564, K0565). Free to be placed while arranging. As the settings say (»Sichtbar«, »Im Kampf« by default), out of combat both arcs fade slowly out, over three seconds, and show at once, without a fade, the moment a fight begins; with »Immer« they stand as before; an arc's preview eye shows it out of combat too (K0675). Each arc's gold corner fades with its arc and takes no mouse while the arc is gone (K0677).
+-- Scope: Two transparent arcs either side of the character, wide enough to clear it and centred on its middle, as manual/view/vga-hud.html draws them (D): twelve segments each, lit one by one - or, as the settings say (arc_shape), half arcs, half as high, of six segments for the same values, the beads closer together -; behind each arc, as the settings say (»Rahmen«, off by default), a broad stroke of the frames' own ground and opacity, rounded at its ends, eight draft pixels clear of the segments and beads all round, so the arc reads on a light ground (K0563) - since K0699 the frame of every vga.ui window bent round the figure, after the UX adviser's draft manual/view/vga-arcs-band.html (variant 3): one band of equal width, 119 to 181 draft units about the centre, the segments centred in it, running ten degrees past the arc's ends, its ends cut towards the centre with the frames' corners of eight units, the frames' black edge and line and ground drawn in Media/ArcBandFull and ArcBandHalf at the frames' opacity, the gold corner three and a half units inside its foot; its opacity the arcs' own, set by the slider »Hintergrund« beneath »Rahmen«, else the frames' (K0701); an arc with nothing to show fades slowly out, each on its own, and back in when it has. Each side shows what the settings choose - the range, the threat, the target's cast or its health, the player's own health - filled in green as the target's, with or without a target -, the player's own resource, named as the game names the class's power - Mana, Wut, Energie, for a druid all three -, filling the arc in the power bar's colour, with or without a target, a rogue's or cat's combo points as five beads beside it, lit in VGA's orange when earned -, or nothing -, by default the range at the left and the threat at the right. The range to an attackable target filling from its foot as the target comes nearer - the distance known in steps by the game's own range checks - the player's harmful spells and a few items, each at the range the game gives its spell, and the interact distances of 10 and 28 yards -, shown as the smallest step the target stands within, »>« before the largest when beyond it -, its lit segments in one colour that tells the reach - red when the target stands near, through orange and yellow to a deep green at the edge of the best range of the player's class, by the steps' yards -; every segment grey where it stands beyond that range or beyond every step; the threat drawn from the target fills in the threat meter's five colours, the health in green, each segment set by the game from the value even where it is secret; the target's cast fills as it runs, gold while it can be interrupted, grey while not, its spell's name at the head - for the moment to interrupt. Each arc's value stands at its head or its foot, or not at all, as the settings say. At each arc's foot a small gold corner, the only part of the arcs that takes the mouse, opens the settings on the arcs' tab, where every change shows live; there each arc is one row with a pop-up menu whose sections are »Ich« - the resource, the own health - and »Ziel« - range, threat, cast, health -, then none (K0564, K0565). Free to be placed while arranging. As the settings say (»Sichtbar«, »Im Kampf« by default), out of combat both arcs fade slowly out, over three seconds, and show at once, without a fade, the moment a fight begins; with »Immer« they stand as before; an arc's preview eye shows it out of combat too (K0675). Each arc's gold corner fades with its arc and takes no mouse while the arc is gone (K0677).
 
--- {K0392} {K0393} {K0395} {K0400} {K0416} {K0417} {K0418} {K0501} {K0502} {K0563} {K0564} {K0574} {K0581} {K0582} {K0583} {K0675} {K0677}
+-- {K0392} {K0393} {K0395} {K0400} {K0416} {K0417} {K0418} {K0501} {K0502} {K0563} {K0564} {K0574} {K0581} {K0582} {K0583} {K0699} {K0701} {K0675} {K0677}
 
 local _, vga = ...
 local library = LibVGA
@@ -22,11 +22,12 @@ local OUT_OF_REACH = { 0.45, 0.46, 0.48 }
 local HEALTH = { 0.37, 0.82, 0.42 }
 local MARK_OPEN = { 0.2, 0.21, 0.24 }
 local COMBO_MARKS = 5
-local BAND_GROUND = { 0.071, 0.075, 0.09 }
-local CORNER_OUT = 22
+local BAND_OUTER = 181
+local BAND_BEYOND = 10
+local CORNER_INSET = 3.5
 local BANDS = {
-    full = { file = "ArcBandFull", left = -177.5, top = 146.73, width = 128, height = 512 },
-    half = { file = "ArcBandHalf", left = -177.5, top = 83.82, width = 64, height = 256 },
+    full = { file = "ArcBandFull", left = -182.857, top = 182.857, width = 182.857, height = 365.714 },
+    half = { file = "ArcBandHalf", left = -182.857, top = 182.857, width = 91.429, height = 365.714 },
 }
 local BEST = { HUNTER = 75, MAGE = 133, WARLOCK = 686, PRIEST = 585, DRUID = 5176, SHAMAN = 403, WARRIOR = 78, ROGUE = 1752 }
 local RANGE_ITEMS = { 8149, 10645, 835, 4941, 18904, 13289, 9328, 7734, 4945, 17202 }
@@ -111,9 +112,9 @@ local function update_band(side)
     local band, shape = side.band, LibVGASettings.arc_shape == "half" and BANDS.half or BANDS.full
     band:SetShown(LibVGASettings.arc_band == "on")
     if not band:IsShown() then return end
-    local ground = library.read_ground()
+    local ground = library.read_ground("arcs")
     band:SetTexture(library.media .. shape.file)
-    band:SetVertexColor(BAND_GROUND[1], BAND_GROUND[2], BAND_GROUND[3], ground)
+    band:SetVertexColor(1, 1, 1, ground)
     band:SetSize(read_draft(shape.width), read_draft(shape.height))
     band:ClearAllPoints()
     if side.mirror < 0 then
@@ -128,8 +129,9 @@ end
 local function update_arc_corner(side, radius)
     local corner = side.corner
     if not corner then return end
-    local size, angle = library.read_size(-2), math.rad(-read_span() / 2)
-    local reach = radius + read_draft(CORNER_OUT)
+    local size = library.read_size(-2)
+    local reach = read_draft(BAND_OUTER - CORNER_INSET) - size / 2
+    local angle = math.rad(-read_span() / 2 - BAND_BEYOND) + math.asin((read_draft(CORNER_INSET) + size / 2) / reach)
     corner:SetSize(size, size)
     corner:ClearAllPoints()
     corner:SetPoint("CENTER", arcs, "CENTER", side.mirror * reach * math.cos(angle), reach * math.sin(angle))
@@ -455,6 +457,19 @@ local function create_side_row(page, side, key, fallback)
     return row
 end
 
+local function write_band_ground(value)
+    LibVGASettings.grounds = LibVGASettings.grounds or {}
+    LibVGASettings.grounds.arcs = value
+    update_arcs()
+end
+
+local function create_band_ground_row(page)
+    local row = library.create_row(page, library.texts.background)
+    row.control = library.create_slider(row, library.ground_stops, library.read_ground("arcs"), write_band_ground)
+    row.control.on_settle = library.update_elements
+    return row
+end
+
 local function write_arc_band(index)
     library.update_choice_setting("arc_band", index == 2 and "on" or "off")
 end
@@ -476,6 +491,7 @@ local function create_arcs_page(page)
             library.update_choice_setting("arc_values", PLACES[index])
         end),        library.create_choice_row(page, texts.arc_shape, { texts.full_arc, texts.half_arc }, LibVGASettings.arc_shape == "half" and 2 or 1, write_arc_shape),
         library.create_choice_row(page, texts.frame, { texts.off, texts.on }, LibVGASettings.arc_band == "on" and 2 or 1, write_arc_band),
+        create_band_ground_row(page),
         library.create_choice_row(page, texts.arcs_shown, { texts.always, texts.in_fight }, LibVGASettings.arc_shown == "always" and 1 or 2, write_arc_shown),
     }
 end

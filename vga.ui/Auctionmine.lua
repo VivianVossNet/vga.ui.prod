@@ -63,6 +63,7 @@ local function update_mine_row(line, row)
     local columns, x = page.columns, page.pad
     line.row = row
     line.icon:SetTexture(row.icon)
+    library.update_unusable(line.unusable, row.item)
     line.icon:SetSize(size, size)
     line.icon:ClearAllPoints()
     line.icon:SetPoint("LEFT", line, "LEFT", x, 0)
@@ -106,6 +107,7 @@ local function create_mine_row(parent)
     local line = CreateFrame("Frame", nil, parent)
     line:EnableMouse(true)
     line.icon = line:CreateTexture(nil, "ARTWORK")
+    line.unusable = library.create_unusable(line, line.icon)
     line.name = library.create_text(line, "body", colours.ink)
     line.name:SetJustifyH("LEFT")
     line.name:SetWordWrap(false)
@@ -250,11 +252,11 @@ function vga.update_mine_page(page, width)
     page.note:SetWidth(width - library.read_draft_size(8))
 end
 
-function vga.write_mine_query(patient)
+function vga.write_mine_query()
     local house = C_AuctionHouse
     if not house.QueryOwnedAuctions then return end
     local price = Enum.AuctionHouseSortOrder and Enum.AuctionHouseSortOrder.Price or 0
-    vga.write_auction_query(function() house.QueryOwnedAuctions({ { sortOrder = price, reverseSort = false } }) end, patient)
+    vga.write_auction_query(function() house.QueryOwnedAuctions({ { sortOrder = price, reverseSort = false } }) end)
 end
 
 local function update_undercut_count()

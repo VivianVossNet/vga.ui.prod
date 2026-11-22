@@ -1,8 +1,8 @@
 -- Copyright 2026 Vivian Voss. Code by Vivian Voss. Licensed under the BSD-3-Clause.
 -- SPDX-License-Identifier: BSD-3-Clause
--- Scope: vga.auctions' data, the first step of the auction window (manual/view/vga-auctions.html, K0603, K0609): whenever the auction house opens, the game's whole list of auctions is asked for - a second after opening and only once the throttle is ready, so the game's own window's first search goes first instead of being cut off and leaving the house broken for the visit, as NaowhForever warns (K0663) - - at most once in fifteen minutes, as the game allows -, read in slices so the frame never stalls, and every item's day kept per realm - its name from GetRealmName, else the normalised name, else the player's full name, a list kept under an empty name moved to it (K0610) -: its lowest unit buyout, the median unit buyout over all pieces offered, and how many are offered; ninety days are kept; an item's market value is the median of its last seven daily medians. Bid-only auctions are left out. Every query of the window goes through vga.write_auction_query, which sends a search at once as the game's own window does - the game queues it while busy; a visit's throttle may never turn ready again after the game's first search, so holding kept ours for ever (K0669) - and holds only the patient whole-house reading until any message of the throttle finds it ready again, as Auctionator's queue does (K0656), one message at a time, and sends again at the next ready signal what the game dropped. An item's required level is read for every list of the window, loaded where the game does not know it yet, shown red above the player's level (vga.read_item_level, K0647). Every item in the window's lists shows the game's item tooltip on hover, compared with what the player wears (vga.render_item_tip, K0648), a little right of the cursor and following it (K0650). Watched items are kept per realm beside the days (vga.check_watched, vga.write_watched, vga.read_watched, K0655). The game's auction addon is loaded by the game at the opening, never earlier: loaded at login, its first-load bids query went out with no house open and left the first opening's throttle never ready (K0674, superseding K0668's preload). Every measuring line is gone for the release - the timeline, the messages heard, the throttle's counts, the realm's names; the count of offers read is kept in the store for the window's head, and what earlier versions measured is cleared from the saved variables at login (K0690). The workarounds laid while the cause of the empty first searches was sought - the poll, the calls written with their callers, the kick's favourite, the bids query skipped, the interaction timed - are gone again: the cause was vga.ui's own window closing the house at its first opening (K0681, K0682).
+-- Scope: vga.auctions' data, the first step of the auction window (manual/view/vga-auctions.html, K0603, K0609): whenever the auction house opens, the game's whole list of auctions is asked for - a second after opening and only once the throttle is ready, so the game's own window's first search goes first instead of being cut off and leaving the house broken for the visit, as NaowhForever warns (K0663) - - at most once in fifteen minutes, as the game allows -, read in slices so the frame never stalls, and every item's day kept per realm - its name from GetRealmName, else the normalised name, else the player's full name, a list kept under an empty name moved to it (K0610) -: its lowest unit buyout, the median unit buyout over all pieces offered, and how many are offered; ninety days are kept; an item's market value is the median of its last seven daily medians. Bid-only auctions are left out. Every query of the window goes through vga.write_auction_query, which waits in line while the throttle is busy and sends in turn whenever any message of the throttle finds it ready, as Auctionator's queue does (K0656, K0693), one message at a time, and sends again at the next ready signal what the game dropped. An item's required level is read for every list of the window, loaded where the game does not know it yet, shown red above the player's level (vga.read_item_level, K0647). Every item in the window's lists shows the game's item tooltip on hover, compared with what the player wears (vga.render_item_tip, K0648), a little right of the cursor and following it (K0650). Watched items are kept per realm beside the days (vga.check_watched, vga.write_watched, vga.read_watched, K0655). The game's auction addon is loaded by the game at the opening, never earlier: loaded at login, its first-load bids query went out with no house open and left the first opening's throttle never ready (K0674, superseding K0668's preload). Every query - a search, the offers of an item chosen on Verkaufen, the player's auctions, the whole-house reading - waits in line while the throttle is busy and goes out in turn as it turns ready, one at a time, since the game drops an addon's query sent while busy without a word: an item chosen on Verkaufen right after another query showed »Gerade kein Angebot« until the page was laid anew (K0693). Every measuring line is gone for the release - the timeline, the messages heard, the throttle's counts, the realm's names; the count of offers read is kept in the store for the window's head, and what earlier versions measured is cleared from the saved variables at login (K0690). The workarounds laid while the cause of the empty first searches was sought - the poll, the calls written with their callers, the kick's favourite, the bids query skipped, the interaction timed - are gone again: the cause was vga.ui's own window closing the house at its first opening (K0681, K0682).
 
--- {K0609} {K0610} {K0629} {K0638} {K0639} {K0641} {K0646} {K0647} {K0648} {K0649} {K0650} {K0652} {K0655} {K0656} {K0663} {K0668} {K0674} {K0669} {K0682} {K0690}
+-- {K0609} {K0610} {K0629} {K0638} {K0639} {K0641} {K0646} {K0647} {K0648} {K0649} {K0650} {K0652} {K0655} {K0656} {K0663} {K0668} {K0674} {K0682} {K0690} {K0693}
 
 local _, vga = ...
 local library = LibVGA
@@ -111,7 +111,7 @@ end
 
 local function update_opened()
     scan.open = true
-    C_Timer.After(SCAN_DELAY, function() vga.write_auction_query(write_replicate, true) end)
+    C_Timer.After(SCAN_DELAY, function() vga.write_auction_query(write_replicate) end)
 end
 
 function vga.read_item_level(item_id)
@@ -207,17 +207,22 @@ local function check_query_ready()
     return not C_AuctionHouse.IsThrottledMessageSystemReady or C_AuctionHouse.IsThrottledMessageSystemReady()
 end
 
-function vga.write_auction_query(send, patient)
-    if patient and not check_query_ready() then
-        query.waiting = send
+function vga.write_auction_query(send)
+    query.waiting = query.waiting or {}
+    if not check_query_ready() then
+        query.waiting[#query.waiting + 1] = send
         return
     end
-    query.waiting, query.last = nil, send
+    query.last = send
     send()
 end
 
+local function check_query_waiting()
+    return (query.waiting and #query.waiting > 0) or query.dropped ~= nil
+end
+
 local function update_query_ready()
-    local send = query.waiting or query.dropped
+    local send = query.dropped or table.remove(query.waiting or {}, 1)
     query.dropped = nil
     if send then vga.write_auction_query(send) end
 end
@@ -231,7 +236,7 @@ local THROTTLE_MESSAGES = { "AUCTION_HOUSE_THROTTLED_MESSAGE_QUEUED", "AUCTION_H
 local heard = CreateFrame("Frame")
 for _, name in ipairs(THROTTLE_MESSAGES) do pcall(heard.RegisterEvent, heard, name) end
 heard:SetScript("OnEvent", function()
-    if (query.waiting or query.dropped) and check_query_ready() then library.update_safely("auctions query ready", update_query_ready) end
+    if check_query_waiting() and check_query_ready() then library.update_safely("auctions query ready", update_query_ready) end
 end)
 
 local function update_measures_cleared()
@@ -249,7 +254,7 @@ events:SetScript("OnEvent", function(_, event)
     if event == "PLAYER_LOGIN" then
         library.update_safely("auctions measures cleared", update_measures_cleared)
     elseif event == "AUCTION_HOUSE_SHOW" then
-        query.waiting, query.dropped = nil, nil
+        query.waiting, query.dropped = {}, nil
         library.update_safely("auctions opened", update_opened)
     elseif event == "AUCTION_HOUSE_CLOSED" then
         scan.open = false

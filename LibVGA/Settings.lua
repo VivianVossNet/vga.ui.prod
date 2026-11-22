@@ -1,8 +1,8 @@
 -- Copyright 2026 Vivian Voss. Code by Vivian Voss. Licensed under the BSD-3-Clause.
 -- SPDX-License-Identifier: BSD-3-Clause
--- Scope: vga.ui's one settings dialog as the accepted draft orders it (manual/view/vga-settings.html), standing high on the screen, its top fixed, as tall as its tallest tab, whichever is shown, so no content ever changes the dialog's size (K0637), as wide as its sidebar and its widest page: at the left a sidebar in the way of the macOS System Settings (Sidebar.lua, K0565) - Darstellung: Allgemein; Im Kampf: Einheiten, Plaketten, Bögen; Leisten: Aktionsleisten, Erfahrung; Welt: Quests, Minimap, Taschen; set apart Anordnen and Profile -, at the right the chosen page under its title, at most seven rows a page; Allgemein ending in the red »Alles zurücksetzen …«, which asks once; the last tab, Anordnen, reached from everywhere, with the alignment - free or on a grid of eight or of sixteen pixels - and the gold »Anordnen …«, which closes the dialog and shows the handles; every choice working at once - a new face measured again a moment later, when the game has loaded its file, so that every width follows it; the one menu there is - a widget's gold corner opens it on the widget's tab, the widget's own settings in the group »Widgets« at the tab's foot; and the command /vga.
+-- Scope: vga.ui's one settings dialog as the accepted draft orders it (manual/view/vga-settings.html), standing high on the screen, its top fixed, as tall as its tallest tab, whichever is shown, so no content ever changes the dialog's size (K0637), as wide as its sidebar and its widest page: at the left a sidebar in the way of the macOS System Settings (Sidebar.lua, K0565) - Darstellung: Allgemein; Im Kampf: Einheiten, Plaketten, Bögen; Leisten: Aktionsleisten, Erfahrung; Welt: Quests, Minimap, Taschen; set apart Anordnen and Profile -, at the right the chosen page under its title, at most seven rows a page; Allgemein ending in the red »Alles zurücksetzen …«, which asks once; the last tab, Anordnen, reached from everywhere, with the alignment - free or on a grid of eight or of sixteen pixels - and the gold »Anordnen …«, which closes the dialog and shows the handles; every choice working at once - a new face measured again a moment later, when the game has loaded its file, so that every width follows it; the one menu there is - a widget's gold corner opens it on the widget's tab, the widget's own settings in the group »Widgets« at the tab's foot; and the command /vga. The units' page switches two of the game's own settings, out of combat: »Ziel des Ziels« (showTargetOfTarget, K0696) and »Zauber auf Fenster unter der Maus« (enableMouseoverCast, K0697), so a spell key pressed with the mouse over a unit frame casts on its unit.
 
--- {K0268} {K0311} {K0316} {K0324} {K0330} {K0337} {K0383} {K0384} {K0430} {K0565} {K0637}
+-- {K0268} {K0311} {K0316} {K0324} {K0330} {K0337} {K0383} {K0384} {K0430} {K0565} {K0637} {K0696} {K0697}
 
 local library = LibVGA
 
@@ -113,12 +113,25 @@ local function create_general_page(page)
     page.foot = { reset }
 end
 
+local function write_target_of_target(index)
+    if InCombatLockdown() then return end
+    SetCVar("showTargetOfTarget", index == 1 and "1" or "0")
+    library.update_elements()
+end
+
+local function write_mouseover_cast(index)
+    if InCombatLockdown() then return end
+    SetCVar("enableMouseoverCast", index == 1 and "1" or "0")
+end
+
 local function create_units_page(page)
     local texts = library.texts
     page.rows = {
         library.create_choice_row(page, texts.values, { texts.absolute, texts.percent }, library.read_values_percent() and 2 or 1, function(index)
             library.update_choice_setting("values", index == 2 and "percent" or "absolute")
         end),
+        library.create_choice_row(page, texts.target_of_target, { texts.on, texts.off }, GetCVarBool("showTargetOfTarget") and 1 or 2, write_target_of_target),
+        library.create_choice_row(page, texts.mouseover_cast, { texts.on, texts.off }, GetCVarBool("enableMouseoverCast") and 1 or 2, write_mouseover_cast),
     }
     for _, row in ipairs(library.create_widget_rows(page, "units", {
         { key = "units", title = texts.unit_frames },

@@ -2,7 +2,7 @@
 -- SPDX-License-Identifier: BSD-3-Clause
 -- Scope: vga.auctions' page Verkaufen as the accepted draft draws it (manual/view/vga-auctions.html »Seite Verkaufen«, K0603, K0617, K0619, K0632), every part in LibVGA's groups: at the left the bags' items the auction house takes in LibVGA's list (K0631) - picture, name in its quality's colour with the count and the required level beneath it (K0647), the market value at the right -, the chosen one ringed in gold on a faint gold ground; at the right the figures in one group divided by hairlines - market value, lowest now, the seven days as a chip, the quantity on offer -, the graph in its group with its legend - median, seven-day mean, lowest to median, on offer - and the range 7, 30 or 90 days, the item's current offers in LibVGA's list under their heads, each sorting them (K0655) - the rating against the market as a chip, the quantity, the price each, the player's own marked -, the posting row - the price each in LibVGA's money field, the quantity in its stepper, 12, 24 or 48 hours, the gold »Einstellen« -, the player's average cost and the result after the cut as a chip, and the note how the price is proposed and what the deposit is: one copper under the cheapest offer neither the player's own nor a bargain. Offers asked for as the game's own window asks (K0629), anew on every visit (K0625).
 
--- {K0617} {K0619} {K0625} {K0628} {K0629} {K0631} {K0632} {K0647} {K0648} {K0655}
+-- {K0617} {K0619} {K0625} {K0628} {K0693} {K0629} {K0631} {K0632} {K0647} {K0648} {K0655}
 
 local _, vga = ...
 local library = LibVGA
@@ -17,6 +17,7 @@ local OFFERS = 4
 local BARGAIN, GOOD_DEAL, USUAL = -0.15, -0.03, 0.03
 local sell_page
 local update_offers
+local render_search
 
 local function read_bag_items()
     local found, order = {}, {}
@@ -157,6 +158,7 @@ local function update_entry_line(line, entry)
     local size, pad = library.read_draft_size(26), library.read_draft_size(12)
     local chosen = page.chosen == entry
     line.icon:SetTexture(entry.icon)
+    library.update_unusable(line.unusable, entry.item)
     line.icon:SetSize(size, size)
     line.icon:ClearAllPoints()
     line.icon:SetPoint("LEFT", line, "LEFT", pad, 0)
@@ -216,6 +218,7 @@ local function create_entry_line(parent, index)
     line.fill = library.create_surface(line, "BACKGROUND", 0)
     line.ring = library.create_ring(line, "OVERLAY", 0)
     line.icon = line:CreateTexture(nil, "ARTWORK")
+    line.unusable = library.create_unusable(line, line.icon)
     line.name = library.create_text(line, "body", colours.ink)
     line.name:SetJustifyH("LEFT")
     line.name:SetWordWrap(false)
@@ -341,7 +344,7 @@ local function write_offers_query(entry)
     end
 end
 
-local function render_search(page)
+function render_search(page)
     local entry = page.chosen
     if not (entry and C_AuctionHouse.SendSearchQuery and C_AuctionHouse.GetItemKeyFromItem) then return end
     entry.commodity = Enum.ItemCommodityStatus and C_AuctionHouse.GetItemCommodityStatus(entry.location) == Enum.ItemCommodityStatus.Commodity
