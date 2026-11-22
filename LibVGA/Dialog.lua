@@ -1,8 +1,8 @@
 -- Copyright 2026 Vivian Voss. Code by Vivian Voss. Licensed under the BSD-3-Clause.
 -- SPDX-License-Identifier: BSD-3-Clause
--- Scope: LibVGA's dialog as the accepted drafts draw it (manual/view/vga-scale.html .dlg, vga-template.css .vt): the metal frame, the head with the mark, the gold title and the close button, further buttons of the same make with an icon to its left where a dialog asks for them, its rows divided by hairlines; always free to move, its ground down to a floor. Rows that stand together outside a fieldset stand on one rounded, faintly lighter card, in the way of the macOS System Settings (K0565). A stepper in a row is measured as it is laid (K0721). The dialog opened or clicked last stands in front of every other, whole, so no two dialogs interleave (K0737). A row may carry a mark before its label - the elite's chevron turned to point right at the label, four draft pixels before it, in a colour of the library's -, standing in the row's inset so the label never moves; the profiles mark the active one so in orange (K0729).
+-- Scope: LibVGA's dialog as the accepted drafts draw it (manual/view/vga-scale.html .dlg, vga-template.css .vt): the metal frame, the head with the mark, the gold title and the close button, further buttons of the same make with an icon to its left where a dialog asks for them, its rows divided by hairlines; always free to move, its ground down to a floor. Rows that stand together outside a fieldset stand on one rounded, faintly lighter card, in the way of the macOS System Settings (K0565). A stepper in a row is measured as it is laid (K0721). The dialog opened or clicked last stands in front of every other, whole, so no two dialogs interleave (K0737). A row may carry a mark before its label - the elite's chevron turned to point right at the label, four draft pixels before it, in a colour of the library's -, standing in the row's inset so the label never moves; the profiles mark the active one so in orange (K0729). Every dialog carries LibVGA's pin in its head as its own part, beside the close, made by the dialog's maker (K0767): grey while free, when the dialog can be dragged, gold while pinned, when its place is fixed and it cannot; its meaning in a tooltip, with a note of the owner's where it means more; its state kept on the dialog unless its user hands another keeper (library.update_dialog_pin_state), so the bags remember theirs and a fixed tooltip starts free (K0764).
 
--- {K0256} {K0296} {K0299} {K0324} {K0330} {K0337} {K0415} {K0565} {K0721} {K0729} {K0737}
+-- {K0767} {K0764} {K0256} {K0296} {K0299} {K0324} {K0330} {K0337} {K0415} {K0565} {K0721} {K0729} {K0737}
 
 local library = LibVGA
 local CARD = { 1, 1, 1 }
@@ -61,6 +61,71 @@ function library.create_dialog_button(dialog, icon, on_click)
     return button
 end
 
+function library.update_dialog_pin(dialog)
+    local pinned = dialog.pin_state.read()
+    local colour = pinned and colours.gold or colours.quiet
+    dialog.pin.icon:SetVertexColor(colour[1], colour[2], colour[3], 1)
+    dialog:SetMovable(not pinned)
+end
+
+local function render_pin_tip(pin)
+    local dialog = pin:GetParent()
+    local pinned, texts = dialog.pin_state.read(), library.texts
+    GameTooltip:SetOwner(pin, "ANCHOR_TOP")
+    GameTooltip:AddLine(pinned and texts.unpin_place or texts.pin_place, colours.ink[1], colours.ink[2], colours.ink[3])
+    local note = dialog.pin_state.read_note and dialog.pin_state.read_note(pinned)
+    if note then GameTooltip:AddLine(note, colours.quiet[1], colours.quiet[2], colours.quiet[3], true) end
+    GameTooltip:Show()
+end
+
+local function update_pin_left()
+    GameTooltip:Hide()
+end
+
+local function write_pin(pin)
+    local dialog = pin:GetParent()
+    dialog.pin_state.write(not dialog.pin_state.read())
+    library.update_dialog_pin(dialog)
+    render_pin_tip(pin)
+end
+
+local function update_dragged(dialog)
+    if dialog.pin_state.read() then return end
+    dialog:StartMoving()
+end
+
+local function update_dropped(dialog)
+    dialog:StopMovingOrSizing()
+    if dialog.pin_state.dropped then dialog.pin_state.dropped(dialog) end
+end
+
+local function read_own_pinned(dialog)
+    return function() return dialog.pinned == true end
+end
+
+local function write_own_pinned(dialog)
+    return function(pinned) dialog.pinned = pinned or nil end
+end
+
+function library.update_dialog_pin_state(dialog, state)
+    dialog.pin_state = {
+        read = state.read or read_own_pinned(dialog),
+        write = state.write or write_own_pinned(dialog),
+        read_note = state.read_note,
+        dropped = state.dropped,
+    }
+    library.update_dialog_pin(dialog)
+end
+
+local function create_pin(dialog)
+    dialog.pin = library.create_dialog_button(dialog, "Pin", write_pin)
+    dialog.pin:SetScript("OnEnter", render_pin_tip)
+    dialog.pin:SetScript("OnLeave", update_pin_left)
+    dialog:SetScript("OnDragStart", update_dragged)
+    dialog:SetScript("OnDragStop", update_dropped)
+    library.update_dialog_pin_state(dialog, {})
+end
+
 local function update_close(close, size)
     update_head_button(close, size)
     local arm = math.floor(size * 0.42 + 0.5)
@@ -84,8 +149,7 @@ function library.create_dialog(name, title)
     dialog:SetMovable(true)
     dialog:EnableMouse(true)
     dialog:RegisterForDrag("LeftButton")
-    dialog:SetScript("OnDragStart", dialog.StartMoving)
-    dialog:SetScript("OnDragStop", dialog.StopMovingOrSizing)
+
     dialog.outline = library.create_surface(dialog, "BACKGROUND", 0)
     dialog.metal = library.create_surface(dialog, "BACKGROUND", 1)
     dialog.ground = library.create_surface(dialog, "BORDER", 0)
@@ -100,6 +164,7 @@ function library.create_dialog(name, title)
     dialog.title = library.create_text(dialog, "title", colours.gold)
     dialog.title:SetText(title)
     dialog.close = create_close(dialog)
+    create_pin(dialog)
     dialog.body = CreateFrame("Frame", nil, dialog)
     tinsert(UISpecialFrames, name)
     return dialog

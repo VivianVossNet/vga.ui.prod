@@ -1,8 +1,8 @@
 -- Copyright 2026 Vivian Voss. Code by Vivian Voss. Licensed under the BSD-3-Clause.
 -- SPDX-License-Identifier: BSD-3-Clause
--- Scope: the item tooltip fixed into a window, as the accepted draft draws it (manual/view/vga-tooltip.html, K0604) after Crusader Kings III: while an item's tooltip shows and the mouse stands still, a small grey figure at its upper right counts the seconds down - 3, 2, 1 - (K0759); at the end of the seconds the settings choose - 1, 2 or 3, three by default, on the tab Komfort - the tooltip becomes a window of LibVGA's dialog laid so that the item's lines stay exactly where the tooltip showed them, the tooltip's own frame and gold corner gone (K0756): »Gegenstand« in the head with the bags' pin and the close, the game's lines of the item beneath, and LibVGA's accordions »AUKTIONEN« and »ENTZAUBERN« with their chevrons, opened and closed by a click - the auctions with the history graph of thirty days, market value, lowest now, the seven days' trend as a chip and the basis; disenchanting with each material's amount, chance and market value, the expected value and the basis (K0752). The middle mouse button fixes at once; nothing is fixed in a fight. A window not pinned goes a second after the mouse leaves it; a pinned one stays until closed (K0753).
+-- Scope: the item tooltip fixed into a window, as the accepted draft draws it (manual/view/vga-tooltip.html, K0604) after Crusader Kings III: while an item's tooltip shows and the mouse stands still, a small grey figure at its upper right counts the seconds down - 3, 2, 1 - (K0759); at the end of the seconds the settings choose - 1, 2 or 3, three by default, on the tab Komfort - the tooltip becomes a window of LibVGA's dialog laid so that the item's lines stay exactly where the tooltip showed them, the tooltip's own frame and gold corner gone (K0756): »Gegenstand« in the head with LibVGA's dialog pin and the close - every new window starts free, to be dragged where it is wanted, pinned it holds its place (K0764) -, the game's lines of the item beneath, and LibVGA's accordions »AUKTIONEN« and »ENTZAUBERN« with their chevrons, opened and closed by a click - the auctions with the history graph of thirty days, market value, lowest now, the seven days' trend as a chip and the basis; disenchanting with each material's amount, chance and market value, the expected value and the basis (K0752). The middle mouse button fixes at once; nothing is fixed in a fight. A window not pinned goes a second after the mouse leaves it; a pinned one stays until closed (K0753).
 
--- {K0753} {K0759} {K0756} {K0604} {K0752}
+-- {K0753} {K0764} {K0759} {K0756} {K0604} {K0752}
 
 local _, vga = ...
 local library = LibVGA
@@ -197,22 +197,6 @@ function vga.update_tip_window()
     window:SetSize(width + 2 * library.read_size(-4), head + top + pad + library.read_size(-4))
 end
 
-local function write_pinned()
-    window.pinned = not window.pinned or nil
-    local colour = window.pinned and colours.gold or colours.quiet
-    window.pin.icon:SetVertexColor(colour[1], colour[2], colour[3], 1)
-end
-
-local function render_pin_tip(pin)
-    GameTooltip:SetOwner(pin, "ANCHOR_TOP")
-    GameTooltip:AddLine(window.pinned and library.texts.tip_unpin or library.texts.tip_pin, colours.ink[1], colours.ink[2], colours.ink[3], true)
-    GameTooltip:Show()
-end
-
-local function update_pin_left()
-    GameTooltip:Hide()
-end
-
 local function update_left(_, elapsed)
     if window.pinned or window:IsMouseOver() then
         window.away = 0
@@ -222,12 +206,15 @@ local function update_left(_, elapsed)
     if window.away >= LEAVE_AFTER then window:Hide() end
 end
 
+local TIP_PIN = {
+    read = function() return window.pinned == true end,
+    write = function(pinned) window.pinned = pinned or nil end,
+    read_note = function(pinned) return pinned and library.texts.tip_unpin or library.texts.tip_pin end,
+}
+
 local function create_window()
     window = library.create_dialog("VGATipWindow", library.texts.item)
-    window.pin = library.create_dialog_button(window, "Pin", function() library.update_safely("tip pin", write_pinned) end)
-    window.pin:SetScript("OnEnter", render_pin_tip)
-    window.pin:SetScript("OnLeave", update_pin_left)
-    window.pin.icon:SetVertexColor(colours.quiet[1], colours.quiet[2], colours.quiet[3], 1)
+    library.update_dialog_pin_state(window, TIP_PIN)
     window.lines = CreateFrame("GameTooltip", "VGATipWindowLines", window.body, "GameTooltipTemplate")
     window.lines.vga_window = true
     library.update_tooltip_bare(window.lines)
@@ -243,7 +230,8 @@ end
 local function render_window(link)
     if not window then create_window() end
     local left, top = GameTooltip:GetLeft(), GameTooltip:GetTop()
-    window.link, window.item, window.away = link, C_Item.GetItemInfoInstant(link), 0
+    window.link, window.item, window.away, window.pinned = link, C_Item.GetItemInfoInstant(link), 0, nil
+    library.update_dialog_pin(window)
     window.lines:SetOwner(window, "ANCHOR_NONE")
     window.lines:SetHyperlink(link)
     library.update_tooltip_bare(window.lines)

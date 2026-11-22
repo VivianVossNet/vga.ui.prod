@@ -239,7 +239,7 @@ local function create_settings()
     settings = library.create_dialog("LibVGASettingsDialog", "vga.ui · " .. library.texts.settings)
     settings:HookScript("OnHide", library.update_eyes_closed)
     settings:SetClipsChildren(true)
-    settings:SetScript("OnDragStop", update_top)
+    library.update_dialog_pin_state(settings, { dropped = update_top })
     settings.pages, settings.order, settings.titles = {}, {}, {}
     local pages = read_pages()
     for index, entry in ipairs(pages) do

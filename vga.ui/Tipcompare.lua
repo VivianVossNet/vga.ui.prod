@@ -1,8 +1,8 @@
 -- Copyright 2026 Vivian Voss. Code by Vivian Voss. Licensed under the BSD-3-Clause.
 -- SPDX-License-Identifier: BSD-3-Clause
--- Scope: the item tooltip's comparison with what is worn in the item's place, as the accepted draft draws form B (manual/view/vga-tooltip.html, K0605 to K0607): one verdict on top, in a head of its own kept by the tooltip's top padding - ▲ Besser in green, ▼ Schlechter in red, ◆ Gemischt in gold, »als Angelegtes« quiet at its right -, judged by the main stat of the player's class and specialisation and stamina: more of the main stat without less stamina better, less of it worse, more with less stamina mixed, and where the main stat stays the same, stamina alone; then beside each value of the game's lines that changed, LibVGA's chip - the arrow left, the number right, green up, red down -, every chip as wide as the others, the line's right text holding their room unseen; a set that would break a line of its own in red, »▼ Bricht Set: name 3 → 2«. What is worn comes from the bags' upgrade (Bagupgrade.lua): the weaker of two places, both hands for a two-hander; an empty place compares with nothing. Only for weapons and armour the player can use, never for the worn item itself (K0754).
+-- Scope: the item tooltip's comparison with what is worn in the item's place, as the accepted draft draws form B (manual/view/vga-tooltip.html, K0605 to K0607): one verdict on top, in a head of its own kept by the tooltip's top padding - Besser in green, Schlechter in red, Gemischt in gold, each after the chips' own flat picture of its sign tinted alike, never a glyph, which none of LibVGA's faces carries (K0763), »als Angelegtes« quiet at its right -, judged by the main stat of the player's class and specialisation and stamina: more of the main stat without less stamina better, less of it worse, more with less stamina mixed, and where the main stat stays the same, stamina alone; then beside each value of the game's lines that changed, LibVGA's chip - the arrow left, the number right, green up, red down -, every chip as wide as the others, the line's right text holding their room unseen; a set that would break a line of its own in red, »Bricht Set: name 3 → 2« after the chips' down arrow as an inline picture. What is worn comes from the bags' upgrade (Bagupgrade.lua): the weaker of two places, both hands for a two-hander; an empty place compares with nothing. Only for weapons and armour the player can use, never for the worn item itself (K0754).
 
--- {K0754} {K0605} {K0606} {K0607}
+-- {K0754} {K0763} {K0605} {K0606} {K0607}
 
 local _, vga = ...
 local library = LibVGA
@@ -65,6 +65,7 @@ end
 local function create_kept(tip)
     local pieces = { chips = {}, used = 0, hidden = {} }
     pieces.verdict = CreateFrame("Frame", nil, tip)
+    pieces.verdict.mark = pieces.verdict:CreateTexture(nil, "ARTWORK")
     pieces.verdict.word = library.create_text(pieces.verdict, "bold", colours.ink)
     pieces.verdict.note = library.create_text(pieces.verdict, "small", colours.quiet)
     pieces.verdict.line = pieces.verdict:CreateTexture(nil, "ARTWORK")
@@ -88,7 +89,13 @@ end
 local function update_verdict(tip, pieces, verdict)
     local look, frame = VERDICTS[verdict], pieces.verdict
     local pad, head = library.read_draft_size(14), library.read_draft_size(HEAD)
-    frame.word:SetText(look.arrow .. " " .. library.texts[look.word])
+    local mark = library.read_size(-2)
+    frame.mark:SetTexture(library.media .. library.read_chip_picture(look.arrow))
+    frame.mark:SetVertexColor(look.colour[1], look.colour[2], look.colour[3], 1)
+    frame.mark:SetSize(mark, mark)
+    frame.mark:ClearAllPoints()
+    frame.mark:SetPoint("LEFT", frame, "LEFT", pad, 0)
+    frame.word:SetText(library.texts[look.word])
     frame.word:SetTextColor(look.colour[1], look.colour[2], look.colour[3], 1)
     frame.note:SetText(library.texts.compare_worn)
     frame:ClearAllPoints()
@@ -96,7 +103,7 @@ local function update_verdict(tip, pieces, verdict)
     frame:SetPoint("TOPRIGHT", tip, "TOPRIGHT", 0, -library.read_draft_size(4))
     frame:SetHeight(head)
     frame.word:ClearAllPoints()
-    frame.word:SetPoint("LEFT", frame, "LEFT", pad, 0)
+    frame.word:SetPoint("LEFT", frame.mark, "RIGHT", library.read_draft_size(6), 0)
     frame.note:ClearAllPoints()
     frame.note:SetPoint("RIGHT", frame, "RIGHT", -pad, 0)
     frame.line:ClearAllPoints()
@@ -147,6 +154,11 @@ local function write_chips(tip, pieces, deltas)
     library.update_chip_width(shown)
 end
 
+local function read_inline_mark(arrow, colour)
+    local tint = math.floor(colour[1] * 255) .. ":" .. math.floor(colour[2] * 255) .. ":" .. math.floor(colour[3] * 255)
+    return "|T" .. library.media .. library.read_chip_picture(arrow) .. ":0:0:0:0:32:32:0:32:0:32:" .. tint .. "|t"
+end
+
 local function read_set_count(set)
     local count = 0
     for place = 1, 19 do
@@ -162,7 +174,7 @@ local function write_set_break(tip, link, worn)
     local count = read_set_count(set)
     if count < 2 then return end
     local name = C_Item.GetItemSetInfo and C_Item.GetItemSetInfo(set) or ""
-    tip:AddLine(string.format(library.texts.compare_breaks_set, name, count, count - 1), BREAK[1], BREAK[2], BREAK[3], true)
+    tip:AddLine(read_inline_mark("▼", BREAK) .. " " .. string.format(library.texts.compare_breaks_set, name, count, count - 1), BREAK[1], BREAK[2], BREAK[3], true)
 end
 
 local function read_worn(link)
@@ -197,6 +209,10 @@ end
 
 function vga.read_tip_verdict(tip)
     return kept[tip] and kept[tip].shown_verdict
+end
+
+function vga.read_tip_verdict_mark(tip)
+    return kept[tip] and kept[tip].verdict.mark
 end
 
 function vga.read_tip_chips(tip)
