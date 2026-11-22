@@ -1,8 +1,8 @@
 -- Copyright 2026 Vivian Voss. Code by Vivian Voss. Licensed under the BSD-3-Clause.
 -- SPDX-License-Identifier: BSD-3-Clause
--- Scope: Two transparent arcs either side of the character, wide enough to clear it and centred on its middle, as manual/view/vga-hud.html draws them (D): twelve segments each, lit one by one - or, as the settings say (arc_shape), half arcs, half as high, of six segments for the same values, the beads closer together -; behind each arc, as the settings say (»Rahmen«, off by default), a broad stroke of the frames' own ground and opacity, rounded at its ends, eight draft pixels clear of the segments and beads all round, so the arc reads on a light ground (K0563) - since K0699 the frame of every vga.ui window bent round the figure, after the UX adviser's draft manual/view/vga-arcs-band.html (variant 3): one band of equal width, 119 to 181 draft units about the centre, the segments centred in it, running ten degrees past the arc's ends, its ends cut towards the centre with the frames' corners of eight units, the frames' black edge and line and ground drawn in Media/ArcBandFull and ArcBandHalf at the frames' opacity, the gold corner three and a half units inside its foot; its opacity the arcs' own, set by the slider »Hintergrund« beneath »Rahmen«, else the frames' (K0701); an arc with nothing to show fades slowly out, each on its own, and back in when it has. Each side shows what the settings choose - the range, the threat, the target's cast or its health, the player's own health - filled in green as the target's, with or without a target -, the player's own resource, named as the game names the class's power - Mana, Wut, Energie, for a druid all three -, filling the arc in the power bar's colour, with or without a target, a rogue's or cat's combo points as five beads beside it, lit in VGA's orange when earned -, or nothing -, by default the range at the left and the threat at the right. The range to an attackable target filling from its foot as the target comes nearer - the distance known in steps by the game's own range checks - the player's harmful spells and a few items, each at the range the game gives its spell, and the interact distances of 10 and 28 yards -, shown as the smallest step the target stands within, »>« before the largest when beyond it -, its lit segments in one colour that tells the reach - red when the target stands near, through orange and yellow to a deep green at the edge of the best range of the player's class, by the steps' yards -; every segment grey where it stands beyond that range or beyond every step; the threat drawn from the target fills in the threat meter's five colours, the health in green, each segment set by the game from the value even where it is secret; the target's cast fills as it runs, gold while it can be interrupted, grey while not, its spell's name at the head - for the moment to interrupt. Each arc's value stands at its head or its foot, or not at all, as the settings say. At each arc's foot a small gold corner, the only part of the arcs that takes the mouse, opens the settings on the arcs' tab, where every change shows live; there each arc is one row with a pop-up menu whose sections are »Ich« - the resource, the own health - and »Ziel« - range, threat, cast, health -, then none (K0564, K0565). Free to be placed while arranging. As the settings say (»Sichtbar«, »Im Kampf« by default), out of combat both arcs fade slowly out, over three seconds, and show at once, without a fade, the moment a fight begins; with »Immer« they stand as before; an arc's preview eye shows it out of combat too (K0675). Each arc's gold corner fades with its arc and takes no mouse while the arc is gone (K0677).
+-- Scope: Two transparent arcs either side of the character, wide enough to clear it and centred on its middle, as manual/view/vga-hud.html draws them (D): twelve segments each, lit one by one - or, as the settings say (arc_shape), half arcs, half as high, of six segments for the same values, the beads closer together -; behind each arc, as the settings say (»Rahmen«, off by default), a broad stroke of the frames' own ground and opacity, rounded at its ends, eight draft pixels clear of the segments and beads all round, so the arc reads on a light ground (K0563) - since K0699 the frame of every vga.ui window bent round the figure, after the UX adviser's draft manual/view/vga-arcs-band.html (variant 3): one band of equal width, 119 to 181 draft units about the centre, the segments centred in it, running ten degrees past the arc's ends, its ends cut towards the centre with the frames' corners of eight units, the frames' black edge and line and ground drawn in Media/ArcBandFull and ArcBandHalf at the frames' opacity, the gold corner three and a half units inside its foot; its opacity the arcs' own, set by the slider »Hintergrund« beneath »Rahmen«, else the frames' (K0701); an arc with nothing to show fades slowly out, each on its own, and back in when it has. Each side shows what the settings choose - the range, the threat, the target's cast or its health, the player's own health - filled in green as the target's, with or without a target -, the player's own resource, named as the game names the class's power - Mana, Wut, Energie, for a druid all three -, filling the arc in the power bar's colour, with or without a target, a rogue's or cat's combo points as five beads beside it, lit in VGA's orange when earned -, or nothing -, by default the range at the left and the threat at the right. The range to an attackable target filling from its foot as the target comes nearer - the distance known in steps by the game's own range checks - the player's harmful spells and a few items, each at the range the game gives its spell, and the interact distances of 10 and 28 yards -, shown as the smallest step the target stands within, »>« before the largest when beyond it -, its lit segments in one colour that tells the reach - red when the target stands near, through orange and yellow to a deep green at the edge of the best range of the player's class, by the steps' yards -; every segment grey where it stands beyond that range or beyond every step; the threat drawn from the target fills in the threat meter's five colours, the health in green, each segment set by the game from the value even where it is secret; the target's cast fills as it runs, gold while it can be interrupted, grey while not, its spell's name at the head - for the moment to interrupt; while the game keeps the cast's times secret, in a fight, its share is the game's own (the cast's duration object, EvaluateElapsedPercent, or EvaluateRemainingPercent for a channel, scaled to a hundred), each segment lit by the game past its threshold, as the cast bar runs by the game's timer, the name written first so a refusal later never leaves it blank (K0709). Each arc's value stands at its head or its foot, or not at all, as the settings say. At each arc's foot a small gold corner, the only part of the arcs that takes the mouse, opens the settings on the arcs' tab, where every change shows live; there each arc is one row with a pop-up menu whose sections are »Ich« - the resource, the own health - and »Ziel« - range, threat, cast, health -, then none (K0564, K0565). Free to be placed while arranging. As the settings say (»Sichtbar«, »Im Kampf« by default), out of combat both arcs fade slowly out, over three seconds, and show at once, without a fade, the moment a fight begins; with »Immer« they stand as before; an arc's preview eye shows it out of combat too (K0675). Each arc's gold corner fades with its arc and takes no mouse while the arc is gone (K0677).
 
--- {K0392} {K0393} {K0395} {K0400} {K0416} {K0417} {K0418} {K0501} {K0502} {K0563} {K0564} {K0574} {K0581} {K0582} {K0583} {K0699} {K0701} {K0675} {K0677}
+-- {K0392} {K0393} {K0395} {K0400} {K0416} {K0417} {K0418} {K0501} {K0502} {K0563} {K0564} {K0574} {K0581} {K0582} {K0583} {K0699} {K0701} {K0709} {K0675} {K0677}
 
 local _, vga = ...
 local library = LibVGA
@@ -299,7 +299,19 @@ end
 local function read_cast_share(start, finish, channel)
     local now = GetTime() * 1000
     local share = (now - start) / math.max(finish - start, 1)
-    return math.max(0, math.min(1, channel and 1 - share or share))
+    return math.max(0, math.min(1, channel and 1 - share or share)) * 100
+end
+
+local function read_secret(value)
+    return issecretvalue ~= nil and issecretvalue(value)
+end
+
+local function read_game_share(channel)
+    local duration = channel and UnitChannelDuration and UnitChannelDuration("target") or (not channel and UnitCastingDuration and UnitCastingDuration("target"))
+    local scale = CurveConstants and CurveConstants.ScaleTo100
+    if not (duration and scale) then return nil end
+    if channel then return duration:EvaluateRemainingPercent(scale) end
+    return duration:EvaluateElapsedPercent(scale)
 end
 
 local function update_cast(side)
@@ -311,15 +323,16 @@ local function update_cast(side)
     end
     side.wanted = name and 1 or 0
     if not name then return end
-    local ran, share = pcall(read_cast_share, start, finish, channel)
-    local lit = math.ceil((ran and share or 1) * read_count())
-    local colour = locked and GREY or library.colours.gold
-    for index, segment in ipairs(side.segments) do
-        segment:SetStatusBarColor(colour[1], colour[2], colour[3], 0.9)
-        segment:SetMinMaxValues(0, STEP)
-        segment:SetValue(index <= lit and STEP or 0)
-    end
     side.value:SetText(vga.read_cast_label(name))
+    local secret = read_secret(start) or read_secret(finish)
+    local share = secret and read_game_share(channel) or (not secret and read_cast_share(start, finish, channel))
+    local colour = not read_secret(locked) and locked and GREY or library.colours.gold
+    for index, segment in ipairs(side.segments) do
+        local least = (index - 1) * 100 / read_count()
+        segment:SetStatusBarColor(colour[1], colour[2], colour[3], 0.9)
+        segment:SetMinMaxValues(least, least + STEP)
+        segment:SetValue(share or 0)
+    end
 end
 
 local function update_marks(side, shown)

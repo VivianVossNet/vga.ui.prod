@@ -1,8 +1,8 @@
 -- Copyright 2026 Vivian Voss. Code by Vivian Voss. Licensed under the BSD-3-Clause.
 -- SPDX-License-Identifier: BSD-3-Clause
--- Scope: vga.ui's one settings dialog as the accepted draft orders it (manual/view/vga-settings.html), standing high on the screen, its top fixed, as tall as its tallest tab, whichever is shown, so no content ever changes the dialog's size (K0637), as wide as its sidebar and its widest page: at the left a sidebar in the way of the macOS System Settings (Sidebar.lua, K0565) - Darstellung: Allgemein; Im Kampf: Einheiten, Plaketten, Bögen; Leisten: Aktionsleisten, Erfahrung; Welt: Quests, Minimap, Taschen; set apart Anordnen and Profile -, at the right the chosen page under its title, at most seven rows a page; Allgemein ending in the red »Alles zurücksetzen …«, which asks once; the last tab, Anordnen, reached from everywhere, with the alignment - free or on a grid of eight or of sixteen pixels - and the gold »Anordnen …«, which closes the dialog and shows the handles; every choice working at once - a new face measured again a moment later, when the game has loaded its file, so that every width follows it; the one menu there is - a widget's gold corner opens it on the widget's tab, the widget's own settings in the group »Widgets« at the tab's foot; and the command /vga. The units' page switches two of the game's own settings, out of combat: »Ziel des Ziels« (showTargetOfTarget, K0696) and »Zauber auf Fenster unter der Maus« (enableMouseoverCast, K0697), so a spell key pressed with the mouse over a unit frame casts on its unit.
+-- Scope: vga.ui's one settings dialog as the accepted draft orders it (manual/view/vga-settings.html), standing high on the screen, its top fixed, as tall as its tallest tab, whichever is shown, so no content ever changes the dialog's size (K0637), as wide as its sidebar and its widest page: at the left a sidebar in the way of the macOS System Settings (Sidebar.lua, K0565) - Darstellung: Allgemein; Im Kampf: Einheiten, Plaketten, Bögen; Leisten: Aktionsleisten, Erfahrung; Welt: Quests, Minimap, Taschen; set apart Anordnen and Profile -, at the right the chosen page under its title, at most seven rows a page; Allgemein ending in the red »Alles zurücksetzen …«, which asks once; the last tab, Anordnen, reached from everywhere, with the alignment - free or on a grid of eight or of sixteen pixels - and the gold »Anordnen …«, which closes the dialog and shows the handles; every choice working at once - a new face measured again a moment later, when the game has loaded its file, so that every width follows it; the one menu there is - a widget's gold corner opens it on the widget's tab, the widget's own settings in the group »Widgets« at the tab's foot; and the command /vga. The units' page switches the game's own »Ziel des Ziels« (showTargetOfTarget, K0696), out of combat. The page Komfort, with the star, gathers the game's own conveniences, out of combat: »Schnell plündern« (autoLootDefault, K0705) and »Zauber auf Fenster unter der Maus« (enableMouseoverCast, K0697), moved there from the bags' and the units' pages (K0712).
 
--- {K0268} {K0311} {K0316} {K0324} {K0330} {K0337} {K0383} {K0384} {K0430} {K0565} {K0637} {K0696} {K0697}
+-- {K0268} {K0311} {K0316} {K0324} {K0330} {K0337} {K0383} {K0384} {K0430} {K0565} {K0637} {K0696} {K0697} {K0705} {K0712}
 
 local library = LibVGA
 
@@ -13,6 +13,7 @@ local GROUPS = {
     { title = "in_fight", keys = { "units", "plates", "arcs" } },
     { title = "bars", keys = { "mainbar", "experience" }, names = { mainbar = "action_bars" } },
     { title = "world", keys = { "quests", "map", "bags" } },
+    { keys = { "comfort" } },
     { keys = { "arrange", "profiles" } },
 }
 local FROM_TOP = 0.12
@@ -131,7 +132,6 @@ local function create_units_page(page)
             library.update_choice_setting("values", index == 2 and "percent" or "absolute")
         end),
         library.create_choice_row(page, texts.target_of_target, { texts.on, texts.off }, GetCVarBool("showTargetOfTarget") and 1 or 2, write_target_of_target),
-        library.create_choice_row(page, texts.mouseover_cast, { texts.on, texts.off }, GetCVarBool("enableMouseoverCast") and 1 or 2, write_mouseover_cast),
     }
     for _, row in ipairs(library.create_widget_rows(page, "units", {
         { key = "units", title = texts.unit_frames },
@@ -154,6 +154,19 @@ local function create_plates_page(page)
     }
 end
 
+local function write_auto_loot(index)
+    if InCombatLockdown() then return end
+    SetCVar("autoLootDefault", index == 1 and "1" or "0")
+end
+
+local function create_comfort_page(page)
+    local texts = library.texts
+    page.rows = {
+        library.create_choice_row(page, texts.auto_loot, { texts.on, texts.off }, GetCVarBool("autoLootDefault") and 1 or 2, write_auto_loot),
+        library.create_choice_row(page, texts.mouseover_cast, { texts.on, texts.off }, GetCVarBool("enableMouseoverCast") and 1 or 2, write_mouseover_cast),
+    }
+end
+
 local function create_arrange_page(page)
     local texts = library.texts
     page.rows = {
@@ -170,6 +183,7 @@ local function read_pages()
         { key = "general", title = texts.general, icon = "TabGeneral", build = create_general_page },
         { key = "units", title = texts.units, icon = "TabUnits", build = create_units_page },
         { key = "plates", title = texts.plates, icon = "TabPlates", build = create_plates_page },
+        { key = "comfort", title = texts.comfort, icon = "StarFull", build = create_comfort_page },
     }
     for _, key in ipairs(ORDER) do
         local element = library.elements[key]

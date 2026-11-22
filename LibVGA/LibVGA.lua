@@ -1,8 +1,8 @@
 -- Copyright 2026 Vivian Voss. Code by Vivian Voss. Licensed under the BSD-3-Clause.
 -- SPDX-License-Identifier: BSD-3-Clause
--- Scope: LibVGA's ground: the scale on one curve with one dial, the sizes, the fonts - five faces to choose, Geologica by default, Blizzard's Friz Quadrata from the game itself, in its Cyrillic file, which every client carries and which holds the Latin letters too, Exo 2, Philosopher and Fira Sans - and the colours, the register of elements and the guard that keeps a fault with its place. Every size grows and shrinks with the screen like a rem: the base is the chosen size times the screen's height over 1200 interface units, the height the owner's own screen gives, so his look stays and every other screen keeps the same proportions; a change of the game's scale or the screen lays everything anew.
+-- Scope: LibVGA's ground: the scale on one curve with one dial, the sizes, the fonts - five faces to choose, Geologica by default, Blizzard's Friz Quadrata from the game itself, in its Cyrillic file, which every client carries and which holds the Latin letters too, Exo 2, Philosopher and Fira Sans - and the colours, the register of elements and the guard that keeps a fault with its place. Every size grows and shrinks with the screen like a rem: the base is the chosen size times the screen's height over 1200 interface units, the height the owner's own screen gives, so his look stays and every other screen keeps the same proportions; a change of the game's scale or the screen lays everything anew. Every frame face is kept also two pixels smaller and two larger, so an element may offer its own text size - library.read_frame_font(kind, shift) with a shift of -2 or 2 (K0710).
 
--- {K0294} {K0295} {K0296} {K0297} {K0311} {K0325} {K0384} {K0448}
+-- {K0710} {K0294} {K0295} {K0296} {K0297} {K0311} {K0325} {K0384} {K0448}
 
 local NAME = ...
 local MEDIA = "Interface\\AddOns\\" .. NAME .. "\\Media\\"
@@ -69,6 +69,7 @@ function library.read_ground(key)
 end
 
 local SIZE_STEPS = { small = 0.8, normal = 1, large = 1.25 }
+local SHIFTS = { [-2] = "_less", [2] = "_more" }
 
 function library.read_size_step(key)
     local chosen = key and LibVGASettings and LibVGASettings.sizes and LibVGASettings.sizes[key]
@@ -93,8 +94,9 @@ function library.read_font(kind)
     return fonts[kind]
 end
 
-function library.read_frame_font(kind)
-    return fonts["open_" .. kind]
+function library.read_frame_font(kind, shift)
+    local suffix = shift and SHIFTS[shift] or ""
+    return fonts["open_" .. kind .. suffix] or fonts["open_" .. kind]
 end
 
 library.face_order = { "geologica", "friz", "exo", "philosopher", "fira" }
@@ -104,9 +106,9 @@ function library.read_face(key)
     return face[1], face[2] or FACES.geologica[2], face[3] or FACES.geologica[3]
 end
 
-local function update_font(name, shape, edge)
+local function update_font(name, shape, edge, shift)
     fonts[name] = fonts[name] or CreateFont("LibVGAFont_" .. name)
-    fonts[name]:SetFont(shape[1], math.max(SMALLEST_TEXT, library.read_size(shape[2])), edge)
+    fonts[name]:SetFont(shape[1], math.max(SMALLEST_TEXT, library.read_size(shape[2]) + (shift or 0)), edge)
     fonts[name]:SetTextColor(unpack(shape[4] or library.colours.ink))
     fonts[name]:SetShadowColor(0, 0, 0, (edge == "" and shape[4] == nil or name == "number_light") and 0.8 or 0)
     fonts[name]:SetShadowOffset(0, -1)
@@ -130,6 +132,7 @@ local function update_fonts()
     for kind, shape in pairs(shapes) do
         update_font(kind, shape, shape[3] or "")
         update_font("open_" .. kind, shape, shape[3] or (open and "OUTLINE" or ""))
+        for shift, suffix in pairs(SHIFTS) do update_font("open_" .. kind .. suffix, shape, shape[3] or (open and "OUTLINE" or ""), shift) end
     end
 end
 

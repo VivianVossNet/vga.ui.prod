@@ -1,8 +1,8 @@
 -- Copyright 2026 Vivian Voss. Code by Vivian Voss. Licensed under the BSD-3-Clause.
 -- SPDX-License-Identifier: BSD-3-Clause
--- Scope: vga.ui's quest tracker as the accepted draft draws .qw (manual/view/vga-probe.html), at most half the screen's height, a longer list scrolling under its head (Questscroll.lua, K0548), its most height a slider's between a fifth and half the screen (K0550): a quest whose objectives are all done shows its title alone, its struck objectives hidden unless the tab Quests says to show them; a quest with a time limit shows the time left on a small line under its title, the word first and the time after it, so only the line's end changes, green, yellow in the last two minutes, red in the last thirty seconds; a quest whose targets lie in a dungeon carries the game's word Dungeon after its title, quiet grey - by the game's quest tag, or by Questie's dungeon list for the quest's zone -; a widget in the tooltip's look, at least as wide as the draft and wider where a title or objective needs it, at least 250 draft pixels, up to the most width set on the settings' slider, freely between 250 and 384, the default (K0550), a width chosen before as Schmal, Mittel or Breit kept as 250, 320 or 384; an objective longer than that is broken at its words onto further lines, the count on the first, a pixel between its lines, each line of a done one struck through as long as its words - growing towards the screen's middle: its place is kept by its outer corner - the upper right on the right half of the screen, the upper left on the left -, a place saved before by its upper left moved once to its upper right where it stands right -, the VGA mark, »Quests dieser Zone« in gold and the count shown of all in the log in its head; the watched quests whose next target lies in the player's zone, in the order the settings choose - the nearest first, by difficulty, the easiest first, or as watched in the quest log -, at most eight; each with its title in gold and its distance at the right, before the title a kept place for a mark - a green tick on a finished quest, a line arrow turned towards its target on an open one, gold on the nearest open, grey on the rest; its objectives with their counts, each after a small bead in exactly the game's colour of the quest's difficulty, a white light at its upper left and a faint shade at its lower right laid over it, centred under the arrow and on the middle of its line, its words set in where the title's begin, as the game colours it, a thin gold bar under each still open, the finished struck through; the data source at the foot; a left click on a quest opens it in the game's quest log, as Blizzard's tracker does, out of combat; a click on an open quest's arrow makes it the navigation's target instead of the nearest - a second click on the same arrow lets it go, a click on another's takes that one -, kept for each zone on its own: a quest chosen in one zone counts only there and counts again on returning; resting on the arrow explains this in a tooltip. The source is automatic - Questie when it is loaded and ready, else the game's own quest log -; Questie's internal modules are read guarded, the game's data standing where they fail. Blizzard's tracker and Questie's own are hidden while it runs.
+-- Scope: vga.ui's quest tracker as the accepted draft draws .qw (manual/view/vga-probe.html), at most half the screen's height, a longer list scrolling under its head (Questscroll.lua, K0548), its most height a slider's between a fifth and half the screen (K0550): a quest whose objectives are all done shows its title alone, its struck objectives hidden unless the tab Quests says to show them; a quest with a time limit shows the time left on a small line under its title, the word first and the time after it, so only the line's end changes, green, yellow in the last two minutes, red in the last thirty seconds; a quest whose targets lie in a dungeon carries the game's word Dungeon after its title, quiet grey - by the game's quest tag, or by Questie's dungeon list for the quest's zone -; a widget in the tooltip's look, at least as wide as the draft and wider where a title or objective needs it, at least 250 draft pixels, up to the most width set on the settings' slider, freely between 250 and 384, the default (K0550), a width chosen before as Schmal, Mittel or Breit kept as 250, 320 or 384; an objective longer than that is broken at its words onto further lines, the count on the first, a pixel between its lines, each line of a done one struck through as long as its words - growing towards the screen's middle: its place is kept by its outer corner - the upper right on the right half of the screen, the upper left on the left -, a place saved before by its upper left moved once to its upper right where it stands right -, the VGA mark, »Quests dieser Zone« in gold and the count shown of all in the log in its head; the watched quests whose next target lies in the player's zone, in the order the settings choose - the nearest first, by difficulty, the easiest first, or as watched in the quest log -, at most eight; each with its title in gold and its distance at the right, before the title a kept place for a mark - a green tick on a finished quest, a line arrow turned towards its target on an open one, gold on the nearest open, grey on the rest; its objectives with their counts, each after a small bead in exactly the game's colour of the quest's difficulty, a white light at its upper left and a faint shade at its lower right laid over it, centred under the arrow and on the middle of its line, its words set in where the title's begin, as the game colours it, a thin gold bar under each still open, the finished struck through; the data source at the foot; a left click on a quest opens it in the game's quest log, as Blizzard's tracker does, out of combat; a click on an open quest's arrow makes it the navigation's target instead of the nearest - a second click on the same arrow lets it go, a click on another's takes that one -, kept for each zone on its own: a quest chosen in one zone counts only there and counts again on returning; resting on the arrow explains this in a tooltip. The source is automatic - Questie when it is loaded and ready, else the game's own quest log -; Questie's internal modules are read guarded, the game's data standing where they fail. Blizzard's tracker and Questie's own are hidden while it runs. Its text size is chosen on the tab Quests, »Schrift: Klein | Mittel | Groß«, Mittel as it always was, Klein and Groß two pixels smaller and larger in every face it uses; every height is measured from its text, so the rows grow with it and nothing runs into anything (K0710).
 
--- {K0260} {K0370} {K0371} {K0390} {K0401} {K0408} {K0422} {K0424}
+-- {K0710} {K0711} {K0260} {K0370} {K0371} {K0390} {K0401} {K0408} {K0422} {K0424}
 
 local _, vga = ...
 local library = LibVGA
@@ -33,6 +33,12 @@ local SPACING = 1
 local OTHERS = { "ObjectiveTrackerFrame", "Questie_BaseFrame" }
 local atan2 = math.atan2 or math.atan
 local tracker
+local FONT_SHIFTS = { small = -2, large = 2 }
+local FONT_SIZES = { "small", "normal", "large" }
+
+local function read_quest_font(kind)
+    return library.read_frame_font(kind, FONT_SHIFTS[LibVGASettings.quest_font or "small"])
+end
 local hooked = {}
 
 local function read_draft(pixels)
@@ -157,6 +163,17 @@ local function create_height_row(page, texts)
     return row
 end
 
+local function read_font_size_index()
+    for index, size in ipairs(FONT_SIZES) do
+        if size == (LibVGASettings.quest_font or "small") then return index end
+    end
+    return 1
+end
+
+local function write_font_size(index)
+    library.update_choice_setting("quest_font", FONT_SIZES[index])
+end
+
 local function create_quests_page(page)
     local texts = library.texts
     local chosen = ({ near = 1, difficulty = 2, journal = 3 })[LibVGASettings.quest_order or "near"] or 1
@@ -168,6 +185,7 @@ local function create_quests_page(page)
             library.update_choice_setting("quest_finished", index == 1 and "hide" or "show")
         end),
         library.create_choice_row(page, texts.quest_zones, { texts.current_zone, texts.all_zones }, vga.check_all_zones() and 2 or 1, write_zones),
+        library.create_choice_row(page, texts.font, { texts.small, texts.medium, texts.large }, read_font_size_index(), write_font_size),
         create_width_row(page, texts),
         create_height_row(page, texts),
     }
@@ -373,7 +391,7 @@ end
 
 local function read_text_width(text, kind)
     local measure = tracker.measure
-    measure:SetFontObject(library.read_frame_font(kind))
+    measure:SetFontObject(read_quest_font(kind))
     measure:SetText(text or "")
     if measure.GetUnboundedStringWidth then return measure:GetUnboundedStringWidth() end
     return measure:GetStringWidth()
@@ -412,8 +430,8 @@ local function update_objective(objective, data, top, width, colour_of_quest)
     objective:ClearAllPoints()
     objective:SetPoint("TOPLEFT", objective:GetParent(), "TOPLEFT", pad, -top)
     objective:SetWidth(width - 2 * pad)
-    objective.text:SetFontObject(library.read_frame_font("body"))
-    objective.count:SetFontObject(library.read_frame_font("body"))
+    objective.text:SetFontObject(read_quest_font("body"))
+    objective.count:SetFontObject(read_quest_font("body"))
     local count = data.need > 0 and (data.have .. "/" .. data.need) or ""
     local column = read_draft(12)
     local room = width - 2 * pad - column - read_draft(6) - read_draft(8) - read_text_width(count, "body")
@@ -489,7 +507,7 @@ local function update_timer(quest, data)
     quest.timer:SetShown(data.left ~= nil)
     if not data.left then return 0 end
     local colour = read_time_colour(data.left)
-    quest.timer:SetFontObject(library.read_frame_font("small"))
+    quest.timer:SetFontObject(read_quest_font("small"))
     quest.timer:SetTextColor(colour[1], colour[2], colour[3])
     quest.timer:SetText(string.format("%s %d:%02d", library.texts.time_left, math.floor(data.left / 60), math.floor(data.left % 60)))
     quest.timer:ClearAllPoints()
@@ -503,8 +521,8 @@ local function update_quest(quest, data, top, width, active)
     quest:SetPoint("TOPLEFT", tracker.body.content, "TOPLEFT", 0, -(top - tracker.body.content.top))
     quest:SetWidth(width)
     quest.id = data.id
-    quest.title:SetFontObject(library.read_frame_font("bold"))
-    quest.distance:SetFontObject(library.read_frame_font("small"))
+    quest.title:SetFontObject(read_quest_font("bold"))
+    quest.distance:SetFontObject(read_quest_font("small"))
     quest.title:SetText(data.dungeon and (data.title .. "  |cff8f8f8f" .. (LFG_TYPE_DUNGEON or library.texts.dungeon) .. "|r") or data.title)
     quest.distance:SetText(vga.render_distance(data.distance))
     quest.arrow:SetSize(arrow, arrow)
@@ -513,7 +531,8 @@ local function update_quest(quest, data, top, width, active)
     quest.pin:SetAllPoints(quest.arrow)
     update_mark(quest, data, active)
     quest.distance:ClearAllPoints()
-    quest.distance:SetPoint("TOPRIGHT", quest, "TOPRIGHT", -pad, -read_draft(10) - read_draft(2))
+    local sink = math.ceil(quest.title:GetStringHeight()) - math.ceil(quest.distance:GetStringHeight())
+    quest.distance:SetPoint("TOPRIGHT", quest, "TOPRIGHT", -pad, -read_draft(10) - math.max(0, sink))
     quest.title:ClearAllPoints()
     quest.title:SetPoint("TOPLEFT", quest, "TOPLEFT", pad + arrow + read_draft(6), -read_draft(10))
     quest.title:SetPoint("RIGHT", quest.distance, "LEFT", -read_draft(8), 0)
@@ -532,21 +551,23 @@ local function update_head(width, shown, total)
     local pad, mark = read_draft(12), read_draft(16)
     tracker.mark:SetSize(mark, mark)
     tracker.mark:ClearAllPoints()
-    tracker.mark:SetPoint("TOPLEFT", tracker, "TOPLEFT", pad, -(read_draft(4) + read_draft(8)))
-    tracker.head:SetFontObject(library.read_frame_font("bold"))
+    tracker.head:SetFontObject(read_quest_font("bold"))
+    local band = math.max(mark, math.ceil(tracker.head:GetStringHeight()))
+    tracker.mark:SetPoint("LEFT", tracker, "TOPLEFT", pad, -(read_draft(4) + read_draft(8) + band / 2))
     tracker.head:SetText(vga.check_all_zones() and library.texts.quests or library.texts.quests_zone)
     tracker.head:ClearAllPoints()
     tracker.head:SetPoint("LEFT", tracker.mark, "RIGHT", read_draft(8), 0)
-    tracker.count:SetFontObject(library.read_frame_font("small"))
+    tracker.count:SetFontObject(read_quest_font("small"))
     tracker.count:SetText(shown .. " " .. library.texts.of .. " " .. total)
     tracker.count:ClearAllPoints()
-    tracker.count:SetPoint("RIGHT", tracker, "TOPRIGHT", -pad - read_draft(14), -(read_draft(4) + read_draft(8) + mark / 2))
-    return read_draft(4) + read_draft(8) + mark + read_draft(6)
+    local band = math.max(mark, math.ceil(tracker.head:GetStringHeight()))
+    tracker.count:SetPoint("RIGHT", tracker, "TOPRIGHT", -pad, -(read_draft(4) + read_draft(8) + band / 2))
+    return read_draft(4) + read_draft(8) + band + read_draft(6)
 end
 
 local function update_foot(top, source)
     local text = tracker.source.text
-    text:SetFontObject(library.read_frame_font("caption"))
+    text:SetFontObject(read_quest_font("caption"))
     text:SetText(library.texts.data .. ": " .. (source == "questie" and "QUESTIE" or "WOW"))
     tracker.source:ClearAllPoints()
     tracker.source:SetPoint("TOPLEFT", tracker, "TOPLEFT", read_draft(12), -(top + read_draft(6)))
