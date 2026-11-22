@@ -1,8 +1,8 @@
 -- Copyright 2026 Vivian Voss. Code by Vivian Voss. Licensed under the BSD-3-Clause.
 -- SPDX-License-Identifier: BSD-3-Clause
--- Scope: LibVGA's ground: the scale on one curve with one dial, the sizes, the fonts - five faces to choose, Geologica by default, Blizzard's Friz Quadrata from the game itself, in its Cyrillic file, which every client carries and which holds the Latin letters too, Exo 2, Philosopher and Fira Sans - and the colours, the register of elements and the guard that keeps a fault with its place. Every size grows and shrinks with the screen like a rem: the base is the chosen size times the screen's height over 1200 interface units, the height the owner's own screen gives, so his look stays and every other screen keeps the same proportions; a change of the game's scale or the screen lays everything anew. Every frame face is kept also two pixels smaller and two larger, so an element may offer its own text size - library.read_frame_font(kind, shift) with a shift of -2 or 2 (K0710). An element may name the size it starts at where none was chosen, library.size_defaults[key] - the damage meter starts small (K0732).
+-- Scope: LibVGA's ground: the scale on one curve with one dial, the sizes, the fonts - five faces to choose, Geologica by default, Blizzard's Friz Quadrata from the game itself, in its Cyrillic file, which every client carries and which holds the Latin letters too, Exo 2, Philosopher and Fira Sans - and the colours, the register of elements and the guard that keeps a fault with its place. Every size grows and shrinks with the screen like a rem: the base is the chosen size times the screen's height over 1200 interface units, the height the owner's own screen gives, so his look stays and every other screen keeps the same proportions; a change of the game's scale or the screen lays everything anew. Every frame face is kept also two pixels smaller and two larger, so an element may offer its own text size - library.read_frame_font(kind, shift) with a shift of -2 or 2 (K0710). An element may name the size it starts at where none was chosen, library.size_defaults[key] - the damage meter starts small (K0732). A text's width and height are read plainly where the game gives them, and where it gives a secret value - on regions laid in an item tooltip - measured again on a hidden FontString on UIParent with the same font and words (library.read_string_width, library.read_string_height, K0758).
 
--- {K0710} {K0732} {K0294} {K0295} {K0296} {K0297} {K0311} {K0325} {K0384} {K0448}
+-- {K0758} {K0710} {K0732} {K0294} {K0295} {K0296} {K0297} {K0311} {K0325} {K0384} {K0448}
 
 local NAME = ...
 local MEDIA = "Interface\\AddOns\\" .. NAME .. "\\Media\\"
@@ -38,9 +38,7 @@ library.colours = {
     quiet = { 0.604, 0.588, 0.549 },
     label = { 0.788, 0.773, 0.737 },
     dark_ink = { 0.102, 0.082, 0.043 },
-    steps = {
-        { 0.7, 0.7, 0.72 }, { 1, 1, 1 }, { 0.965, 0.863, 0.557 }, { 0.886, 0.592, 0.38 }, { 0.937, 0.416, 0.29 },
-    },
+    threat = { 0.937, 0.416, 0.29 },
     gold = { 0.894, 0.718, 0.314 },
     gold_high = { 0.965, 0.863, 0.557 },
     gold_low = { 0.612, 0.455, 0.141 },
@@ -202,6 +200,33 @@ function library.create_text(parent, kind, colour)
         text:SetTextColor(unpack(colour))
     end
     return text
+end
+
+local probe
+
+local function read_probe(text)
+    probe = probe or UIParent:CreateFontString(nil, "OVERLAY")
+    probe:Hide()
+    local face, size, flags = text:GetFont()
+    if face then probe:SetFont(face, size, flags or "") end
+    probe:SetText(text:GetText() or "")
+    return probe
+end
+
+local function check_plain(value)
+    return not (issecretvalue and issecretvalue(value))
+end
+
+function library.read_string_width(text)
+    local width = text:GetStringWidth()
+    if check_plain(width) then return width end
+    return read_probe(text):GetStringWidth()
+end
+
+function library.read_string_height(text)
+    local height = text:GetStringHeight()
+    if check_plain(height) then return height end
+    return read_probe(text):GetStringHeight()
 end
 
 local KEPT_ON_RESET = { faults = true, measures = true, friendly = true, reach = true }

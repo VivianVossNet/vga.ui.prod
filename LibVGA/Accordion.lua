@@ -1,8 +1,8 @@
 -- Copyright 2026 Vivian Voss. Code by Vivian Voss. Licensed under the BSD-3-Clause.
 -- SPDX-License-Identifier: BSD-3-Clause
--- Scope: LibVGA's accordion label, first drawn for the quest tracker's zones (manual/view/vga-questzones.html, K0547) and lifted here (K0633) for the item tooltip's Auktionen and Entzaubern (manual/view/vga-tooltip.html, K0604): a thin line above, a chevron pointing right when closed and down when open, the word in small capitals and a figure or money at the right, all in VGA's orange but the money in the ink; twenty-six draft pixels high, with eight draft pixels of room before the line and eight more after it by default, so a separator never sits tight against the lines around it (K0671).
+-- Scope: LibVGA's accordion label, first drawn for the quest tracker's zones (manual/view/vga-questzones.html, K0547) and lifted here (K0633) for the item tooltip's Auktionen and Entzaubern (manual/view/vga-tooltip.html, K0604): a thin line above, a chevron pointing right when closed and down when open - none where the label cannot be opened, as in the plain item tooltip, the word then at the chevron's place (K0752) -, the word in small capitals and a figure or money at the right, all in VGA's orange but the money in the ink; twenty-six draft pixels high, with eight draft pixels of room before the line and eight more after it by default, so a separator never sits tight against the lines around it (K0671).
 
--- {K0547} {K0633} {K0671}
+-- {K0752} {K0547} {K0633} {K0671}
 
 local library = LibVGA
 local colours = library.colours
@@ -51,10 +51,11 @@ function library.update_accordion(label, word, open, width, count, copper)
     label.chevron:ClearAllPoints()
     label.chevron:SetPoint("LEFT", label, "LEFT", pad, middle)
     label.chevron:SetRotation(open and math.pi or -math.pi / 2)
+    label.chevron:SetShown(open ~= nil)
     label.name:SetFontObject(library.read_frame_font("caption"))
     label.name:SetText(word)
     label.name:ClearAllPoints()
-    label.name:SetPoint("LEFT", label, "LEFT", pad + library.read_draft_size(20), middle)
+    label.name:SetPoint("LEFT", label, "LEFT", pad + (open ~= nil and library.read_draft_size(20) or 0), middle)
     label.count:SetFontObject(library.read_frame_font("small"))
     label.count:SetText(count or "")
     label.count:ClearAllPoints()

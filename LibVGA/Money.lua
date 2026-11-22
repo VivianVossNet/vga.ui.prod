@@ -31,7 +31,7 @@ local function update_group(money, group, count, x)
     group.coin:SetSize(size, size)
     group.coin:ClearAllPoints()
     group.coin:SetPoint("LEFT", group.text, "RIGHT", near, 0)
-    return x + math.ceil(group.text:GetStringWidth()) + near + size
+    return x + math.ceil(library.read_string_width(group.text)) + near + size
 end
 
 function library.update_money(money, copper)
@@ -46,8 +46,9 @@ function library.update_money(money, copper)
         group.coin:SetShown(shown)
         if shown then x = update_group(money, group, count, x) + apart end
     end
-    money:SetWidth(math.max(1, x - apart))
-    money:SetHeight(math.ceil(money.groups[#COINS].text:GetStringHeight()))
+    money.vga_width = math.max(1, x - apart)
+    money:SetWidth(money.vga_width)
+    money:SetHeight(math.ceil(library.read_string_height(money.groups[#COINS].text)))
 end
 
 function library.read_money_text(copper)

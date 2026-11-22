@@ -2,7 +2,7 @@
 -- SPDX-License-Identifier: BSD-3-Clause
 -- Scope: vga.auctions' ledger, the second step (K0608, K0611): what each item the player holds has cost, per realm - loot at nothing, marked as found; a merchant's piece at his price over his stack; an auction bought outright at its bid; a bulk purchase at the total the game named for it -; the cost the weighted average of the bought pieces still held; a sale read from the mail's invoice, its proceeds after deposit and cut, its gain against that average, kept by day for thirty days; pieces gone otherwise - used, sold to a merchant, destroyed - taken out when bags and bank hold fewer than at the last look, bought pieces before found ones; pieces posted to the auction house are not counted as gone, and a rise - a purchase fetched from the mail - changes nothing. Every purchase, sale and expired auction is kept besides as one event of thirty days - when, the item, the way, how many, the money, and for a sale the cost of its bought pieces and how many were found -, the expired ones read from the mail whose subject is the game's AUCTION_EXPIRED_MAIL_SUBJECT, its item from the mail's first attachment (vga.read_ledger_events, K0684).
 
--- {K0608} {K0611} {K0684}
+-- {K0758} {K0608} {K0611} {K0684}
 
 local _, vga = ...
 local library = LibVGA
@@ -102,7 +102,7 @@ local function update_invoices()
         local kind, name, _, _, buyout, deposit, cut, _, _, _, count = GetInboxInvoiceInfo(index)
         local _, _, subject, money, _, days = GetInboxHeaderInfo(index)
         local key = tostring(subject) .. "|" .. tostring(money) .. "|" .. tostring(days and math.floor(days * 1440))
-        local item_id = name and GetItemInfoInstant and GetItemInfoInstant(name)
+        local item_id = name and C_Item.GetItemInfoInstant(name)
         write_expired(index, subject, key)
         if kind == "seller" and item_id and not invoices[key] then
             invoices[key] = read_day()
@@ -128,10 +128,10 @@ local function update_posted(location, quantity)
 end
 
 local function update_loot(message)
-    local link, count = message:match("(|Hitem:.-|h.-|h)x(%d+)")
-    if not link then link = message:match("(|Hitem:.-|h.-|h)") end
+    local link = message:match("(|Hitem:.-|h.-|h)")
+    local count = message:match("|h|?r?x(%d+)")
     if not link or not LOOT_ITEM_SELF or not message:find(LOOT_ITEM_SELF:match("^([^%%]+)") or "\0", 1, true) then return end
-    vga.write_found(GetItemInfoInstant(link), tonumber(count) or 1)
+    vga.write_found(C_Item.GetItemInfoInstant(link), tonumber(count) or 1)
 end
 
 local function update_merchant_bought(index, quantity)
@@ -140,7 +140,7 @@ local function update_merchant_bought(index, quantity)
     if not (offer and link) then return end
     local stack = math.max(offer.stackCount or 1, 1)
     local count = quantity or stack
-    vga.write_bought(GetItemInfoInstant(link), count, offer.price / stack * count, "merchant")
+    vga.write_bought(C_Item.GetItemInfoInstant(link), count, offer.price / stack * count, "merchant")
 end
 
 local function update_bid(auction_id, amount)

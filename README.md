@@ -3,7 +3,7 @@
 The Video Game Almanach's interface for **World of Warcraft: Forever** - one calm, consistent look
 for the whole screen, drawn with its own graphics library, LibVGA.
 
-**Version 0.9.17 - beta.** A version for testing. Settings, places and looks may still change.
+**Version 0.9.18 - beta.** A version for testing. Settings, places and looks may still change.
 
 ## What it brings
 

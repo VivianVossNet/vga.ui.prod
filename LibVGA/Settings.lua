@@ -173,11 +173,22 @@ local function write_auto_loot(index)
     SetCVar("autoLootDefault", index == 1 and "1" or "0")
 end
 
+local function read_seconds_labels()
+    local labels = {}
+    for seconds = 1, 3 do labels[seconds] = string.format(library.texts.seconds_short, seconds) end
+    return labels
+end
+
+local function write_tip_fix_after(index)
+    LibVGASettings.tip_fix_after = index
+end
+
 local function create_comfort_page(page)
     local texts = library.texts
     page.rows = {
         library.create_choice_row(page, texts.auto_loot, { texts.on, texts.off }, GetCVarBool("autoLootDefault") and 1 or 2, write_auto_loot),
         library.create_choice_row(page, texts.mouseover_cast, { texts.on, texts.off }, GetCVarBool("enableMouseoverCast") and 1 or 2, write_mouseover_cast),
+        library.create_choice_row(page, texts.tip_fix_after, read_seconds_labels(), LibVGASettings.tip_fix_after or 3, write_tip_fix_after),
     }
 end
 

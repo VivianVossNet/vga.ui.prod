@@ -1,8 +1,8 @@
 -- Copyright 2026 Vivian Voss. Code by Vivian Voss. Licensed under the BSD-3-Clause.
 -- SPDX-License-Identifier: BSD-3-Clause
--- Scope: whether an item in the bags is an upgrade, by formula B of the draft (manual/view/vga-upgrade.html, K0723): its stats weighted and added - the main stat of the player's specialisation times 1.2, a main stat foreign to it times 0, stamina and every other stat times 1, a weapon's damage per second times 1 for strength and agility, the armour value and sockets not at all - and compared with what is worn in its place; for two places, rings, trinkets and one-handers, with the weaker of the two; a two-hander with both hands together; an empty place taking any item with points; only what the player can use. Forever has no answer of its own.
+-- Scope: whether an item in the bags is an upgrade, by formula B of the draft (manual/view/vga-upgrade.html, K0723): its stats weighted and added - the main stat of the player's specialisation times 1.2, a main stat foreign to it times 0, stamina and every other stat times 1, a weapon's damage per second times 1 for strength and agility, the armour value and sockets not at all - and compared with what is worn in its place; for two places, rings, trinkets and one-handers, with the weaker of the two; a two-hander with both hands together; an empty place taking any item with points; only what the player can use. Forever has no answer of its own. The main stat and what is worn in an item's place - the weaker of two, both hands for a two-hander - are lent to the tooltip's comparison (K0754).
 
--- {K0723}
+-- {K0723} {K0754}
 
 local _, vga = ...
 local MAIN_WEIGHT = 1.2
@@ -23,7 +23,7 @@ local PLACES = {
 }
 local TWO_HANDS = { INVTYPE_2HWEAPON = { 16, 17 } }
 
-local function read_main_stat()
+function vga.read_main_stat()
     local specs = C_SpecializationInfo
     local chosen = specs and specs.GetSpecialization and specs.GetSpecialization()
     local primary = chosen and select(6, specs.GetSpecializationInfo(chosen))
@@ -54,13 +54,39 @@ local function read_worn_score(places, main, together)
     return math.min(unpack(scores))
 end
 
+function vga.read_primary(key)
+    return PRIMARY[key]
+end
+
+local function read_weaker_link(places, main)
+    local weaker, least
+    for _, place in ipairs(places) do
+        local link = GetInventoryItemLink("player", place)
+        local score = vga.read_item_score(link, main)
+        if not least or score < least then weaker, least = link, score end
+    end
+    return weaker
+end
+
+function vga.read_worn_links(link)
+    local _, _, _, slot = C_Item.GetItemInfoInstant(link)
+    if TWO_HANDS[slot] then
+        local worn = {}
+        for _, place in ipairs(TWO_HANDS[slot]) do worn[#worn + 1] = GetInventoryItemLink("player", place) end
+        return worn
+    end
+    local places = PLACES[slot]
+    if not places then return nil end
+    return { read_weaker_link(places, vga.read_main_stat()) }
+end
+
 function vga.check_item_upgrade(link)
     if not link or link == "" then return false end
     local itemID, _, _, slot = C_Item.GetItemInfoInstant(link)
     local places, together = PLACES[slot], TWO_HANDS[slot] ~= nil
     places = places or TWO_HANDS[slot]
     if not places or (C_PlayerInfo and type(itemID) == "number" and not C_PlayerInfo.CanUseItem(itemID)) then return false end
-    local main = read_main_stat()
+    local main = vga.read_main_stat()
     local score = vga.read_item_score(link, main)
     return score > 0 and score > read_worn_score(places, main, together)
 end

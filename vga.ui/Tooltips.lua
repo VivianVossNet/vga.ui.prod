@@ -1,8 +1,8 @@
 -- Copyright 2026 Vivian Voss. Code by Vivian Voss. Licensed under the BSD-3-Clause.
 -- SPDX-License-Identifier: BSD-3-Clause
--- Scope: Blizzard's tooltips as the accepted template draws .vt-tip (manual/view/vga-template.css): Blizzard's frame hidden, a rounded dark ground at a fixed 0.95 inside a black line and a grey rim, the small gold corner, the texts in Geologica; embedded tooltips left as they are.
+-- Scope: Blizzard's tooltips as the accepted template draws .vt-tip (manual/view/vga-template.css): Blizzard's frame hidden, a rounded dark ground at a fixed 0.95 inside a black line and a grey rim, the small gold corner, the texts in Geologica; embedded tooltips left as they are, and a tooltip laid bare inside a window of ours - the fixed item tooltip's lines - without any frame or corner (K0756), each piece of our skin's surfaces hidden on its own (K0758).
 
--- {K0260} {K0340}
+-- {K0260} {K0340} {K0756} {K0758}
 
 local library = LibVGA
 local colours = library.colours
@@ -25,7 +25,27 @@ local function create_skin(tip)
     return skin
 end
 
+function library.update_tooltip_bare(tip)
+    tip.vga_bare = true
+    if type(tip.NineSlice) == "table" then tip.NineSlice:SetAlpha(0) end
+    local skin = skins[tip]
+    if not skin then return end
+    for _, part in pairs(skin) do
+        if part.pieces then
+            for _, piece in pairs(part.pieces) do piece:Hide() end
+        else
+            part:Hide()
+        end
+    end
+end
+
+function library.check_tooltip_skinned(tip)
+    local skin = skins[tip]
+    return skin ~= nil and (skin.corner:IsShown() or skin.ground.pieces.MIDDLE:IsShown())
+end
+
 local function update_skin(tip, _, embedded)
+    if tip.vga_bare then return library.update_tooltip_bare(tip) end
     if embedded or tip.IsEmbedded or not tip.NineSlice then return end
     local skin = skins[tip] or create_skin(tip)
     tip.NineSlice:SetAlpha(0)

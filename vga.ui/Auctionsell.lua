@@ -109,31 +109,35 @@ local function update_result(page, entry)
     library.update_chip(page.result, share >= 0 and "green" or "red", share >= 0 and "▲" or "▼", math.floor(math.abs(share) * 100 + 0.5) .. " %")
 end
 
+function vga.read_week_trend(item)
+    local _, median = vga.read_days(item, 8)
+    local share = median[8] and median[1] and (median[8] - median[1]) / math.max(median[1], 1)
+    if not share then return "grey", "≈", "–" end
+    return share >= 0 and "green" or "red", share >= 0 and "▲" or "▼", math.floor(math.abs(share) * 100 + 0.5) .. " %"
+end
+
 local function update_figures(page, entry)
     local market, lowest, quantity = vga.read_market(entry.item)
     library.update_money(page.figures[1].money, math.floor((market or 0) + 0.5))
     library.update_money(page.figures[2].money, math.floor((lowest or 0) + 0.5))
-    local _, median = vga.read_days(entry.item, 8)
-    local share = median[8] and median[1] and (median[8] - median[1]) / math.max(median[1], 1)
-    if share then
-        library.update_chip(page.figures[3].chip, share >= 0 and "green" or "red", share >= 0 and "▲" or "▼", math.floor(math.abs(share) * 100 + 0.5) .. " %")
-    else
-        library.update_chip(page.figures[3].chip, "grey", "≈", "–")
-    end
+    library.update_chip(page.figures[3].chip, vga.read_week_trend(entry.item))
     page.figures[4].text:SetText(quantity or "–")
     return lowest
 end
 
-local function update_graph(page, entry)
-    local days = RANGES[page.range or 2]
-    local least, median, quantity = vga.read_days(entry.item, days)
-    library.update_graph(page.graph, {
+function vga.read_history_graph(item, days)
+    local least, median, quantity = vga.read_days(item, days)
+    return {
         count = days,
         bars = { values = quantity, colour = BARS },
         band = { low = least, high = median, colour = BAND },
         series = { { values = median, colour = colours.gold, thickness = 2 }, { values = read_mean(median, days), colour = MEAN, dashed = true } },
         note = read_known_days(median) < 2 and library.texts.graph_from_two_days or nil,
-    }, page.graph_width, page.graph_height)
+    }
+end
+
+local function update_graph(page, entry)
+    library.update_graph(page.graph, vga.read_history_graph(entry.item, RANGES[page.range or 2]), page.graph_width, page.graph_height)
 end
 
 local function update_detail(page)

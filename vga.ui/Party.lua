@@ -1,8 +1,8 @@
 -- Copyright 2026 Vivian Voss. Code by Vivian Voss. Licensed under the BSD-3-Clause.
 -- SPDX-License-Identifier: BSD-3-Clause
--- Scope: vga.ui's party frame as the accepted draft draws .party and .pm (manual/view/vga-probe.html): one widget with one gold corner for the whole group; a row per member divided by hairlines - the level in gold, the class's dot, the name, a thin health bar -, the whole row in grey while the member is offline, an OFFLINE in capitals, four pixels below the small face, beneath the bar where the pet's bar would stand, a pet being gone with its owner, a pet as a second, shorter bar inside its owner's row, without name or level, there for the healer to click; every row and pet bar a secure button that targets on click; Blizzard's own party frame hidden; ours stands left-aligned 120 pixels above the player frame, as tall as the group, its members stacked upward from the first; a protected pet bar is anchored to its protected row, never to a plain region. The group's leader carries a small filled gold crown right after the name (K0614), its gold shaded light above and darker below, with a thin black rim and a small shadow beneath, all in its own texture, shown untinted (K0724). Shown and sized by a secure state driver on how many party units exist, so a group formed in a fight appears at once, not after it (K0630). The member's parts - level, class dot, name, leader's crown, health, offline - are made, laid and filled by vga.create_member_parts, vga.update_member_parts_layout (mirrored or not) and vga.update_member_parts, so the target of target wears the same row, mirrored (K0698). The class's dot is made and coloured by vga.create_class_dot and vga.update_class_dot, a tooltip naming the class where asked, so the unit frames wear the same dot (K0717).
+-- Scope: vga.ui's party frame as the accepted draft draws .party and .pm (manual/view/vga-probe.html): one widget with one gold corner for the whole group; a row per member divided by hairlines - the level in gold, the class's dot, the name, a thin health bar -, the whole row in grey while the member is offline, an OFFLINE in capitals, four pixels below the small face, beneath the bar where the pet's bar would stand, a pet being gone with its owner, a pet as a second, shorter bar inside its owner's row, without name or level, there for the healer to click; every row and pet bar a secure button that targets on click; Blizzard's own party frame hidden; ours stands left-aligned 120 pixels above the player frame, as tall as the group, its members stacked upward from the first; a protected pet bar is anchored to its protected row, never to a plain region. The group's leader carries a small filled gold crown right after the name, after its words even where the box is narrower (K0614), its gold shaded light above and darker below, with a thin black rim and a small shadow beneath, all in its own texture, shown untinted (K0724). Shown and sized by a secure state driver on how many party units exist, so a group formed in a fight appears at once, not after it (K0630). The member's parts - level, class dot, name, leader's crown, health, offline - are made, laid and filled by vga.create_member_parts, vga.update_member_parts_layout (mirrored or not) and vga.update_member_parts, so the target of target wears the same row, mirrored (K0698) - its crown then after the name in the mirrored reading too, at the name's left, never behind the words (K0755). The class's dot is made and coloured by vga.create_class_dot and vga.update_class_dot, a tooltip naming the class where asked, so the unit frames wear the same dot (K0717).
 
--- {K0277} {K0278} {K0279} {K0354} {K0379} {K0614} {K0724} {K0630} {K0698} {K0717}
+-- {K0755} {K0277} {K0278} {K0279} {K0354} {K0379} {K0614} {K0724} {K0630} {K0698} {K0717}
 
 local _, vga = ...
 local library = LibVGA
@@ -108,6 +108,7 @@ function vga.update_member_parts_layout(row, mirrored)
     local bar, dot = math.max(4, library.read_size(-4)), math.floor(base * 0.77 + 0.5)
     local level = math.floor(base * 1.3 + 0.5)
     local near, far, sign = mirrored and "RIGHT" or "LEFT", mirrored and "LEFT" or "RIGHT", mirrored and -1 or 1
+    row.mirrored = mirrored
     row.level:SetFontObject(library.read_font("caption"))
     row.level:SetJustifyH(mirrored and "LEFT" or "RIGHT")
     row.level:ClearAllPoints()
@@ -162,6 +163,20 @@ function vga.read_class_colour(unit)
     return colours.quiet
 end
 
+local function update_crown_placed(row)
+    local crown = library.read_size(0)
+    local box = row.name:GetWidth()
+    local written = math.ceil(row.name:GetStringWidth())
+    local after = (box and box > 0 and math.min(written, box) or written) + library.read_size(-4)
+    row.crown:SetSize(crown, crown)
+    row.crown:ClearAllPoints()
+    if row.mirrored then
+        row.crown:SetPoint("RIGHT", row.name, "RIGHT", -after, 0)
+    else
+        row.crown:SetPoint("LEFT", row.name, "LEFT", after, 0)
+    end
+end
+
 function vga.update_member_parts(row)
     local unit = row.unit
     if not UnitExists(unit) then return false end
@@ -170,10 +185,7 @@ function vga.update_member_parts(row)
     row.level:SetText(level and level > 0 and level or "??")
     row.level:SetTextColor(unpack(online and LEVEL_TEXT or OFFLINE))
     row.name:SetText(library.read_unit_name(unit))
-    local crown = library.read_size(0)
-    row.crown:SetSize(crown, crown)
-    row.crown:ClearAllPoints()
-    row.crown:SetPoint("LEFT", row.name, "LEFT", math.ceil(row.name:GetStringWidth()) + library.read_size(-4), 0)
+    update_crown_placed(row)
     row.crown:SetShown(UnitIsGroupLeader(unit) == true)
     row.name:SetTextColor(unpack(online and colours.ink or OFFLINE))
     vga.update_class_dot(row.spot, online and vga.read_class_colour(unit) or OFFLINE)

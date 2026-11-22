@@ -1,8 +1,8 @@
 -- Copyright 2026 Vivian Voss. Code by Vivian Voss. Licensed under the BSD-3-Clause.
 -- SPDX-License-Identifier: BSD-3-Clause
--- Scope: The threat the player draws from the target, as five flat pills under the target frame's power bar, halfway between the bar and the frame's lower edge, as the rogue's combo points stand on the player frame (Combo.lua): each pill lit whole once the threat passes the start of its fifth, in its step's colour - grey, white, gold, bronze, red -, an open pill dark, each in a black line; set by the game from the value even where it is secret, each pill's range a hundredth wide. The row's room is kept on the target frame, so nothing moves; the pills show only while the player stands on the target's threat list.
+-- Scope: The threat the player draws from the target, as five flat pills under the target frame's power bar, halfway between the bar and the frame's lower edge, as the rogue's combo points stand on the player frame (Combo.lua): each pill lit whole once the threat passes the start of its fifth, every one red, only their number telling how much (K0751), an open pill dark, each in a black line; set by the game from the value even where it is secret, each pill's range a hundredth wide. The row's room is kept on the target frame, so nothing moves; the pills show only while the player stands on the target's threat list.
 
--- {K0344} {K0356} {K0357} {K0366} {K0480}
+-- {K0751} {K0344} {K0356} {K0357} {K0366} {K0480}
 
 local library = LibVGA
 local STEP = 0.01
@@ -38,7 +38,7 @@ local function create_row()
     local frame = VGAUnitFrame_target
     if not (frame and frame.power) then return end
     row = {}
-    for index, top in ipairs(library.colours.steps) do row[index] = create_pill(frame, index, top) end
+    for index = 1, POINTS do row[index] = create_pill(frame, index, library.colours.threat) end
     local _, height, between = read_sizes()
     frame.extra_height = height + between
 end

@@ -1,8 +1,8 @@
 -- Copyright 2026 Vivian Voss. Code by Vivian Voss. Licensed under the BSD-3-Clause.
 -- SPDX-License-Identifier: BSD-3-Clause
--- Scope: vga.ui's quest tracker as the accepted draft draws .qw (manual/view/vga-probe.html), at most half the screen's height, a longer list scrolling under its head (Questscroll.lua, K0548), its most height a slider's between a fifth and half the screen (K0550): a quest whose objectives are all done shows its title alone, its struck objectives hidden unless the tab Quests says to show them; a quest with a time limit shows the time left on a small line under its title, the word first and the time after it, so only the line's end changes, green, yellow in the last two minutes, red in the last thirty seconds; a quest whose targets lie in a dungeon carries the game's word Dungeon after its title, quiet grey - by the game's quest tag, or by Questie's dungeon list for the quest's zone -; a widget in the tooltip's look, at least as wide as the draft and wider where a title or objective needs it, at least 250 draft pixels, up to the most width set on the settings' slider, freely between 250 and 384, the default (K0550), a width chosen before as Schmal, Mittel or Breit kept as 250, 320 or 384; an objective longer than that is broken at its words onto further lines, the count on the first, a pixel between its lines, each line of a done one struck through as long as its words - growing towards the screen's middle: its place is kept by its outer corner - the upper right on the right half of the screen, the upper left on the left -, a place saved before by its upper left moved once to its upper right where it stands right -, the VGA mark, »Quests dieser Zone« in gold and the count shown of all in the log in its head; the watched quests whose next target lies in the player's zone, in the order the settings choose - the nearest first, by difficulty, the easiest first, or as watched in the quest log -, at most eight; each with its title in gold and its distance at the right, before the title a kept place for a mark - a green tick on a finished quest, a line arrow turned towards its target on an open one, gold on the nearest open, grey on the rest; its objectives with their counts, each after a small bead in exactly the game's colour of the quest's difficulty, a white light at its upper left and a faint shade at its lower right laid over it, centred under the arrow and on the middle of its line, its words set in where the title's begin, as the game colours it, a thin gold bar under each still open, the finished struck through; the data source at the foot; a left click on a quest opens it in the game's quest log, as Blizzard's tracker does, out of combat; a click on an open quest's arrow makes it the navigation's target instead of the nearest - a second click on the same arrow lets it go, a click on another's takes that one -, kept for each zone on its own: a quest chosen in one zone counts only there and counts again on returning; resting on the arrow explains this in a tooltip. The source is automatic - Questie when it is loaded and ready, else the game's own quest log -; Questie's internal modules are read guarded, the game's data standing where they fail. Blizzard's tracker and Questie's own are hidden while it runs. Its text size is chosen on the tab Quests, »Schrift: Klein | Mittel | Groß«, Mittel as it always was, Klein and Groß two pixels smaller and larger in every face it uses; every height is measured from its text, so the rows grow with it and nothing runs into anything (K0710).
+-- Scope: vga.ui's quest tracker as the accepted draft draws .qw (manual/view/vga-probe.html), at most half the screen's height, a longer list scrolling under its head (Questscroll.lua, K0548), its most height a slider's between a fifth and half the screen (K0550): a quest whose objectives are all done shows its title alone, its struck objectives hidden unless the tab Quests says to show them; a quest with a time limit shows the time left on a small line under its title, the word first and the time after it, so only the line's end changes, green, yellow in the last two minutes, red in the last thirty seconds; a quest whose targets lie in a dungeon carries the game's word Dungeon after its title, quiet grey - by the game's quest tag, or by Questie's dungeon list for the quest's zone -; a widget in the tooltip's look, at least as wide as the draft and wider where a title or objective needs it, at least 250 draft pixels, up to the most width set on the settings' slider, freely between 250 and 384, the default (K0550), a width chosen before as Schmal, Mittel or Breit kept as 250, 320 or 384; an objective longer than that is broken at its words onto further lines, the count on the first, a pixel between its lines, each line of a done one struck through as long as its words - growing towards the screen's middle: its place is kept by its outer corner - the upper right on the right half of the screen, the upper left on the left -, a place saved before by its upper left moved once to its upper right where it stands right -, the VGA mark, »Quests dieser Zone« in gold and the count shown of all in the log in its head; the watched quests whose next target lies in the player's zone, in the order the settings choose - the nearest first, by difficulty, the easiest first, or as watched in the quest log -, at most eight; each with its title in gold and its distance at the right, before the title a kept place for a mark - a green tick on a finished quest, a line arrow turned towards its target on an open one, gold on the nearest open, grey on the rest; its objectives with their counts, each after a small bead in exactly the game's colour of the quest's difficulty, a white light at its upper left and a faint shade at its lower right laid over it, centred under the arrow and on the middle of its line, its words set in where the title's begin, as the game colours it, a thin gold bar under each still open, the finished struck through; the data source at the foot; a left click on a quest opens it in the game's quest log, as Blizzard's tracker does, out of combat; a click on an open quest's arrow makes it the navigation's target instead of the nearest - a second click on the same arrow lets it go, a click on another's takes that one -, kept for each zone on its own: a quest chosen in one zone counts only there and counts again on returning; while a marker the player set stands on the map, every arrow is grey and the navigation follows the marker, and a click on an arrow takes the marker off and that quest becomes the target (K0748); resting on the arrow explains this in a tooltip. The source is automatic - Questie when it is loaded and ready, else the game's own quest log -; Questie's internal modules are read guarded, the game's data standing where they fail. Blizzard's tracker and Questie's own are hidden while it runs. Its text size is chosen on the tab Quests, »Schrift: Klein | Mittel | Groß«, Mittel as it always was, Klein and Groß two pixels smaller and larger in every face it uses; every height is measured from its text, so the rows grow with it and nothing runs into anything (K0710).
 
--- {K0710} {K0711} {K0260} {K0370} {K0371} {K0390} {K0401} {K0408} {K0422} {K0424}
+-- {K0748} {K0710} {K0711} {K0260} {K0370} {K0371} {K0390} {K0401} {K0408} {K0422} {K0424}
 
 local _, vga = ...
 local library = LibVGA
@@ -71,7 +71,9 @@ local function update_pin(pin)
     if not (quest.id and map) then return end
     LibVGASettings.quest_pins = LibVGASettings.quest_pins or {}
     local pins = LibVGASettings.quest_pins
-    pins[map] = pins[map] ~= quest.id and quest.id or nil
+    local marker = vga.read_marker_aim()
+    pins[map] = (marker or pins[map] ~= quest.id) and quest.id or nil
+    if marker then vga.update_marker_cleared() end
     library.update_elements()
 end
 
@@ -83,7 +85,7 @@ local function render_pin_tip(pin)
     local texts = library.texts
     GameTooltip:SetOwner(pin, "ANCHOR_LEFT")
     GameTooltip:AddLine(texts.pin_title, colours.gold[1], colours.gold[2], colours.gold[3])
-    for _, key in ipairs({ "pin_click", "pin_again", "pin_zone" }) do
+    for _, key in ipairs({ "pin_click", "pin_again", "pin_zone", "pin_marker" }) do
         GameTooltip:AddLine(texts[key], colours.ink[1], colours.ink[2], colours.ink[3], true)
     end
     GameTooltip:Show()
@@ -669,6 +671,8 @@ local function update_tracker()
     for _, data in ipairs(shown) do
         if data.id == pinned and not data.complete and data.point then active = data end
     end
+    local marker = vga.read_marker_aim()
+    if marker then active = nil end
     if rows then
         top = update_rows(rows, top, width, active)
     else
@@ -684,7 +688,7 @@ local function update_tracker()
     local foot = update_foot(head, source) - head
     local room = vga.update_quest_body(tracker, head, top - head, width, foot)
     tracker:SetSize(width, update_foot(head + room, source))
-    vga.quest_aim = active or nil
+    vga.quest_aim = marker or active or nil
     vga.update_quest_items(tracker, tracker.quests, shown)
     update_arrows()
 end
@@ -711,7 +715,7 @@ local function create_tracker_safely()
 end
 
 local events = CreateFrame("Frame")
-for _, name in ipairs({ "PLAYER_LOGIN", "PLAYER_ENTERING_WORLD", "QUEST_LOG_UPDATE", "QUEST_WATCH_LIST_CHANGED", "ZONE_CHANGED", "ZONE_CHANGED_NEW_AREA" }) do
+for _, name in ipairs({ "PLAYER_LOGIN", "PLAYER_ENTERING_WORLD", "QUEST_LOG_UPDATE", "QUEST_WATCH_LIST_CHANGED", "USER_WAYPOINT_UPDATED", "ZONE_CHANGED", "ZONE_CHANGED_NEW_AREA" }) do
     pcall(events.RegisterEvent, events, name)
 end
 events:SetScript("OnEvent", function(_, event)
