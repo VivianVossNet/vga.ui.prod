@@ -1,8 +1,8 @@
 -- Copyright 2026 Vivian Voss. Code by Vivian Voss. Licensed under the BSD-3-Clause.
 -- SPDX-License-Identifier: BSD-3-Clause
--- Scope: LibVGA's pop-up menu as manual/view/vga-settings-apple.html draws it (K0565), in the way of macOS: a button on a dark rounded ground with the chosen value's word and a small chevron; a click opens beneath it a menu on the dialog's ground, its values in sections under small quiet headings in capitals, the chosen one in gold on a faint ground, the elite's gold chevron turned to the left beside it at the right, pointing at it, the entries with room before and after them (K0571); a click on a value takes it and closes the menu, a click anywhere else closes it unchanged; the menu hangs from the screen, not from the dialog, which clips what reaches past it, so its entries always take the mouse, and it closes when its button hides (K0572).
+-- Scope: LibVGA's pop-up menu as manual/view/vga-settings-apple.html draws it (K0565), in the way of macOS: a button on a dark rounded ground with the chosen value's word and a small chevron; a click opens beneath it a menu on the dialog's ground, its values in sections under small quiet headings in capitals, the chosen one in gold on a faint ground, the elite's gold chevron turned to the left beside it at the right, pointing at it, the entries with room before and after them (K0571); a click on a value takes it and closes the menu, a click anywhere else closes it unchanged; the menu hangs from the screen, not from the dialog, which clips what reaches past it, so its entries always take the mouse, and it closes when its button hides (K0572). Its sections may be given anew while it stands, as the damage meter's recent fights change (K0721).
 
--- {K0565} {K0571} {K0572}
+-- {K0565} {K0571} {K0572} {K0721}
 
 local library = LibVGA
 local colours = library.colours
@@ -107,6 +107,15 @@ local function create_sections(popup, sections)
         for _, entry in ipairs(section.items) do made.items[#made.items + 1] = create_item(popup, entry[1], entry[2]) end
         popup.made[index] = made
     end
+end
+
+function library.update_popup_sections(popup, sections, value)
+    for _, made in ipairs(popup.made) do
+        if made.heading then made.heading:Hide() end
+        for _, item in ipairs(made.items) do item:Hide() end
+    end
+    popup.sections, popup.value = sections, value
+    create_sections(popup, sections)
 end
 
 function library.create_popup(parent, sections, value, on_choose)

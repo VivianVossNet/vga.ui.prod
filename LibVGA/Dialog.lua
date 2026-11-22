@@ -1,8 +1,8 @@
 -- Copyright 2026 Vivian Voss. Code by Vivian Voss. Licensed under the BSD-3-Clause.
 -- SPDX-License-Identifier: BSD-3-Clause
--- Scope: LibVGA's dialog as the accepted drafts draw it (manual/view/vga-scale.html .dlg, vga-template.css .vt): the metal frame, the head with the mark, the gold title and the close button, further buttons of the same make with an icon to its left where a dialog asks for them, its rows divided by hairlines; always free to move, its ground down to a floor. Rows that stand together outside a fieldset stand on one rounded, faintly lighter card, in the way of the macOS System Settings (K0565).
+-- Scope: LibVGA's dialog as the accepted drafts draw it (manual/view/vga-scale.html .dlg, vga-template.css .vt): the metal frame, the head with the mark, the gold title and the close button, further buttons of the same make with an icon to its left where a dialog asks for them, its rows divided by hairlines; always free to move, its ground down to a floor. Rows that stand together outside a fieldset stand on one rounded, faintly lighter card, in the way of the macOS System Settings (K0565). A stepper in a row is measured as it is laid (K0721).
 
--- {K0256} {K0296} {K0299} {K0324} {K0330} {K0337} {K0415} {K0565}
+-- {K0256} {K0296} {K0299} {K0324} {K0330} {K0337} {K0415} {K0565} {K0721}
 
 local library = LibVGA
 local CARD = { 1, 1, 1 }
@@ -181,6 +181,7 @@ local function read_control_width(control)
     if control.stops then return library.read_slider_width() end
     if control.buttons then return library.read_choice_width(control) end
     if control.pictures then return library.read_pictures_width(control) end
+    if control.stepper then library.update_stepper(control) end
     return control:GetWidth()
 end
 

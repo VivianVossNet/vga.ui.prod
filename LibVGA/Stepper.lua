@@ -1,8 +1,8 @@
 -- Copyright 2026 Vivian Voss. Code by Vivian Voss. Licensed under the BSD-3-Clause.
 -- SPDX-License-Identifier: BSD-3-Clause
--- Scope: LibVGA's stepper as the accepted draft draws .step (manual/view/vga-auctions.html, K0632): one dark rounded field with a fine line, minus at the left, the number in the middle, plus at the right, the signs quiet, the number in the ink; a click on a sign asks the owner for the next number.
+-- Scope: LibVGA's stepper as the accepted draft draws .step (manual/view/vga-auctions.html, K0632): one dark rounded field with a fine line, minus at the left, the number in the middle, plus at the right, the signs quiet, the number in the ink; a click on a sign asks the owner for the next number. It stands in a settings row as any control, measured and laid by the dialog (K0721).
 
--- {K0632}
+-- {K0632} {K0721}
 
 local library = LibVGA
 local colours = library.colours
@@ -26,7 +26,7 @@ end
 
 function library.create_stepper(parent, on_step)
     local stepper = CreateFrame("Frame", nil, parent)
-    stepper.on_step = on_step
+    stepper.stepper, stepper.on_step = true, on_step
     stepper.edge = library.create_surface(stepper, "BACKGROUND", 0)
     stepper.ground = library.create_surface(stepper, "BACKGROUND", 1)
     stepper.minus = create_sign(stepper, "−", -1)

@@ -1,8 +1,8 @@
 -- Copyright 2026 Vivian Voss. Code by Vivian Voss. Licensed under the BSD-3-Clause.
 -- SPDX-License-Identifier: BSD-3-Clause
--- Scope: vga.ui's party frame as the accepted draft draws .party and .pm (manual/view/vga-probe.html): one widget with one gold corner for the whole group; a row per member divided by hairlines - the level in gold, the class's dot, the name, a thin health bar -, the whole row in grey while the member is offline, an OFFLINE in capitals, four pixels below the small face, beneath the bar where the pet's bar would stand, a pet being gone with its owner, a pet as a second, shorter bar inside its owner's row, without name or level, there for the healer to click; every row and pet bar a secure button that targets on click; Blizzard's own party frame hidden; ours stands left-aligned 120 pixels above the player frame, as tall as the group, its members stacked upward from the first; a protected pet bar is anchored to its protected row, never to a plain region. The group's leader carries a small filled gold crown right after the name (K0614). Shown and sized by a secure state driver on how many party units exist, so a group formed in a fight appears at once, not after it (K0630). The member's parts - level, class dot, name, leader's crown, health, offline - are made, laid and filled by vga.create_member_parts, vga.update_member_parts_layout (mirrored or not) and vga.update_member_parts, so the target of target wears the same row, mirrored (K0698).
+-- Scope: vga.ui's party frame as the accepted draft draws .party and .pm (manual/view/vga-probe.html): one widget with one gold corner for the whole group; a row per member divided by hairlines - the level in gold, the class's dot, the name, a thin health bar -, the whole row in grey while the member is offline, an OFFLINE in capitals, four pixels below the small face, beneath the bar where the pet's bar would stand, a pet being gone with its owner, a pet as a second, shorter bar inside its owner's row, without name or level, there for the healer to click; every row and pet bar a secure button that targets on click; Blizzard's own party frame hidden; ours stands left-aligned 120 pixels above the player frame, as tall as the group, its members stacked upward from the first; a protected pet bar is anchored to its protected row, never to a plain region. The group's leader carries a small filled gold crown right after the name (K0614), its gold shaded light above and darker below, with a thin black rim and a small shadow beneath, all in its own texture, shown untinted (K0724). Shown and sized by a secure state driver on how many party units exist, so a group formed in a fight appears at once, not after it (K0630). The member's parts - level, class dot, name, leader's crown, health, offline - are made, laid and filled by vga.create_member_parts, vga.update_member_parts_layout (mirrored or not) and vga.update_member_parts, so the target of target wears the same row, mirrored (K0698). The class's dot is made and coloured by vga.create_class_dot and vga.update_class_dot, a tooltip naming the class where asked, so the unit frames wear the same dot (K0717).
 
--- {K0277} {K0278} {K0279} {K0354} {K0379} {K0614} {K0630} {K0698}
+-- {K0277} {K0278} {K0279} {K0354} {K0379} {K0614} {K0724} {K0630} {K0698} {K0717}
 
 local _, vga = ...
 local library = LibVGA
@@ -36,17 +36,49 @@ local function create_secure(name, parent, unit)
     return button
 end
 
+function vga.read_class_dot_size()
+    return math.floor(library.read_base() * 0.77 + 0.5)
+end
+
+local function render_class_tip(spot)
+    if not spot.word then return end
+    GameTooltip:SetOwner(spot, "ANCHOR_TOP")
+    GameTooltip:SetText(spot.word, 1, 1, 1)
+    GameTooltip:Show()
+end
+
+local function update_class_tip_hidden()
+    GameTooltip:Hide()
+end
+
+function vga.create_class_dot(parent, tipped)
+    local spot = CreateFrame("Frame", nil, parent)
+    spot.dot = library.create_surface(spot, "ARTWORK", 0)
+    if tipped then
+        spot:EnableMouse(true)
+        spot:SetScript("OnEnter", render_class_tip)
+        spot:SetScript("OnLeave", update_class_tip_hidden)
+    end
+    return spot
+end
+
+function vga.update_class_dot(spot, colour, word)
+    local size = vga.read_class_dot_size()
+    spot:SetSize(size, size)
+    spot.word = word
+    library.update_surface(spot.dot, 0, size / 2, colour, colour)
+end
+
 function vga.create_member_parts(row)
     row.level = library.create_text(row, "caption", LEVEL_TEXT)
     row.level:SetJustifyH("RIGHT")
-    row.spot = CreateFrame("Frame", nil, row)
-    row.dot = library.create_surface(row.spot, "ARTWORK", 0)
+    row.spot = vga.create_class_dot(row)
     row.name = library.create_text(row, "bold")
     row.name:SetJustifyH("LEFT")
     row.name:SetWordWrap(false)
     row.crown = row:CreateTexture(nil, "OVERLAY")
     row.crown:SetTexture(library.media .. "Crown")
-    row.crown:SetVertexColor(colours.gold[1], colours.gold[2], colours.gold[3], 1)
+    row.crown:SetVertexColor(1, 1, 1, 1)
     row.crown:Hide()
     row.health = library.create_bar(row, "health")
     row.offline = library.create_text(row, "small", OFFLINE)
@@ -123,12 +155,7 @@ local function update_member_layout(row, index)
     row.line:SetShown(index > 1)
 end
 
-local function update_dot(row, colour)
-    local size = math.floor(library.read_base() * 0.77 + 0.5)
-    library.update_surface(row.dot, 0, size / 2, colour, colour)
-end
-
-local function read_class_colour(unit)
+function vga.read_class_colour(unit)
     local _, class = UnitClass(unit)
     local colour = class and RAID_CLASS_COLORS and RAID_CLASS_COLORS[class]
     if colour then return { colour.r, colour.g, colour.b } end
@@ -149,7 +176,7 @@ function vga.update_member_parts(row)
     row.crown:SetPoint("LEFT", row.name, "LEFT", math.ceil(row.name:GetStringWidth()) + library.read_size(-4), 0)
     row.crown:SetShown(UnitIsGroupLeader(unit) == true)
     row.name:SetTextColor(unpack(online and colours.ink or OFFLINE))
-    update_dot(row, online and read_class_colour(unit) or OFFLINE)
+    vga.update_class_dot(row.spot, online and vga.read_class_colour(unit) or OFFLINE)
     library.update_bar_kind(row.health, online and "health" or "tapped")
     row.offline:SetShown(not online)
     library.update_bar_value(row.health, UnitHealth(unit), UnitHealthMax(unit))

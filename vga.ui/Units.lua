@@ -1,8 +1,8 @@
 -- Copyright 2026 Vivian Voss. Code by Vivian Voss. Licensed under the BSD-3-Clause.
 -- SPDX-License-Identifier: BSD-3-Clause
--- Scope: vga.ui's player frame, target frame and pet frame, each where Blizzard's own stands in the player's layout: the level's shield, the name and its class or kind, health and power, the target mirrored to the player, the portrait's rim one smooth, rounded frame in one colour over the picture, its corners and sides cut from one texture - seven outside, three thick, four inside -, clicked to target; the group's leader marked by a small filled gold crown sitting centred on the portrait's top edge (K0614); Blizzard's own frames hidden. In a resting place - an inn, a city - the same pulse round the player's portrait glows blue instead of red; in a fight the red wins and the blue rests until the fight is over (K0551). A dead unit's portrait - the player's, the target's, a pet's - is drawn grey, the game's picture desaturated and the moving face set still while it is dead or a ghost, so a player looking at a dead one sees it grey too, and it takes its colour back when the unit lives (K0702). Beside them, after manual/view/vga-tot.html: the target's pet below the target frame, the player's pet mirrored in look and place, and the target of target wearing a party member's row, mirrored - level, class dot, name, health, as Party.lua lays it (K0698) -, on a line with the target frame at its right, a place of its own to be moved; it shows only while the game's own setting »Ziel des Ziels« (showTargetOfTarget) is on, which the units' settings switch too; both read anew five times a second, since the game sends no events for those units (K0696).
+-- Scope: vga.ui's player frame, target frame and pet frame, each where Blizzard's own stands in the player's layout: the level's shield, the name and its class or kind, health and power, the target mirrored to the player, the portrait's rim one smooth, rounded frame in one colour over the picture, its corners and sides cut from one texture - seven outside, three thick, four inside -, clicked to target; the group's leader marked by a small filled gold crown sitting centred on the portrait's top edge (K0614), its gold shaded light above and darker below, with a thin black rim and a small shadow beneath, all in its own texture, shown untinted (K0724); Blizzard's own frames hidden. In a resting place - an inn, a city - the same pulse round the player's portrait glows blue instead of red; in a fight the red wins and the blue rests until the fight is over (K0551). A dead unit's portrait - the player's, the target's, a pet's - is drawn grey, the game's picture desaturated and the moving face set still while it is dead or a ghost, so a player looking at a dead one sees it grey too, and it takes its colour back when the unit lives (K0702). A player's class - the player's own, a player as target - is shown not as a word beside the name but as the party rows' dot in the class's colour, where the word stood, its name in a tooltip, so the name keeps its width (K0717). Beside them, after manual/view/vga-tot.html: the target's pet below the target frame, the player's pet mirrored in look and place, and the target of target wearing a party member's row, mirrored - level, class dot, name, health, as Party.lua lays it (K0698) -, on a line with the target frame at its right, a place of its own to be moved; it shows only while the game's own setting »Ziel des Ziels« (showTargetOfTarget) is on, which the units' settings switch too; both read anew five times a second, since the game sends no events for those units (K0696).
 
--- {K0481} {K0551} {K0267} {K0268} {K0275} {K0276} {K0294} {K0297} {K0299} {K0300} {K0302} {K0329} {K0330} {K0334} {K0342} {K0345} {K0346} {K0360} {K0614} {K0696} {K0698} {K0702}
+-- {K0481} {K0551} {K0267} {K0268} {K0275} {K0276} {K0294} {K0297} {K0299} {K0300} {K0302} {K0329} {K0330} {K0334} {K0342} {K0345} {K0346} {K0360} {K0614} {K0724} {K0696} {K0698} {K0702} {K0717}
 
 local _, vga = ...
 local library = LibVGA
@@ -92,13 +92,24 @@ local function update_values(frame)
     update_bar_text(frame.power, power, top, function() return UnitPowerPercent(unit, kind, false, CurveConstants.ScaleTo100) end)
 end
 
+local function update_class_spot(frame)
+    local size = vga.read_class_dot_size()
+    frame.class:SetText(" ")
+    frame.class:SetWidth(size)
+    vga.update_class_dot(frame.class_spot, vga.read_class_colour(frame.unit), UnitClass(frame.unit))
+    frame.class_spot:ClearAllPoints()
+    frame.class_spot:SetPoint("CENTER", frame.class, "CENTER")
+    frame.class_spot:Show()
+end
+
 local function update_target_kind(frame, kind)
     local unit = frame.unit
     frame.class:SetFontObject(library.read_frame_font(kind and "bold" or "small"))
     if UnitIsPlayer(unit) then
-        frame.class:SetText(UnitClass(unit) or "")
-        frame.class:SetTextColor(unpack(colours.label))
+        update_class_spot(frame)
     else
+        frame.class_spot:Hide()
+        frame.class:SetWidth(0)
         frame.class:SetText(kind and library.texts[UnitClassification(unit)] or "")
         frame.class:SetTextColor(unpack(kind and colours.ink or colours.label))
     end
@@ -152,8 +163,11 @@ local function update_identity(frame)
         frame.quest:SetShown(not (issecretvalue and issecretvalue(related)) and related == true)
         update_target_kind(frame, kind)
         library.update_bar_kind(frame.health, UnitIsFriend("player", unit) and "health" or "enemy")
+    elseif unit == "player" then
+        update_class_spot(frame)
     else
-        frame.class:SetText(unit == "player" and UnitClass(unit) or "")
+        frame.class_spot:Hide()
+        frame.class:SetText("")
     end
 end
 
@@ -250,7 +264,7 @@ local function create_frame(unit, mirrored)
     frame.edges = create_rim(frame.rounding)
     frame.crown = frame.rounding:CreateTexture(nil, "OVERLAY")
     frame.crown:SetTexture(library.media .. "Crown")
-    frame.crown:SetVertexColor(colours.gold[1], colours.gold[2], colours.gold[3], 1)
+    frame.crown:SetVertexColor(1, 1, 1, 1)
     frame.crown:Hide()
     frame.shield = CreateFrame("Frame", nil, frame)
     frame.shield:SetFrameLevel(frame:GetFrameLevel() + 13)
@@ -263,6 +277,7 @@ local function create_frame(unit, mirrored)
     frame.name:SetJustifyH("LEFT")
     frame.name:SetWordWrap(false)
     frame.class = library.create_text(frame, "small", colours.label)
+    frame.class_spot = vga.create_class_dot(frame, true)
     if unit == "target" then
         frame.name:SetJustifyH("RIGHT")
         frame.chevron = frame:CreateTexture(nil, "OVERLAY")

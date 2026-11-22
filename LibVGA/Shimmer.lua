@@ -1,8 +1,8 @@
 -- Copyright 2026 Vivian Voss. Code by Vivian Voss. Licensed under the BSD-3-Clause.
 -- SPDX-License-Identifier: BSD-3-Clause
--- Scope: LibVGA's shimmer for something new: the button brightened, every three seconds a light running once round its rim that ends in a star flashing at its corner - the bags' new items' (K0403, K0477) and the action keys' newly learned spells' (K0482) -, laid by its owner each frame with the cycle's phase and the button's side, taken away whole by delete_shimmer; or, by create_running_shimmer, laid once as an animation that runs by itself, for frames the addon may not touch each frame - the game's aura buttons while auras are secret (K0615).
+-- Scope: LibVGA's shimmer for something new: the button brightened, every three seconds a light running once round its rim that ends in a star flashing at its corner - the bags' new items' (K0403, K0477) and the action keys' newly learned spells' (K0482) -, laid by its owner each frame with the cycle's phase and the button's side, taken away whole by delete_shimmer; or, by create_running_shimmer, laid once as an animation that runs by itself, for frames the addon may not touch each frame - the game's aura buttons while auras are secret (K0615). Its light runs round the rim in four straight legs of Translation animations, one after another - right, down, left, up -, not along a Path: Forever's Path has no SetCurve, whose call broke every own debuff's button on foes since K0615 (K0719), and without it the light ran the top edge alone and stood at the right (K0720).
 
--- {K0403} {K0482} {K0615}
+-- {K0719} {K0720} {K0403} {K0482} {K0615}
 
 local library = LibVGA
 local colours = library.colours
@@ -94,6 +94,8 @@ local function create_alpha(group, target, from, to, delay, duration)
     return fade
 end
 
+local RIM_LEGS = { { 1, 0 }, { 0, -1 }, { -1, 0 }, { 0, 1 } }
+
 local function create_running_dot(frame, group, side, index, step)
     local dot, size = frame:CreateTexture(nil, "OVERLAY", nil, 7), read_draft(4)
     local colour = index == 1 and { 1, 1, 1 } or colours.gold_high
@@ -104,13 +106,12 @@ local function create_running_dot(frame, group, side, index, step)
     dot:SetVertexColor(colour[1], colour[2], colour[3], 1)
     dot:SetAlpha(0)
     local delay, run = step[1] * RUN_END * CYCLE, RUN_END * CYCLE
-    local path = group:CreateAnimation("Path")
-    path:SetTarget(dot)
-    path:SetCurve("NONE")
-    path:SetStartDelay(delay)
-    path:SetDuration(run)
-    for _, corner in ipairs({ { side, 0 }, { side, -side }, { 0, -side }, { 0, 0 } }) do
-        path:CreateControlPoint():SetOffset(corner[1], corner[2])
+    for leg, move in ipairs(RIM_LEGS) do
+        local slide = group:CreateAnimation("Translation")
+        slide:SetTarget(dot)
+        slide:SetOffset(move[1] * side, move[2] * side)
+        slide:SetStartDelay(delay + (leg - 1) * run / #RIM_LEGS)
+        slide:SetDuration(run / #RIM_LEGS)
     end
     create_alpha(group, dot, step[2], step[2], delay, run)
 end

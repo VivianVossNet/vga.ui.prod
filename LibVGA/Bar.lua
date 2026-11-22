@@ -1,8 +1,8 @@
 -- Copyright 2026 Vivian Voss. Code by Vivian Voss. Licensed under the BSD-3-Clause.
 -- SPDX-License-Identifier: BSD-3-Clause
--- Scope: LibVGA's bar, rounded as the drafts draw it: a gain previewed darkened, filled and swept by a slanted shine; a loss left as a muted trail; with secret values the same two shadows run as bars of their own, one at once and one delayed, eased by the game, and the shine sweeps the whole filled bar whenever a gain is told by the caller, since a secret value cannot tell it.
+-- Scope: LibVGA's bar, rounded as the drafts draw it: a gain previewed darkened, filled and swept by a slanted shine; a loss left as a muted trail; with secret values the same two shadows run as bars of their own, one at once and one delayed, eased by the game, and the shine sweeps the whole filled bar whenever a gain is told by the caller, since a secret value cannot tell it. A bar may also be shaded across by any colour, darkened from left to right, as the damage meter's rows in their class's colour (K0721).
 
--- {K0300} {K0334} {K0339} {K0342} {K0348}
+-- {K0300} {K0334} {K0339} {K0342} {K0348} {K0721}
 
 local library = LibVGA
 
@@ -207,6 +207,12 @@ function library.create_bar(parent, kind)
     bar.text:SetDrawLayer("OVERLAY", 7)
     library.update_bar_kind(bar, kind)
     return bar
+end
+
+function library.update_bar_shade(bar, colour, left, right)
+    local start = CreateColor(colour[1] * left, colour[2] * left, colour[3] * left, 1)
+    local finish = CreateColor(colour[1] * right, colour[2] * right, colour[3] * right, 1)
+    bar:GetStatusBarTexture():SetGradient("HORIZONTAL", start, finish)
 end
 
 function library.update_bar_kind(bar, kind)
