@@ -6,7 +6,6 @@
 
 local _, vga = ...
 local library = LibVGA
-local DRAFT_BASE = 13
 local TICK = 6
 local EDGE = 2
 local LETTER_ROOM = 8
@@ -15,9 +14,7 @@ local LETTER_ALPHA = 0.85
 local EVERY = 0.05
 local rose
 
-local function read_draft(pixels)
-    return math.floor(pixels * library.read_base() / DRAFT_BASE + 0.5)
-end
+local read_draft = library.read_draft_size
 
 local function read_turn()
     if GetCVar and GetCVar("rotateMinimap") == "1" and GetPlayerFacing then return -(GetPlayerFacing() or 0) end

@@ -2,12 +2,11 @@
 -- SPDX-License-Identifier: BSD-3-Clause
 -- Scope: The experience line's tooltips: every text on it explains itself when the mouse has rested on it for a second - the level with the time to the next level beside it, the rested bonus, the system values, the money and the bag slots -; the system values' tooltip carries beneath its words three fine graphs of the last sixty minutes, frame rate, latency and memory, measured every thirty seconds and kept across a reload, each stretch coloured as the line colours its value, so a recent trouble shows at a glance. The bars explain themselves too, after the same second: the experience bar its standing in points, »1.234 / 5.600 Punkte«, the reputation bar - the one bar while a faction is watched, or the lower of both - the faction's name and its standing with the share, »Wohlwollend · 25 %« (K0552).
 
--- {K0388} {K0404} {K0428} {K0455} {K0552}
+-- {K0799} {K0388} {K0404} {K0428} {K0455} {K0552}
 
 local _, vga = ...
 local library = LibVGA
 local colours = library.colours
-local DRAFT_BASE = 13
 local DWELL = 1
 local waiting, pending
 local EVERY = 30
@@ -23,9 +22,7 @@ local GRAPHS = {
 }
 local graphs
 
-local function read_draft(pixels)
-    return math.floor(pixels * library.read_base() / DRAFT_BASE + 0.5)
-end
+local read_draft = library.read_draft_size
 
 local function write_sample()
     local history = LibVGASettings.history or {}
@@ -96,12 +93,14 @@ local function update_graphs()
     if not graphs then create_graphs() end
     local width, height, gap, pad = read_draft(GRAPH_WIDTH), read_draft(GRAPH_HEIGHT), read_draft(GRAPH_GAP), read_draft(10)
     local total = #graphs.rows * height + (#graphs.rows - 1) * gap
+    local stacked = {}
+    graphs.grid = graphs.grid or library.create_grid(graphs, { columns = { GRAPH_WIDTH }, row = GRAPH_HEIGHT, row_gap = GRAPH_GAP, y = "top" })
     for index, graph in ipairs(graphs.rows) do
         graph:SetSize(width, height)
-        graph:ClearAllPoints()
-        graph:SetPoint("TOPLEFT", graphs, "TOPLEFT", 0, -(index - 1) * (height + gap))
+        stacked[index] = { graph }
         update_graph(graph, width, height)
     end
+    library.update_grid(graphs.grid, stacked)
     GameTooltip:SetWidth(math.max(GameTooltip:GetWidth(), width + 2 * pad))
     GameTooltip:SetHeight(GameTooltip:GetHeight() + total + pad)
     graphs:SetSize(width, total)

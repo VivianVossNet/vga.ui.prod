@@ -1,47 +1,29 @@
 -- Copyright 2026 Vivian Voss. Code by Vivian Voss. Licensed under the BSD-3-Clause.
 -- SPDX-License-Identifier: BSD-3-Clause
--- Scope: LibVGA's dialog as the accepted drafts draw it (manual/view/vga-scale.html .dlg, vga-template.css .vt): the metal frame, the head with the mark, the gold title and the close button, further buttons of the same make with an icon to its left where a dialog asks for them, its rows divided by hairlines; always free to move, its ground down to a floor. Rows that stand together outside a fieldset stand on one rounded, faintly lighter card, in the way of the macOS System Settings (K0565). A stepper in a row is measured as it is laid (K0721). The dialog opened or clicked last stands in front of every other, whole, so no two dialogs interleave (K0737). A row may carry a mark before its label - the elite's chevron turned to point right at the label, four draft pixels before it, in a colour of the library's -, standing in the row's inset so the label never moves; the profiles mark the active one so in orange (K0729). Every dialog carries LibVGA's pin in its head as its own part, beside the close, made by the dialog's maker (K0767): grey while free, when the dialog can be dragged, gold while pinned, when its place is fixed and it cannot; its meaning in a tooltip, with a note of the owner's where it means more; its state kept on the dialog unless its user hands another keeper (library.update_dialog_pin_state), so the bags remember theirs and a fixed tooltip starts free (K0764).
+-- Scope: LibVGA's dialog as the accepted drafts draw it (manual/view/vga-scale.html .dlg, vga-template.css .vt): the metal frame, the head with the mark, the gold title and the close button, further buttons of the same make with an icon to its left where a dialog asks for them, its rows divided by hairlines; always free to move, its ground down to a floor. Rows that stand together outside a fieldset stand on one rounded, faintly lighter card, in the way of the macOS System Settings (K0565). A stepper in a row is measured as it is laid (K0721). The dialog opened or clicked last stands in front of every other, whole, so no two dialogs interleave (K0737). A row may carry LibVGA's mark of the active row - the whole row on a quiet gold ground, its name gold and bold (library.create_active_mark, K0779; before a gold pill, K0778, and an orange chevron, K0729) -, so the label never moves; the profiles mark the active one so. A dialog may own a foot, named when it is made: a quiet note at its left, its buttons at its right - plain ones first, the gold one last -, ten draft pixels above a row of 22 and fourteen below, fourteen from the sides, eight between the buttons; its user names their words, kinds and actions and never lays them, and the dialog's frame height with or without it is read by library.read_dialog_frame_height (K0783). A foot with buttons may carry a status line of its own beneath them - its note at the left, money at the right, under a hairline (plan.status, library.update_dialog_status, K0836), as the merchant's gold stands under its repair row. A foot without buttons is a status line thirty draft pixels high - the bags' and the loot window's -, its note at the left and, where asked, the money at the right, where asked on a darker band under a hairline; its user fills it by library.update_dialog_foot (K0784). Every row but a heading keeps the room of LibVGA's applied tick at its right, its control beside it, so a setting shows its tick when applied and nothing moves (library.create_tick, K0794). A dialog shown before it was ever placed stands in the middle of the screen (library.update_dialog_placed, K0816); one that belongs beside a window of the game stands at its right (library.update_dialog_beside, K0835), since the game draws no frame without a place. Every dialog carries LibVGA's pin in its head as its own part, beside the close, made by the dialog's maker (K0767): grey while free, when the dialog can be dragged, gold while pinned, when its place is fixed and it cannot; its meaning in a tooltip, with a note of the owner's where it means more; its state kept on the dialog unless its user hands another keeper (library.update_dialog_pin_state), so the bags remember theirs and a fixed tooltip starts free (K0764). A foot without buttons is its status line alone (K0836). A window that ends a visit of the game when it closes hears its closing only after its first hiding (library.update_dialog_closing, K0838): a new frame stands shown, so hiding it once at its making would end the very visit that made it, the merchant's, the talk, the quest, the trainer's, the flight master's, the bank's, as the auction house's did (K0681). A window for a figure of the game names it by library.read_figure_name - the game's »npc«, else the target, since a merchant reached through its talk is not always given as »npc« - and is titled »word · name« by library.read_figure_title, the word alone where no name is known (K0839); library.read_figure_id reads the figure's number from its GUID, nil where it is no creature or kept secret (K0848). A foot's button its user hides is passed over, the shown ones closing up at the right, so one dialog may change its pair of buttons with its moment - the talk's »Auf Wiedersehen« alone, the quest's two (K0840).
 
--- {K0767} {K0764} {K0256} {K0296} {K0299} {K0324} {K0330} {K0337} {K0415} {K0565} {K0721} {K0729} {K0737}
+-- {K0848} {K0840} {K0839} {K0838} {K0681} {K0794} {K0792} {K0784} {K0783} {K0779} {K0778} {K0767} {K0764} {K0256} {K0296} {K0299} {K0324} {K0330} {K0337} {K0415} {K0565} {K0721} {K0729} {K0737}
 
 local library = LibVGA
 local CARD = { 1, 1, 1 }
 local CARD_ALPHA = 0.04
+local FOOT_TOP = 10
+local FOOT_ROW = 22
+local FOOT_BOTTOM = 14
+local FOOT_SIDE = 14
+local FOOT_GAP = 8
+local TICK_GAP = 8
+local FOOT_STATUS = 30
+local FOOT_INK = { 0.467, 0.451, 0.42 }
+local FOOT_GROUND = { 0.039, 0.043, 0.051 }
 local colours = library.colours
 local BLACK = { 0, 0, 0 }
-local CLOSE_TOP = { 0.227, 0.239, 0.267 }
-local CLOSE_BOTTOM = { 0.118, 0.125, 0.145 }
 local HAIRLINE = { 0.137, 0.149, 0.173 }
 local FIELDSET = { 0.235, 0.247, 0.282 }
 local FIELDSET_LINES = { "top_left", "top_right", "left", "right", "bottom" }
 
-local function create_head_button(dialog, on_click)
-    local button = CreateFrame("Button", nil, dialog)
-    button.ring = library.create_surface(button, "BACKGROUND", 0)
-    button.face = library.create_surface(button, "BACKGROUND", 1)
-    button.light = button:CreateTexture(nil, "BORDER")
-    button.light:SetColorTexture(1, 1, 1, 0.12)
-    button:SetScript("OnClick", on_click)
-    return button
-end
-
-local function update_head_button(button, size)
-    button:SetSize(size, size)
-    local radius = library.read_size(-6)
-    library.update_surface(button.ring, -1, radius + 1, BLACK, BLACK)
-    library.update_surface(button.face, 0, radius, CLOSE_TOP, CLOSE_BOTTOM)
-    button.light:ClearAllPoints()
-    button.light:SetPoint("TOPLEFT", radius, 0)
-    button.light:SetPoint("TOPRIGHT", -radius, 0)
-    button.light:SetHeight(1)
-    if button.icon then
-        button.icon:SetSize(math.floor(size * 0.7 + 0.5), math.floor(size * 0.7 + 0.5))
-        button.icon:SetPoint("CENTER")
-    end
-end
-
 local function create_close(dialog)
-    local close = create_head_button(dialog, function() dialog:Hide() end)
+    local close = library.create_icon_button(dialog, nil, function() dialog:Hide() end, { kind = "head" })
     close.strokes = {}
     for index, angle in ipairs({ 45, -45 }) do
         local stroke = close:CreateTexture(nil, "ARTWORK")
@@ -53,9 +35,7 @@ local function create_close(dialog)
 end
 
 function library.create_dialog_button(dialog, icon, on_click)
-    local button = create_head_button(dialog, on_click)
-    button.icon = button:CreateTexture(nil, "ARTWORK")
-    button.icon:SetTexture(library.media .. icon)
+    local button = library.create_icon_button(dialog, icon, on_click, { kind = "head" })
     dialog.head_buttons = dialog.head_buttons or {}
     dialog.head_buttons[#dialog.head_buttons + 1] = button
     return button
@@ -64,7 +44,7 @@ end
 function library.update_dialog_pin(dialog)
     local pinned = dialog.pin_state.read()
     local colour = pinned and colours.gold or colours.quiet
-    dialog.pin.icon:SetVertexColor(colour[1], colour[2], colour[3], 1)
+    dialog.pin.picture:SetVertexColor(colour[1], colour[2], colour[3], 1)
     dialog:SetMovable(not pinned)
 end
 
@@ -127,7 +107,7 @@ local function create_pin(dialog)
 end
 
 local function update_close(close, size)
-    update_head_button(close, size)
+    library.update_icon_button(close, size)
     local arm = math.floor(size * 0.42 + 0.5)
     for _, stroke in ipairs(close.strokes) do
         stroke:ClearAllPoints()
@@ -140,7 +120,147 @@ local function update_raised(dialog)
     dialog:Raise()
 end
 
-function library.create_dialog(name, title)
+local function create_band(foot)
+    foot.band = foot:CreateTexture(nil, "BACKGROUND")
+    foot.band:SetAllPoints()
+    foot.line = library.create_hairline(foot)
+    foot.line:SetPoint("TOPLEFT")
+    foot.line:SetPoint("TOPRIGHT")
+    foot.line:SetHeight(1)
+end
+
+local function create_foot(dialog, plan)
+    local foot = CreateFrame("Frame", nil, dialog)
+    if plan.band then create_band(foot) end
+    if plan.money then
+        foot.money = library.create_money(foot, FOOT_INK)
+        foot.money.kind = "small"
+    end
+    foot.note = library.create_text(foot, "small", FOOT_INK)
+    foot.note:SetWordWrap(false)
+    foot.note:SetJustifyH("LEFT")
+    foot.note:SetText(plan.note or "")
+    if plan.status then
+        foot.status_line = library.create_hairline(foot)
+        foot.status_note = library.create_text(foot, "small", FOOT_INK)
+        foot.status_money = library.create_money(foot, FOOT_INK)
+        foot.status_money.kind = "small"
+    end
+    foot.buttons = {}
+    for index, button in ipairs(plan.buttons or {}) do
+        foot.buttons[index] = library.create_button(foot, button[1], button[2], button[3])
+    end
+    return foot
+end
+
+function library.read_dialog_foot_height(dialog)
+    if not dialog.foot then return 0 end
+    local draft = library.read_draft_size
+    if #dialog.foot.buttons == 0 then return draft(FOOT_STATUS) end
+    local status = dialog.foot.status_note and draft(FOOT_STATUS) or 0
+    return draft(FOOT_TOP) + draft(FOOT_ROW) + draft(FOOT_BOTTOM) + status
+end
+
+function library.update_dialog_status(dialog, note, copper)
+    local foot = dialog.foot
+    foot.status_note:SetText(note or "")
+    library.update_money(foot.status_money, copper or 0)
+end
+
+local function update_status(foot)
+    local draft = library.read_draft_size
+    local top = #foot.buttons == 0 and 0 or draft(FOOT_TOP) + draft(FOOT_ROW) + draft(FOOT_BOTTOM)
+    local middle = -(top + draft(FOOT_STATUS) / 2)
+    foot.status_line:ClearAllPoints()
+    foot.status_line:SetPoint("TOPLEFT", foot, "TOPLEFT", 0, -top)
+    foot.status_line:SetPoint("TOPRIGHT", foot, "TOPRIGHT", 0, -top)
+    foot.status_line:SetHeight(1)
+    foot.status_note:SetFontObject(library.read_font("small"))
+    foot.status_note:ClearAllPoints()
+    foot.status_note:SetPoint("LEFT", foot, "TOPLEFT", draft(FOOT_SIDE), middle)
+    foot.status_money:ClearAllPoints()
+    foot.status_money:SetPoint("RIGHT", foot, "TOPRIGHT", -draft(FOOT_SIDE), middle)
+end
+
+local function read_foot_middle(foot)
+    local draft = library.read_draft_size
+    if #foot.buttons == 0 then return -draft(FOOT_STATUS) / 2 end
+    return -(draft(FOOT_TOP) + draft(FOOT_ROW) / 2)
+end
+
+function library.update_dialog_foot(dialog, note, copper)
+    local foot = dialog.foot
+    foot.note:SetText(note or "")
+    if foot.money and copper then library.update_money(foot.money, copper) end
+end
+
+local function update_foot(dialog, inner)
+    local foot, draft = dialog.foot, library.read_draft_size
+    foot:ClearAllPoints()
+    foot:SetPoint("BOTTOMLEFT", inner, inner)
+    foot:SetPoint("BOTTOMRIGHT", -inner, inner)
+    foot:SetHeight(library.read_dialog_foot_height(dialog))
+    local beside, middle = foot.money, read_foot_middle(foot)
+    if foot.band then foot.band:SetColorTexture(FOOT_GROUND[1], FOOT_GROUND[2], FOOT_GROUND[3], library.read_dialog_ground()) end
+    if foot.money then
+        foot.money:ClearAllPoints()
+        foot.money:SetPoint("RIGHT", foot, "TOPRIGHT", -draft(FOOT_SIDE), middle)
+    end
+    for index = #foot.buttons, 1, -1 do
+        local button = foot.buttons[index]
+        library.update_button(button)
+        button:ClearAllPoints()
+        if button:IsShown() then
+            if beside then button:SetPoint("RIGHT", beside, "LEFT", -draft(FOOT_GAP), 0) else button:SetPoint("RIGHT", foot, "TOPRIGHT", -draft(FOOT_SIDE), middle) end
+            beside = button
+        end
+    end
+    if foot.status_note then update_status(foot) end
+    foot.note:SetFontObject(library.read_font("figures_small"))
+    foot.note:ClearAllPoints()
+    foot.note:SetPoint("LEFT", foot, "TOPLEFT", draft(FOOT_SIDE), middle)
+    if beside then foot.note:SetPoint("RIGHT", beside, "LEFT", -draft(FOOT_GAP), 0) end
+end
+
+function library.update_dialog_placed(dialog)
+    if dialog:GetNumPoints() > 0 then return end
+    dialog:SetPoint("CENTER", UIParent, "CENTER", 0, 0)
+end
+
+function library.read_figure_name()
+    local name = UnitName and UnitName("npc")
+    if not name or name == "" then name = UnitName and UnitName("target") end
+    return name or ""
+end
+
+function library.read_figure_id()
+    local guid = UnitGUID and (UnitGUID("npc") or UnitGUID("target"))
+    if type(guid) ~= "string" or (issecretvalue and issecretvalue(guid)) then return nil end
+    local kind, id = guid:match("^(%a+)%-[^-]+%-[^-]+%-[^-]+%-[^-]+%-([^-]+)")
+    if kind ~= "Creature" and kind ~= "Vehicle" then return nil end
+    return id
+end
+
+function library.read_figure_title(word)
+    local name = library.read_figure_name()
+    return name ~= "" and word .. " · " .. name or word
+end
+
+function library.update_dialog_closing(dialog, render)
+    dialog:Hide()
+    dialog:SetScript("OnHide", render)
+end
+
+function library.update_dialog_beside(dialog, frame, gap)
+    dialog:ClearAllPoints()
+    dialog:SetPoint("TOPLEFT", frame or UIParent, "TOPRIGHT", gap or 0, 0)
+end
+
+function library.read_dialog_frame_height(dialog)
+    return library.read_size(4) + 1 + 2 * library.read_size(-4) + library.read_dialog_foot_height(dialog)
+end
+
+function library.create_dialog(name, title, foot)
     local dialog = CreateFrame("Frame", name, UIParent)
     dialog:SetFrameStrata("DIALOG")
     dialog:SetToplevel(true)
@@ -166,6 +286,7 @@ function library.create_dialog(name, title)
     dialog.close = create_close(dialog)
     create_pin(dialog)
     dialog.body = CreateFrame("Frame", nil, dialog)
+    if foot then dialog.foot = create_foot(dialog, foot) end
     tinsert(UISpecialFrames, name)
     return dialog
 end
@@ -202,21 +323,22 @@ function library.update_dialog(dialog)
     dialog.close:SetPoint("RIGHT", dialog.head, "RIGHT", -pad, 0)
     local beside = dialog.close
     for _, button in ipairs(dialog.head_buttons or {}) do
-        update_head_button(button, mark)
+        library.update_icon_button(button, mark)
         button:ClearAllPoints()
         button:SetPoint("RIGHT", beside, "LEFT", -library.read_size(-4), 0)
         beside = button
     end
+    if dialog.foot then update_foot(dialog, inner) end
     dialog.body:ClearAllPoints()
     dialog.body:SetPoint("TOPLEFT", dialog.head, "BOTTOMLEFT", 0, -1)
-    dialog.body:SetPoint("BOTTOMRIGHT", -inner, inner)
+    dialog.body:SetPoint("BOTTOMRIGHT", -inner, inner + library.read_dialog_foot_height(dialog))
 end
 
 function library.create_row(parent, label, kind)
     local row = CreateFrame("Frame", nil, parent)
     row.kind = kind
     row.label = library.create_text(row, kind == "heading" and "small" or "body")
-    row.label:SetText(kind == "heading" and label:upper() or label)
+    row.label:SetText(kind == "heading" and library.read_capitals(label) or label)
     if kind == "heading" then
         row.fieldset = {}
         for _, name in ipairs(FIELDSET_LINES) do
@@ -224,8 +346,8 @@ function library.create_row(parent, label, kind)
             row.fieldset[name]:SetColorTexture(FIELDSET[1], FIELDSET[2], FIELDSET[3], 1)
         end
     end
-    row.line = row:CreateTexture(nil, "BACKGROUND")
-    row.line:SetColorTexture(HAIRLINE[1], HAIRLINE[2], HAIRLINE[3], 1)
+    row.line = library.create_hairline(row)
+    if kind ~= "heading" then row.tick = library.create_tick(row) end
     return row
 end
 
@@ -342,7 +464,16 @@ function library.read_shown_rows(rows)
     return shown
 end
 
+local function update_row_tick(row, pad)
+    if not row.tick then return 0 end
+    library.update_tick(row.tick)
+    row.tick:ClearAllPoints()
+    row.tick:SetPoint("RIGHT", row, "RIGHT", -pad, 0)
+    return library.read_tick_room() + library.read_draft_size(TICK_GAP)
+end
+
 local function update_row_control(row, parent, pad, inset, column, width)
+    local tick = update_row_tick(row, pad)
     if row.kind == "widget" then
         library.update_widget_row(row, pad)
     elseif row.control and row.kind == "wide" then
@@ -353,9 +484,9 @@ local function update_row_control(row, parent, pad, inset, column, width)
         local control = row.control
         control:ClearAllPoints()
         if control.buttons or control.stops or control.pictures then
-            control:SetPoint("LEFT", row, "RIGHT", -pad - column + (control.reach or 0), 0)
+            control:SetPoint("LEFT", row, "RIGHT", -pad - tick - column + (control.reach or 0), 0)
         else
-            control:SetPoint("RIGHT", row, "RIGHT", -pad, 0)
+            control:SetPoint("RIGHT", row, "RIGHT", -pad - tick, 0)
         end
         if row.eye then
             library.update_eye_layout(row.eye)
@@ -365,19 +496,9 @@ local function update_row_control(row, parent, pad, inset, column, width)
     end
 end
 
-function library.create_row_mark(row, colour)
-    row.mark = row:CreateTexture(nil, "ARTWORK")
-    row.mark:SetTexture(library.media .. "Chevron")
-    row.mark:SetRotation(-math.pi / 2)
-    row.mark:SetVertexColor(colours[colour][1], colours[colour][2], colours[colour][3], 1)
+function library.create_row_mark(row)
+    row.mark = library.create_active_mark(row, row.label)
     return row.mark
-end
-
-local function update_row_mark(row)
-    local size = library.read_size(-4)
-    row.mark:SetSize(size, size)
-    row.mark:ClearAllPoints()
-    row.mark:SetPoint("RIGHT", row.label, "LEFT", -library.read_draft_size(4), 0)
 end
 
 local function update_row_label(row, pad, inset)
@@ -385,7 +506,7 @@ local function update_row_label(row, pad, inset)
     if row.kind == "heading" then row.label:SetTextColor(unpack(colours.quiet)) end
     row.label:ClearAllPoints()
     row.label:SetPoint("LEFT", row, "LEFT", row.kind == "heading" and inset + pad - math.max(3, library.read_size(-6)) or pad, 0)
-    if row.mark then update_row_mark(row) end
+    if row.mark then library.update_active_mark(row.mark, true) end
 end
 
 local function update_cards(parent, runs)

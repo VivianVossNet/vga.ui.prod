@@ -1,8 +1,8 @@
 -- Copyright 2026 Vivian Voss. Code by Vivian Voss. Licensed under the BSD-3-Clause.
 -- SPDX-License-Identifier: BSD-3-Clause
--- Scope: LibVGA's bar, rounded as the drafts draw it: a gain previewed darkened, filled and swept by a slanted shine; a loss left as a muted trail; with secret values the same two shadows run as bars of their own, one at once and one delayed, eased by the game, and the shine sweeps the whole filled bar whenever a gain is told by the caller, since a secret value cannot tell it. A bar may also be shaded across by any colour, darkened from left to right, as the damage meter's rows in their class's colour (K0721).
+-- Scope: LibVGA's bar, rounded as the drafts draw it: a gain previewed darkened, filled and swept by a slanted shine; a loss left as a muted trail; with secret values the same two shadows run as bars of their own, one at once and one delayed, eased by the game, and the shine sweeps the whole filled bar whenever a gain is told by the caller, since a secret value cannot tell it. A thin bar with a small caption beneath it - the cast bar under a unit frame - takes library.read_cast_height, and the room it keeps there library.read_cast_room, moved here from vga.ui's Casts.lua (K0795). A bar may also be shaded across by any colour, darkened from left to right, as the damage meter's rows in their class's colour (K0721).
 
--- {K0300} {K0334} {K0339} {K0342} {K0348} {K0721}
+-- {K0795} {K0782} {K0300} {K0334} {K0339} {K0342} {K0348} {K0721}
 
 local library = LibVGA
 
@@ -173,16 +173,14 @@ function library.read_bar_colours(kind)
 end
 
 function library.create_bar(parent, kind)
-    local bar = CreateFrame("StatusBar", nil, parent)
-    bar:SetStatusBarTexture("Interface\\Buttons\\WHITE8X8")
+    local bar = library.create_fill(parent, { shine = true })
     bar.ground = CreateFrame("Frame", nil, bar)
     bar.ground:SetAllPoints()
     bar.line = library.create_surface(bar.ground, "BACKGROUND", 0)
     bar.back = library.create_surface(bar.ground, "BACKGROUND", 1)
     for _, name in ipairs({ "behind", "ahead" }) do
-        local shadow = CreateFrame("StatusBar", nil, bar)
+        local shadow = library.create_fill(bar)
         shadow:SetAllPoints()
-        shadow:SetStatusBarTexture("Interface\\Buttons\\WHITE8X8")
         shadow:Hide()
         bar[name] = shadow
     end
@@ -194,14 +192,6 @@ function library.create_bar(parent, kind)
     bar.trail = bar:CreateTexture(nil, "BORDER")
     bar.trail:SetColorTexture(1, 1, 1, 1)
     bar.trail:Hide()
-    bar.clip = CreateFrame("Frame", nil, bar)
-    bar.clip:SetPoint("TOPLEFT")
-    bar.clip:SetPoint("BOTTOMRIGHT", bar:GetStatusBarTexture(), "BOTTOMRIGHT")
-    bar.clip:SetClipsChildren(true)
-    bar.shine = bar.clip:CreateTexture(nil, "OVERLAY")
-    bar.shine:SetTexture(library.media .. "Shine")
-    bar.shine:SetBlendMode("ADD")
-    bar.shine:Hide()
     bar.text = library.create_text(bar, "small")
     bar.text:SetPoint("CENTER")
     bar.text:SetDrawLayer("OVERLAY", 7)
@@ -224,4 +214,12 @@ function library.update_bar_kind(bar, kind)
     bar.ahead:SetStatusBarColor(top[1] * 0.42, top[2] * 0.42, top[3] * 0.42, 1)
     bar.behind:SetStatusBarColor(top[1] * 0.38, top[2] * 0.38, top[3] * 0.38, TRAIL_ALPHA)
     if bar.ratio then library.update_ratio_kind(bar.ratio, LIGHT[kind] and "figure_dark" or "figure") end
+end
+
+function library.read_cast_height()
+    return math.max(4, library.read_size(-4)) + library.read_size(-6) + library.read_size(-1) + 2
+end
+
+function library.read_cast_room()
+    return library.read_size(-4) + library.read_cast_height()
 end

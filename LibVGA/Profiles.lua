@@ -2,7 +2,7 @@
 -- SPDX-License-Identifier: BSD-3-Clause
 -- Scope: Each character's own layout and the account's named profiles: a character keeps its settings - places, sizes, grounds, every choice - for itself; a layout is saved under a name for the whole account and loaded by any character; a new character starts with the profile saved or loaded last, the first one after this change with the layout the account had before, and on a fresh installation with the delivered layout; the settings' tab »Profile« - a name and behind it »Speichern«, active only once the name holds at least three characters, each a letter of a European script, a digit, an apostrophe, a hyphen or a space inside it (K0576), then every saved profile with »Laden«, »Überschreiben« - the present layout saved over it - and »Löschen«, the last two asking once; the active profile - the one saved or loaded last - marked by an orange chevron before its name, pointing at it (K0729). The mark that a character's chat font was set to its 12 pixels stays with the character and is never saved in a profile, as the game keeps the chat's font per character, so a new character starting from a profile gets its 12 pixels too (K0730); the same holds for the mark that its chat window was given vga.ui's size once (K0731).
 
--- {K0387} {K0449} {K0576} {K0729} {K0730} {K0731}
+-- {K0794} {K0778} {K0777} {K0387} {K0449} {K0576} {K0729} {K0730} {K0731}
 
 local library = LibVGA
 local colours = library.colours
@@ -38,6 +38,7 @@ local function write_profile(name)
     LibVGAAccount.profiles[name] = read_layout(LibVGASettings)
     LibVGAAccount.last_profile = name
     library.render_settings_anew()
+    library.render_toast({ head = library.texts.settings, line = string.format(library.texts.profile_saved, name) })
 end
 
 local function update_profile(name)
@@ -51,6 +52,7 @@ local function update_profile(name)
     library.update_places()
     library.update_elements()
     library.render_settings_anew()
+    library.render_toast({ head = library.texts.settings, line = string.format(library.texts.profile_loaded, name) })
 end
 
 local function delete_profile(name)
@@ -59,29 +61,10 @@ local function delete_profile(name)
     library.render_settings_anew()
 end
 
-local function create_input(row)
-    local input = CreateFrame("EditBox", nil, row)
-    input:SetAutoFocus(false)
-    input:SetMaxLetters(32)
-    input.edge = library.create_surface(input, "BACKGROUND", 0)
-    input.ground = library.create_surface(input, "BACKGROUND", 1)
-    input:SetScript("OnEscapePressed", input.ClearFocus)
-    return input
-end
-
-local function update_input(input)
-    local radius = library.read_size(-6)
-    input:SetFontObject(library.read_font("body"))
-    input:SetTextInsets(library.read_size(-2), library.read_size(-2), 0, 0)
-    input:SetSize(library.read_slider_width(), library.read_size(2))
-    library.update_surface(input.edge, -1, radius + 1, colours.edge, colours.edge)
-    library.update_surface(input.ground, 0, radius, { 0.031, 0.035, 0.043 }, { 0.031, 0.035, 0.043 })
-end
-
 local function create_profile_row(page, name)
     local texts = library.texts
     local row = library.create_row(page, name)
-    if LibVGAAccount.last_profile == name then library.create_row_mark(row, "orange") end
+    if LibVGAAccount.last_profile == name then library.create_row_mark(row) end
     row.control = CreateFrame("Frame", nil, row)
     local load = library.create_button(row.control, texts.load, "plain", function() update_profile(name) end)
     local overwrite = library.create_button(row.control, texts.overwrite, "plain", function() write_profile(name) end)
@@ -150,16 +133,14 @@ end
 
 local function create_name_control(row)
     local control = CreateFrame("Frame", nil, row)
-    local input = create_input(control)
-    update_input(input)
+    local input = library.create_input(control, { most = 32, on_enter = write_input, on_change = update_save_enabled })
+    library.update_input(input, library.read_slider_width())
     input.save = library.create_button(control, library.texts.save, "gold", function() write_input(input) end)
     library.update_button(input.save)
     local gap = library.read_size(-2)
     input:SetPoint("LEFT", control, "LEFT")
     input.save:SetPoint("LEFT", input, "RIGHT", gap, 0)
     control:SetSize(input:GetWidth() + gap + input.save:GetWidth(), math.max(input:GetHeight(), input.save:GetHeight()))
-    input:SetScript("OnEnterPressed", write_input)
-    input:SetScript("OnTextChanged", update_save_enabled)
     update_save_enabled(input)
     control.input = input
     return control

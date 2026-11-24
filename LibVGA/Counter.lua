@@ -2,7 +2,7 @@
 -- SPDX-License-Identifier: BSD-3-Clause
 -- Scope: LibVGA's counter on rolls, each digit in its own measured window, and the ratio of two counters.
 
--- {K0302} {K0312}
+-- {K0789} {K0302} {K0312}
 
 local library = LibVGA
 
@@ -57,7 +57,7 @@ local function read_glyph_width(counter, character)
 end
 
 local function update_counter_slots(counter, text, previous)
-    local font = library.read_font(counter.kind)
+    local font = library.read_font("figures_" .. counter.kind)
     counter.probe:SetFontObject(font)
     counter.probe:SetText("0")
     local height = math.ceil(counter.probe:GetStringHeight()) + 2
@@ -79,7 +79,7 @@ local function update_counter_slots(counter, text, previous)
 end
 
 local function update_counter_layout(counter, text)
-    local font = library.read_font(counter.kind)
+    local font = library.read_font("figures_" .. counter.kind)
     for index = 1, #text do
         local slot = counter.slots[index] or create_slot(counter)
         counter.slots[index] = slot
@@ -114,7 +114,7 @@ end
 function library.update_counter(counter, value)
     if issecretvalue and issecretvalue(value) then
         for _, slot in ipairs(counter.slots) do slot:Hide() end
-        counter.plain:SetFontObject(library.read_font(counter.kind))
+        counter.plain:SetFontObject(library.read_font("figures_" .. counter.kind))
         if not pcall(counter.plain.SetFormattedText, counter.plain, "%s", value) then counter.plain:SetText("") end
         counter.plain:Show()
         counter.shown, counter.value = nil, nil
@@ -164,8 +164,8 @@ function library.update_ratio_kind(ratio, kind)
     for _, counter in ipairs({ ratio.left, ratio.right }) do
         counter.kind, counter.font, counter.shown = kind, nil, nil
     end
-    ratio.plain:SetFontObject(library.read_font(kind))
-    ratio.slash:SetFontObject(library.read_font(kind))
+    ratio.plain:SetFontObject(library.read_font("figures_" .. kind))
+    ratio.slash:SetFontObject(library.read_font("figures_" .. kind))
 end
 
 function library.update_ratio(ratio, value, most)
@@ -175,14 +175,14 @@ function library.update_ratio(ratio, value, most)
     ratio.right:SetShown(not secret)
     ratio.plain:SetShown(secret)
     if secret then
-        ratio.plain:SetFontObject(library.read_font(ratio.left.kind))
+        ratio.plain:SetFontObject(library.read_font("figures_" .. ratio.left.kind))
         if not pcall(ratio.plain.SetFormattedText, ratio.plain, "%s / %s", value, most) then ratio.plain:SetText("") end
         ratio:SetSize(library.read_size(6) * 2, library.read_size(1))
         return
     end
     library.update_counter(ratio.left, value)
     library.update_counter(ratio.right, most)
-    ratio.slash:SetFontObject(library.read_font(ratio.left.kind))
+    ratio.slash:SetFontObject(library.read_font("figures_" .. ratio.left.kind))
     ratio.left:ClearAllPoints()
     ratio.slash:ClearAllPoints()
     ratio.right:ClearAllPoints()

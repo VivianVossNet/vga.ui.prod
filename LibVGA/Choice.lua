@@ -2,7 +2,7 @@
 -- SPDX-License-Identifier: BSD-3-Clause
 -- Scope: LibVGA's segmented choice, the chosen part in gold; one size for every part, the weight alone changing, every part as wide as the widest in its bold state, or as a given width allows, so a choice moves nothing; a part may show an icon in place of its word, the word then its tooltip; the parts joined over a black ground, its outer corners rounded, as vga-scale.html and vga-probe.html's .vt-seg draw it. A choice of off and on is a switch instead, in the way of macOS: a rounded track, gold while on, a light knob at its end (K0565). Its parts can be named anew and their number changed (library.update_choice_labels), and a choice marked natural gives each part its own width where equal parts would not fit (K0634). Given a most width, a choice wider than that gives every part an equal share and its word ends in »…« (K0637). Every part's width, place and the seam between parts lie on whole screen pixels, so no part slides half over its neighbour and leaves a hairline (K0653).
 
--- {K0256} {K0330} {K0334} {K0337} {K0409} {K0565} {K0634} {K0637} {K0653}
+-- {K0794} {K0256} {K0330} {K0334} {K0337} {K0409} {K0565} {K0634} {K0637} {K0653}
 
 local library = LibVGA
 local SWITCH_RATIO = 1.65
@@ -39,6 +39,7 @@ local function render_part(button)
     choice.chosen = button.index
     library.update_choice(choice)
     choice.on_choose(button.index)
+    library.render_control_changed(choice)
 end
 
 local function create_part(choice, index, label)
@@ -159,6 +160,7 @@ local function render_switched(switch)
     if switch.on_index then switch.chosen = switch.on and switch.on_index or 3 - switch.on_index end
     update_switch_look(switch)
     switch.on_change(switch.on)
+    library.render_control_changed(switch)
 end
 
 function library.create_switch(parent, on, on_change)

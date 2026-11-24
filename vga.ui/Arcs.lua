@@ -1,12 +1,11 @@
 -- Copyright 2026 Vivian Voss. Code by Vivian Voss. Licensed under the BSD-3-Clause.
 -- SPDX-License-Identifier: BSD-3-Clause
--- Scope: Two transparent arcs either side of the character, wide enough to clear it and centred on its middle, as manual/view/vga-hud.html draws them (D): twelve segments each, lit one by one - or, as the settings say (arc_shape), half arcs, half as high, of six segments for the same values, the beads closer together -; behind each arc, as the settings say (»Rahmen«, off by default), a broad stroke of the frames' own ground and opacity, rounded at its ends, eight draft pixels clear of the segments and beads all round, so the arc reads on a light ground (K0563) - since K0699 the frame of every vga.ui window bent round the figure, after the UX adviser's draft manual/view/vga-arcs-band.html (variant 3): one band of equal width, 119 to 181 draft units about the centre, the segments centred in it, running ten degrees past the arc's ends, its ends cut towards the centre with the frames' corners of eight units, the frames' black edge and line and ground drawn in Media/ArcBandFull and ArcBandHalf at the frames' opacity, the gold corner three and a half units inside its foot; its opacity the arcs' own, set by the slider »Hintergrund« beneath »Rahmen«, else the frames' (K0701); an arc with nothing to show fades slowly out, each on its own, and back in when it has. Each side shows what the settings choose - the range, the threat, the target's cast or its health, the player's own health - filled in green as the target's, with or without a target -, the player's own resource, named as the game names the class's power - Mana, Wut, Energie, for a druid all three -, filling the arc in the power bar's colour, with or without a target, a rogue's or cat's combo points as five beads beside it, lit in VGA's orange when earned -, or nothing -, by default the range at the left and the threat at the right. The range to an attackable target filling from its foot as the target comes nearer - the distance known in steps by the game's own range checks - the player's harmful spells and a few items, each at the range the game gives its spell, and the interact distances of 10 and 28 yards -, shown as the smallest step the target stands within, »>« before the largest when beyond it -, its lit segments in one colour that tells the reach - red when the target stands near, through orange and yellow to a deep green at the edge of the best range of the player's class, by the steps' yards -; every segment grey where it stands beyond that range or beyond every step; the threat drawn from the target fills in red alone, only the number of lit segments telling how much (K0751), the health in green, each segment set by the game from the value even where it is secret; the target's cast fills as it runs, gold while it can be interrupted, grey while not, its spell's name at the head - for the moment to interrupt; while the game keeps the cast's times secret, in a fight, its share is the game's own (the cast's duration object, EvaluateElapsedPercent, or EvaluateRemainingPercent for a channel, scaled to a hundred), each segment lit by the game past its threshold, as the cast bar runs by the game's timer, the name written first so a refusal later never leaves it blank (K0709). Each arc's value stands at its head or its foot, or not at all, as the settings say. At each arc's foot a small gold corner, the only part of the arcs that takes the mouse, opens the settings on the arcs' tab, where every change shows live; there each arc is one row with a pop-up menu whose sections are »Ich« - the resource, the own health - and »Ziel« - range, threat, cast, health -, then none (K0564, K0565). Free to be placed while arranging. As the settings say (»Sichtbar«, »Im Kampf« by default), out of combat both arcs fade slowly out, over three seconds, and show at once, without a fade, the moment a fight begins; with »Immer« they stand as before; an arc's preview eye shows it out of combat too (K0675). Each arc's gold corner fades with its arc and takes no mouse while the arc is gone (K0677).
+-- Scope: Two transparent arcs either side of the character, wide enough to clear it and centred on its middle, as manual/view/vga-hud.html draws them (D): twelve segments each, lit one by one - or, as the settings say (arc_shape), half arcs, half as high, of six segments for the same values, the beads closer together -; behind each arc, as the settings say (»Rahmen«, off by default), a broad stroke of the frames' own ground and opacity, rounded at its ends, eight draft pixels clear of the segments and beads all round, so the arc reads on a light ground (K0563) - since K0699 the frame of every vga.ui window bent round the figure, after the UX adviser's draft manual/view/vga-arcs-band.html (variant 3): one band of equal width, 119 to 181 draft units about the centre, the segments centred in it, running ten degrees past the arc's ends, its ends cut towards the centre with the frames' corners of eight units, the frames' black edge and line and ground drawn in Media/ArcBandFull and ArcBandHalf at the frames' opacity, the gold corner three and a half units inside its foot; its opacity the arcs' own, set by the slider »Hintergrund« beneath »Rahmen«, else the frames' (K0701); an arc with nothing to show fades slowly out, each on its own, and back in when it has. Each side shows what the settings choose - the range, the threat, the target's cast or its health, the player's own health - filled in green as the target's, with or without a target -, the player's own resource, named as the game names the class's power - Mana, Wut, Energie, for a druid all three -, filling the arc in the power bar's colour, with or without a target, a rogue's or cat's combo points as five beads beside it, lit in VGA's orange when earned -, or nothing -, by default the range at the left and the threat at the right. The range to an attackable target filling from its foot as the target comes nearer - the distance known in steps by the game's own range checks - the player's harmful spells and a few items, each at the range the game gives its spell, and the interact distances of 10 and 28 yards -, shown as the smallest step the target stands within, »>« before the largest when beyond it -, its lit segments in one colour that tells the reach - red when the target stands near, through orange and yellow to a deep green at the edge of the best range of the player's class, by the steps' yards -; every segment grey where it stands beyond that range or beyond every step; the threat drawn from the target fills in red alone, only the number of lit segments telling how much (K0751), the health in green, each segment set by the game from the value even where it is secret; the target's cast fills as it runs, gold while it can be interrupted, grey while not, its spell's name at the head - for the moment to interrupt; while the game keeps the cast's times secret, in a fight, its share is the game's own (the cast's duration object, EvaluateElapsedPercent, or EvaluateRemainingPercent for a channel, scaled to a hundred), each segment lit by the game past its threshold, as the cast bar runs by the game's timer, the name written first so a refusal later never leaves it blank (K0709). Each arc's value stands at its head or its foot, or not at all, as the settings say. At each arc's foot a small gold corner, the only part of the arcs that takes the mouse, opens the settings on the arcs' tab, where every change shows live; there each arc is one row with a pop-up menu whose sections are »Ich« - the resource, the own health - and »Ziel« - range, threat, cast, health -, then none (K0564, K0565). Free to be placed while arranging. As the settings say (»Sichtbar«, »Im Kampf« by default), out of combat both arcs fade slowly out, over three seconds, and show at once, without a fade, the moment a fight begins; with »Immer« they stand as before; an arc's preview eye shows it out of combat too (K0675). Each arc's gold corner fades with its arc and takes no mouse while the arc is gone (K0677). Its settings rows with a popup or a slider are LibVGA's (library.create_popup_row, library.create_slider_row, K0872).
 
--- {K0751} {K0392} {K0393} {K0395} {K0400} {K0416} {K0417} {K0418} {K0501} {K0502} {K0563} {K0564} {K0574} {K0581} {K0582} {K0583} {K0699} {K0701} {K0709} {K0675} {K0677}
+-- {K0872} {K0789} {K0782} {K0751} {K0392} {K0393} {K0395} {K0400} {K0416} {K0417} {K0418} {K0501} {K0502} {K0563} {K0564} {K0574} {K0581} {K0582} {K0583} {K0699} {K0701} {K0709} {K0675} {K0677}
 
 local _, vga = ...
 local library = LibVGA
-local DRAFT_BASE = 13
 local SEGMENTS = 12
 local SPAN = 120
 local RADIUS = 150
@@ -40,9 +39,7 @@ local previews = {}
 local checks = {}
 local arcs
 
-local function read_draft(pixels)
-    return math.floor(pixels * library.read_base() / DRAFT_BASE + 0.5)
-end
+local read_draft = library.read_draft_size
 
 local function read_mix(from, to, share)
     return { from[1] + (to[1] - from[1]) * share, from[2] + (to[2] - from[2]) * share, from[3] + (to[3] - from[3]) * share }
@@ -56,8 +53,7 @@ local function read_range_colour(yards, best_yards, best)
 end
 
 local function create_segment(side)
-    local segment = CreateFrame("StatusBar", nil, side)
-    segment:SetStatusBarTexture(library.media .. "ArcSegment")
+    local segment = library.create_fill(side, { picture = library.media .. "ArcSegment" })
     segment:SetMinMaxValues(0, STEP)
     segment:SetValue(0)
     segment.track = segment:CreateTexture(nil, "BACKGROUND")
@@ -101,7 +97,7 @@ local function create_side(mirror)
     side.band = side:CreateTexture(nil, "BACKGROUND")
     side.band:Hide()
     for index = 1, SEGMENTS do side.segments[index] = create_segment(side) end
-    side.value = library.create_text(side, "small", library.colours.ink)
+    side.value = library.create_text(side, "figures_small", library.colours.ink)
     side.wanted = 0
     side:SetAlpha(0)
     side:SetScript("OnUpdate", update_fade)
@@ -156,7 +152,7 @@ local function update_side_layout(side)
     update_arc_corner(side, radius)
     local foot = LibVGASettings.arc_values == "bottom"
     local head = math.rad((foot and -1 or 1) * read_span() / 2)
-    side.value:SetFontObject(library.read_font("small"))
+    side.value:SetFontObject(library.read_font("figures_small"))
     side.value:ClearAllPoints()
     side.value:SetPoint(foot and "TOP" or "BOTTOM", arcs, "CENTER", side.mirror * radius * math.cos(head), radius * math.sin(head) + (foot and -1 or 1) * read_draft(10))
 end
@@ -360,7 +356,7 @@ end
 
 local function update_resource(side)
     local kind = UnitPowerType("player")
-    local colour = library.read_bar_colour(vga.read_power_kind(kind))
+    local colour = library.read_bar_colour(library.read_power_kind(kind))
     local share = UnitPowerPercent and CurveConstants and UnitPowerPercent("player", kind, false, CurveConstants.ScaleTo100)
     side.wanted = read_resource_wanted(vga.read_combo_points())
     update_by_game(side, share, function() return colour end)
@@ -459,8 +455,7 @@ local function create_side_row(page, side, key, fallback)
         { title = texts.arc_target, items = { { "range", texts.range_arc }, { "threat", texts.threat_arc }, { "cast", texts.cast_arc }, { "health", texts.health_arc } } },
         { items = { { "off", texts.off } } },
     }
-    local row = library.create_row(page, side)
-    row.control = library.create_popup(row, sections, LibVGASettings[key] or fallback, function(value)
+    local row = library.create_popup_row(page, side, sections, LibVGASettings[key] or fallback, function(value)
         library.update_choice_setting(key, value)
     end)
     row.eye = library.create_eye(row, function(on)
@@ -477,8 +472,7 @@ local function write_band_ground(value)
 end
 
 local function create_band_ground_row(page)
-    local row = library.create_row(page, library.texts.background)
-    row.control = library.create_slider(row, library.ground_stops, library.read_ground("arcs"), write_band_ground)
+    local row = library.create_slider_row(page, library.texts.background, library.ground_stops, library.read_ground("arcs"), write_band_ground)
     row.control.on_settle = library.update_elements
     return row
 end

@@ -2,7 +2,7 @@
 -- SPDX-License-Identifier: BSD-3-Clause
 -- Scope: The nameplate of a friendly player or NPC, as manual/view/vga-plate-friends.html draws form C: no level, no bar - the guild or the NPC's title and the name divided by the line - the name beneath by default, above as the settings say -, as the settings say, by one thin line five pixels longer on either side than the longer of the two - filled in the name's colour as far as the unit's health reaches, grey where it is missing, so a wounded friend shows in passing; without a title the line is there only while health is missing, gone at full health - the game itself decides, by a curve over the secret health, since vga.ui may not read it -, or framed in a faint ground with a thin rounded line, both in the game's own name colour (UnitSelectionColor, as Blizzard's plates colour names); a cast in a fight runs in gold over the line, as thin as it, and goes as soon as the unit no longer casts, asked four times a second while it shows, so no ended cast stays as a full gold line (K0590). The game's friendly plates - players, NPCs, their pets and minions - and its always-show setting are switched on while vga.ui runs, so every friendly unit wears it, the untargeted smaller by the game's own plate scale, and the player's own setting restored at logout.
 
--- {K0347} {K0349} {K0350} {K0351} {K0352} {K0381} {K0590}
+-- {K0783} {K0782} {K0347} {K0349} {K0350} {K0351} {K0352} {K0381} {K0590}
 
 local CAST_CHECK = 0.25
 local _, vga = ...
@@ -41,17 +41,15 @@ function vga.create_friend(plate)
     friend:SetAllPoints()
     friend.name = library.create_text(friend, "bold")
     friend.name:SetWordWrap(false)
-    friend.line = friend:CreateTexture(nil, "ARTWORK")
-    friend.line:SetColorTexture(1, 1, 1, 1)
-    if friend.line.SetRoundLayoutToNearestPixel then friend.line:SetRoundLayoutToNearestPixel(true) end
-    friend.health = CreateFrame("StatusBar", nil, friend)
-    friend.health:SetStatusBarTexture("Interface\\Buttons\\WHITE8X8")
-    friend.health:SetAllPoints(friend.line)
+    friend.track = friend:CreateTexture(nil, "ARTWORK")
+    friend.track:SetColorTexture(1, 1, 1, 1)
+    if friend.track.SetRoundLayoutToNearestPixel then friend.track:SetRoundLayoutToNearestPixel(true) end
+    friend.health = library.create_fill(friend)
+    friend.health:SetAllPoints(friend.track)
     friend.health:SetFrameLevel(friend:GetFrameLevel() + 1)
-    friend.cast = CreateFrame("StatusBar", nil, friend)
-    friend.cast:SetStatusBarTexture("Interface\\Buttons\\WHITE8X8")
-    friend.cast:SetStatusBarColor(library.colours.gold[1], library.colours.gold[2], library.colours.gold[3], 1)
-    friend.cast:SetAllPoints(friend.line)
+    friend.cast = library.create_fill(friend)
+    library.update_fill_colour(friend.cast, library.colours.gold)
+    friend.cast:SetAllPoints(friend.track)
     friend.cast:SetFrameLevel(friend:GetFrameLevel() + 2)
     friend.cast:HookScript("OnUpdate", vga.update_cast_watch)
     friend.cast:Hide()
@@ -95,13 +93,13 @@ function vga.update_friend(friend, unit)
     friend.label:SetSize(width + 2 * pad, library.read_size(1) + gap)
     update_frame_style(friend, colour, framed)
     local widest = math.max(friend.name:GetStringWidth(), title ~= "" and width or 0)
-    friend.line:ClearAllPoints()
-    friend.line:SetPoint("CENTER", friend, "CENTER")
-    friend.line:SetSize(math.ceil(widest) + 2 * LINE_REACH, 1)
-    friend.line:SetVertexColor(MISSING[1], MISSING[2], MISSING[3], MISSING_ALPHA)
-    friend.line:SetShown(not framed)
+    friend.track:ClearAllPoints()
+    friend.track:SetPoint("CENTER", friend, "CENTER")
+    friend.track:SetSize(math.ceil(widest) + 2 * LINE_REACH, 1)
+    friend.track:SetVertexColor(MISSING[1], MISSING[2], MISSING[3], MISSING_ALPHA)
+    friend.track:SetShown(not framed)
     friend.lone = title == ""
-    friend.health:SetStatusBarColor(colour[1], colour[2], colour[3], 1)
+    library.update_fill_colour(friend.health, colour)
     friend.health:SetShown(not framed)
     vga.update_friend_health(friend, unit)
 end
@@ -126,7 +124,7 @@ function vga.update_friend_health(friend, unit)
     friend.health:SetValue(UnitHealth(unit))
     local curve = friend.lone and read_whole_curve()
     local alpha = curve and UnitHealthPercent(unit, true, curve) or 1
-    friend.line:SetAlpha(alpha)
+    friend.track:SetAlpha(alpha)
     friend.health:SetAlpha(alpha)
 end
 

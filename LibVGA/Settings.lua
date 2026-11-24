@@ -1,11 +1,12 @@
 -- Copyright 2026 Vivian Voss. Code by Vivian Voss. Licensed under the BSD-3-Clause.
 -- SPDX-License-Identifier: BSD-3-Clause
--- Scope: vga.ui's one settings dialog as the accepted draft orders it (manual/view/vga-settings.html), standing high on the screen, its top fixed, as tall as its tallest tab, whichever is shown, so no content ever changes the dialog's size (K0637), as wide as its sidebar and its widest page: at the left a sidebar in the way of the macOS System Settings (Sidebar.lua, K0565) - Darstellung: Allgemein; Im Kampf: Einheiten, Plaketten, Bögen, Schadensmesser (K0721); Leisten: Aktionsleisten, Erfahrung; Welt: Quests, Minimap, Taschen; set apart Anordnen and Profile -, at the right the chosen page under its title, at most seven rows a page; Allgemein ending in the red »Alles zurücksetzen …«, which asks once; the last tab, Anordnen, reached from everywhere, with the alignment - free or on a grid of eight or of sixteen pixels - and the gold »Anordnen …«, which closes the dialog and shows the handles; every choice working at once - a new face measured again a moment later, when the game has loaded its file, so that every width follows it; the one menu there is - a widget's gold corner opens it on the widget's tab, the widget's own settings in the group »Widgets« at the tab's foot; and the command /vga. The units' page switches the game's own »Ziel des Ziels« (showTargetOfTarget, K0696), out of combat. The page Komfort, with the star, gathers the game's own conveniences, out of combat: »Schnell plündern« (autoLootDefault, K0705) and »Zauber auf Fenster unter der Maus« (enableMouseoverCast, K0697), moved there from the bags' and the units' pages (K0712).
+-- Scope: vga.ui's one settings dialog as the accepted draft orders it (manual/view/vga-settings.html), LibVGA's window with pages (library.create_paged_window, K0790), standing high on the screen, its top fixed, as tall as its tallest tab, whichever is shown, so no content ever changes the dialog's size (K0637), as wide as its sidebar and its widest page: at the left a sidebar in the way of the macOS System Settings (Sidebar.lua, K0565) - Darstellung: Allgemein; Im Kampf: Einheiten, Plaketten, Bögen, Schadensmesser (K0721); Leisten: Aktionsleisten, Erfahrung; Welt: Quests, Minimap, Taschen; set apart Anordnen and Profile -, at the right the chosen page under its title, at most seven rows a page; Allgemein ending in the red »Alles zurücksetzen …«, which asks once; the last tab, Anordnen, reached from everywhere, with the alignment - free or on a grid of eight or of sixteen pixels - and the gold »Anordnen …«, which closes the dialog and shows the handles; every choice working at once - a new face measured again a moment later, when the game has loaded its file, so that every width follows it; the one menu there is - a widget's gold corner opens it on the widget's tab, the widget's own settings in the group »Widgets« at the tab's foot; and the command /vga. The units' page switches the game's own »Ziel des Ziels« (showTargetOfTarget, K0696), out of combat. The page Komfort, with the star, gathers the game's own conveniences, out of combat: »Schnell plündern« (autoLootDefault, K0705) and »Zauber auf Fenster unter der Maus« (enableMouseoverCast, K0697), moved there from the bags' and the units' pages (K0712). The page Komfort carries the reading time after an answer in the talk with a figure - a slider from »sofort« to three seconds in half seconds, two by default (library.talk_delay_stops, library.talk_delay_default, K0841). It carries too the immersion in the talk, off by default: the figure sends its bubbles one by one at twenty-five letters a second with typing dots (K0844). Beside the choice row it makes LibVGA's settings rows with the other controls, each an object with one task, fed by parameters and returning the row with its control as row.control: a row with a slider (library.create_slider_row), a row with a popup (library.create_popup_row) and a row with pictures (library.create_pictures_row); its own pages and every tab of vga.ui use them instead of putting a row and a control together by hand (K0872).
 
--- {K0268} {K0311} {K0316} {K0324} {K0330} {K0337} {K0383} {K0384} {K0430} {K0565} {K0637} {K0696} {K0697} {K0705} {K0712} {K0721}
+-- {K0872} {K0844} {K0841} {K0811} {K0796} {K0790} {K0268} {K0311} {K0316} {K0324} {K0330} {K0337} {K0383} {K0384} {K0430} {K0565} {K0637} {K0696} {K0697} {K0705} {K0712} {K0721}
 
 local library = LibVGA
 
+local TIP_MOST = 5
 local settings
 local ORDER = { "mainbar", "experience", "arcs", "meter", "quests", "bags", "map" }
 local GROUPS = {
@@ -18,21 +19,6 @@ local GROUPS = {
 }
 local FROM_TOP = 0.12
 local FONT_LOADED = 0.3
-
-local function update_height()
-    local tallest = 0
-    for _, page in pairs(settings.pages) do tallest = math.max(tallest, page.wanted or 0) end
-    if tallest > 0 then settings:SetHeight(settings.frame_height + tallest) end
-end
-
-local function update_tab(name)
-    settings.chosen = name
-    settings.heading:SetText(settings.titles[name] or "")
-    for key, page in pairs(settings.pages) do
-        page:SetShown(key == name)
-    end
-    update_height()
-end
 
 local function update_top(dialog)
     dialog:StopMovingOrSizing()
@@ -61,6 +47,27 @@ function library.create_choice_row(page, label, labels, chosen, on_choose)
     return row
 end
 
+-- {K0872} {K0860}
+function library.create_slider_row(page, label, stops, value, on_change, kind)
+    local row = library.create_row(page, label, kind)
+    row.control = library.create_slider(row, stops, value, on_change)
+    return row
+end
+
+-- {K0872} {K0860}
+function library.create_popup_row(page, label, sections, value, on_choose)
+    local row = library.create_row(page, label)
+    row.control = library.create_popup(row, sections, value, on_choose)
+    return row
+end
+
+-- {K0872} {K0860}
+function library.create_pictures_row(page, label, items, chosen, on_choose, look, kind)
+    local row = library.create_row(page, label, kind)
+    row.control = library.create_pictures(row, items, chosen, on_choose, look)
+    return row
+end
+
 local function update_arranging()
     settings:Hide()
     library.update_edit(true, true)
@@ -78,25 +85,22 @@ local function create_general_page(page)
         LibVGASettings.size = sizes[index]
         library.update_elements()
     end)
-    local faces_row = library.create_row(page, "", "wide")
     local samples, chosen = {}, 1
     for index, key in ipairs(library.face_order) do
         local name, plain = library.read_face(key)
         samples[index] = { label = name, sample = "Ag", face = plain }
         if key == (LibVGASettings.face or "geologica") then chosen = index end
     end
-    faces_row.control = library.create_pictures(faces_row, samples, chosen, function(index)
+    local faces_row = library.create_pictures_row(page, "", samples, chosen, function(index)
         library.update_choice_setting("face", library.face_order[index])
         C_Timer.After(FONT_LOADED, library.update_elements)
-    end, "tile")
-    local frames = library.create_row(page, texts.background)
-    frames.control = library.create_slider(frames, library.ground_stops, library.read_ground(), function(value)
+    end, "tile", "wide")
+    local frames = library.create_slider_row(page, texts.background, library.ground_stops, library.read_ground(), function(value)
         LibVGASettings.ground = value
         library.update_grounds()
     end)
     frames.control.on_settle = library.update_elements
-    local dialogs = library.create_row(page, texts.dialogs)
-    dialogs.control = library.create_slider(dialogs, library.dialog_stops, library.read_dialog_ground(), function(value)
+    local dialogs = library.create_slider_row(page, texts.dialogs, library.dialog_stops, library.read_dialog_ground(), function(value)
         LibVGASettings.dialog = value
         library.update_elements()
     end)
@@ -174,13 +178,36 @@ local function write_auto_loot(index)
 end
 
 local function read_seconds_labels()
-    local labels = {}
-    for seconds = 1, 3 do labels[seconds] = string.format(library.texts.seconds_short, seconds) end
+    local labels = { library.texts.off }
+    for seconds = 1, TIP_MOST do labels[seconds + 1] = string.format(library.texts.seconds_short, seconds) end
     return labels
 end
 
 local function write_tip_fix_after(index)
-    LibVGASettings.tip_fix_after = index
+    LibVGASettings.tip_fix_after = index - 1
+end
+
+local function write_talk_delay(value)
+    LibVGASettings.talk_delay = value
+end
+
+local function read_talk_delay_words(value)
+    if value <= 0 then return library.texts.at_once end
+    return (string.format("%g", value):gsub("%.", library.texts.decimal_mark)) .. " s"
+end
+
+local function create_talk_delay_row(page)
+    local row = library.create_slider_row(page, library.texts.talk_delay, library.talk_delay_stops, LibVGASettings.talk_delay or library.talk_delay_default, write_talk_delay)
+    row.control.render = read_talk_delay_words
+    return row
+end
+
+local function write_talk_immersion(index)
+    LibVGASettings.talk_immersion = index == 1 or nil
+end
+
+local function write_game_map(index)
+    LibVGASettings.game_map = index == 1 or nil
 end
 
 local function create_comfort_page(page)
@@ -188,7 +215,10 @@ local function create_comfort_page(page)
     page.rows = {
         library.create_choice_row(page, texts.auto_loot, { texts.on, texts.off }, GetCVarBool("autoLootDefault") and 1 or 2, write_auto_loot),
         library.create_choice_row(page, texts.mouseover_cast, { texts.on, texts.off }, GetCVarBool("enableMouseoverCast") and 1 or 2, write_mouseover_cast),
-        library.create_choice_row(page, texts.tip_fix_after, read_seconds_labels(), LibVGASettings.tip_fix_after or 3, write_tip_fix_after),
+        library.create_choice_row(page, texts.tip_fix_after, read_seconds_labels(), (LibVGASettings.tip_fix_after or TIP_MOST) + 1, write_tip_fix_after),
+        create_talk_delay_row(page),
+        library.create_choice_row(page, texts.talk_immersion, { texts.on, texts.off }, LibVGASettings.talk_immersion and 1 or 2, write_talk_immersion),
+        library.create_choice_row(page, texts.game_map, { texts.on, texts.off }, LibVGASettings.game_map and 1 or 2, write_game_map),
     }
 end
 
@@ -236,24 +266,14 @@ local function read_groups(pages)
 end
 
 local function create_settings()
-    settings = library.create_dialog("LibVGASettingsDialog", "vga.ui · " .. library.texts.settings)
+    local pages = read_pages()
+    settings = library.create_paged_window("LibVGASettingsDialog", { title = "vga.ui · " .. library.texts.settings, groups = read_groups(pages), pages = pages })
     settings:HookScript("OnHide", library.update_eyes_closed)
     settings:SetClipsChildren(true)
     library.update_dialog_pin_state(settings, { dropped = update_top })
-    settings.pages, settings.order, settings.titles = {}, {}, {}
-    local pages = read_pages()
-    for index, entry in ipairs(pages) do
-        local page = CreateFrame("Frame", nil, settings.body)
-        entry.build(page)
-        settings.pages[entry.key] = page
-        settings.order[index] = entry.key
-        settings.titles[entry.key] = entry.title
-    end
     settings.titles.mainbar = library.texts.action_bars
-    settings.heading = library.create_text(settings.body, "title", library.colours.ink)
-    settings.sidebar = library.create_sidebar(settings.body, read_groups(pages), update_tab)
     library.create_element("settings", { update = library.update_settings })
-    update_tab("general")
+    library.update_paged_window_page(settings, "general")
 end
 
 local function read_foot_height(page)
@@ -277,35 +297,21 @@ function library.update_settings()
     if not settings then return end
     library.update_dialog(settings)
     local side, gap = library.read_sidebar_width(settings.sidebar), library.read_size(0)
-    local side_height = library.update_sidebar(settings.sidebar, settings.chosen)
-    settings.heading:SetFontObject(library.read_font("title"))
-    local band = math.ceil(settings.heading:GetStringHeight()) + 2 * library.read_size(-2)
     local widest, columns = 0, {}
     for _, key in ipairs(settings.order) do
         local page = settings.pages[key]
         columns[key] = library.update_row_controls(page.rows or {})
-        page.wanted = math.max(library.read_rows_height(page.rows or {}) + read_foot_height(page) + band, side_height)
+        page.wanted = library.read_rows_height(page.rows or {}) + read_foot_height(page)
         widest = math.max(widest, library.read_rows_width(page.rows or {}, columns[key]))
     end
-    local head, inner = library.read_size(4), library.read_size(-4)
+    local inner = library.read_size(-4)
     local width = math.max(side + gap + widest, settings.title:GetStringWidth() + library.read_size(6)) + 2 * inner
-    settings.frame_height = head + 1 + 2 * inner
-    settings:SetWidth(width)
-    settings.sidebar:ClearAllPoints()
-    settings.sidebar:SetPoint("TOPLEFT", settings.body, "TOPLEFT")
-    settings.sidebar:SetPoint("BOTTOMLEFT", settings.body, "BOTTOMLEFT")
-    settings.sidebar:SetWidth(side)
-    settings.heading:ClearAllPoints()
-    settings.heading:SetPoint("TOPLEFT", settings.body, "TOPLEFT", side + gap, -library.read_size(-2))
+    library.update_paged_window(settings, width)
     for _, key in ipairs(settings.order) do
         local page = settings.pages[key]
-        page:ClearAllPoints()
-        page:SetPoint("TOPLEFT", settings.body, "TOPLEFT", side + gap, -band)
-        page:SetPoint("BOTTOMRIGHT", settings.body, "BOTTOMRIGHT")
         library.update_rows(page.rows or {}, page, 0, columns[key], width - 2 * inner - side - gap)
         update_foot(page)
     end
-    update_height()
 end
 
 function library.render_settings_anew()
@@ -323,10 +329,7 @@ function library.render_settings(key)
     end
     settings:Show()
     for _, name in ipairs(settings.order) do
-        if name == (key or settings.chosen) then
-            library.update_sidebar(settings.sidebar, name)
-            update_tab(name)
-        end
+        if name == (key or settings.chosen) then library.update_paged_window_page(settings, name) end
     end
 end
 

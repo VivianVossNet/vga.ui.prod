@@ -2,54 +2,33 @@
 -- SPDX-License-Identifier: BSD-3-Clause
 -- Scope: vga.ui's own pet bar: ten protected keys of our own on the pet's actions, dressed as the main bar's keys - rounded, a black line, the icon cropped, edged as the bags' slots - three pixels with gently rounded corners over the icon, the slot's grey, gold while an action is on or casts by itself -, bound to the player's own pet keys, a click taken on press and on release, as the game's setting to act on key down asks; shown while there is a pet with a bar; standing centred four pixels above the main bar's widget, at the bars' scale, free to be placed in the edit mode. Blizzard's pet bar is put away; nothing protected is moved in a fight. Each key shows the game's tooltip of its action (K0726).
 
--- {K0377} {K0726}
+-- {K0781} {K0377} {K0726}
 
 local _, vga = ...
 local library = LibVGA
-local colours = library.colours
-local DRAFT_BASE = 13
 local KEYS = 10
 local ABOVE = 4
-local BLACK = { 0, 0, 0 }
-local EDGE_WIDTH = 3
-local SLOT_EDGE = { 0.18, 0.192, 0.22 }
 local petbar
 
-local function read_draft(pixels)
-    return math.floor(pixels * library.read_base() / DRAFT_BASE + 0.5)
-end
+local read_draft = library.read_draft_size
 
 local function create_key(index)
-    local key = CreateFrame("CheckButton", "VGAPetKey" .. index, petbar, "SecureActionButtonTemplate")
+    local key = library.create_cell(petbar, { kind = "key", name = "VGAPetKey" .. index, template = "SecureActionButtonTemplate" })
     key:SetAttribute("type", "pet")
     key:SetAttribute("action", index)
     key:RegisterForClicks("AnyUp", "AnyDown")
     key:RegisterForDrag("LeftButton")
     key:SetScript("OnDragStart", function() if not InCombatLockdown() then PickupPetAction(index) end end)
     key:SetScript("OnReceiveDrag", function() if not InCombatLockdown() then PickupPetAction(index) end end)
-    key.icon = key:CreateTexture(nil, "ARTWORK")
-    library.update_cell_picture(key.icon, key, EDGE_WIDTH)
-    key.icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
-    key.cooldown = CreateFrame("Cooldown", nil, key, "CooldownFrameTemplate")
-    library.update_cell_picture(key.cooldown, key, EDGE_WIDTH)
-    key.line = library.create_surface(key, "BACKGROUND", 0)
-    key.edge = library.create_ring(key, "OVERLAY", 6, nil, true)
-    key.hotkey = library.create_text(key, "caption")
-    key:SetHighlightTexture("Interface\\Buttons\\WHITE8X8")
-    key:GetHighlightTexture():SetVertexColor(1, 1, 1, 0.15)
     vga.create_key_tip(key, "SetPetAction", index)
     return key
 end
 
 local function update_key(key, index)
     local name, texture, token, active, _, automatic = GetPetActionInfo(index)
-    key.icon:SetTexture(token and _G[texture] or texture)
-    key.icon:SetShown(name ~= nil)
-    library.update_ring(key.edge, EDGE_WIDTH, (active or automatic) and colours.gold or SLOT_EDGE, 1)
     local start, duration, enabled = GetPetActionCooldown(index)
-    if start and duration and enabled then key.cooldown:SetCooldown(start, duration) end
     local binding = GetBindingKey("BONUSACTIONBUTTON" .. index)
-    key.hotkey:SetText(binding and GetBindingText(binding, 1) or "")
+    library.update_cell(key, { picture = name and (token and _G[texture] or texture) or nil, active = active or automatic, start = enabled and start or nil, duration = duration, hotkey = binding and GetBindingText(binding, 1) or "" })
 end
 
 local function update_keys()
@@ -57,16 +36,12 @@ local function update_keys()
 end
 
 local function update_layout()
-    local size, gap, radius = read_draft(30), read_draft(3), 2 * EDGE_WIDTH
+    local size, gap = read_draft(30), read_draft(3)
     petbar:SetSize(KEYS * size + (KEYS - 1) * gap, size)
     for index, key in ipairs(petbar.keys) do
-        key:SetSize(size, size)
+        library.update_cell_size(key, size)
         key:ClearAllPoints()
         key:SetPoint("LEFT", petbar, "LEFT", (index - 1) * (size + gap), 0)
-        library.update_surface(key.line, -1, radius + 1, BLACK, BLACK)
-        key.hotkey:SetFontObject(library.read_font("caption"))
-        key.hotkey:ClearAllPoints()
-        key.hotkey:SetPoint("TOPRIGHT", key, "TOPRIGHT", -read_draft(3), -read_draft(2))
     end
 end
 

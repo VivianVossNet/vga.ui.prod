@@ -1,8 +1,8 @@
 -- Copyright 2026 Vivian Voss. Code by Vivian Voss. Licensed under the BSD-3-Clause.
 -- SPDX-License-Identifier: BSD-3-Clause
--- Scope: LibVGA's sidebar as manual/view/vga-settings-apple.html draws it (K0565), in the way of the macOS System Settings: a column at the dialog's left on a faintly lighter ground, its entries in groups, each group under a small quiet heading in capitals, a last group set apart by a thin line without a heading; an entry a small picture and its word, the column as wide as its widest word needs with the same room after the word as before the picture (K0566), the chosen one on a gold rounded ground with dark ink, the others quiet, lighter under the mouse; a count at an entry's right, quiet, red as an alert, dark on the chosen; entries that can be hidden, a group without one shown losing its heading (K0632); the column as wide as its fixed entries and a count's room need, never as wide as a free entry's word - a saved search's name -, a word too long ending in »…«, so no content changes a dialog's size (K0637). The chosen entry keeps its word's size, only bolder (K0627).
+-- Scope: LibVGA's sidebar as manual/view/vga-settings-apple.html draws it (K0565), in the way of the macOS System Settings: a column at the dialog's left on a faintly lighter ground, its entries in groups, each group under a small quiet heading in capitals, a last group set apart by a thin line without a heading; an entry a small picture and its word, the column as wide as its widest word needs with the same room after the word as before the picture (K0566), the chosen one on a gold rounded ground with dark ink, the others quiet, lighter under the mouse; a count at an entry's right, quiet, red as an alert, dark on the chosen; entries that can be hidden, a group without one shown losing its heading (K0632); the column as wide as its fixed entries and a count's room need, never as wide as a free entry's word - a saved search's name -, a word too long ending in »…«, so no content changes a dialog's size (K0637). The chosen entry keeps its word's size, only bolder (K0627). Its look - the gold rounded ground, the dark bold word - is LibVGA's one look for whatever is chosen or active, library.update_chosen, which a dialog row's mark wears too (K0778).
 
--- {K0565} {K0566} {K0627} {K0632} {K0637}
+-- {K0778} {K0565} {K0566} {K0627} {K0632} {K0637}
 
 local library = LibVGA
 local colours = library.colours
@@ -13,17 +13,22 @@ local HOVER = 0.06
 local ALERT = { 0.886, 0.404, 0.353 }
 local COUNT_ROOM = "999"
 
+function library.update_chosen(ground, text, on, hovered)
+    local ink = on and DARK or (hovered and colours.ink or colours.label)
+    text:SetTextColor(ink[1], ink[2], ink[3], 1)
+    text:SetFontObject(library.read_font(on and "bold" or "body"))
+    local fill = on and colours.gold or { 1, 1, 1 }
+    library.update_surface(ground, 0, library.read_size(-4), fill, fill, on and 1 or (hovered and HOVER or 0))
+    return ink
+end
+
 local function update_entry_look(entry)
     local on = entry.sidebar.chosen == entry.key
-    local ink = on and DARK or (entry.hovered and colours.ink or colours.label)
+    local ink = library.update_chosen(entry.ground, entry.text, on, entry.hovered)
     entry.icon:SetVertexColor(ink[1], ink[2], ink[3], on and 0.7 or 1)
-    entry.text:SetTextColor(ink[1], ink[2], ink[3], 1)
-    entry.text:SetFontObject(library.read_font(on and "bold" or "body"))
     local count = on and DARK or (entry.alert and ALERT or colours.quiet)
     entry.count:SetFontObject(library.read_font("small"))
     entry.count:SetTextColor(count[1], count[2], count[3], 1)
-    local fill = on and colours.gold or { 1, 1, 1 }
-    library.update_surface(entry.ground, 0, library.read_size(-4), fill, fill, on and 1 or (entry.hovered and HOVER or 0))
 end
 
 local function update_entered(entry)
@@ -72,7 +77,7 @@ function library.create_sidebar(parent, groups, on_choose)
         local made = { items = {} }
         if group.title then
             made.heading = library.create_text(sidebar, "caption", colours.quiet)
-            made.heading:SetText(group.title:upper())
+            made.heading:SetText(library.read_capitals(group.title))
         else
             made.line = sidebar:CreateTexture(nil, "BORDER")
             made.line:SetColorTexture(LINE[1], LINE[2], LINE[3], 1)

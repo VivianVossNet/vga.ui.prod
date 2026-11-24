@@ -2,7 +2,7 @@
 -- SPDX-License-Identifier: BSD-3-Clause
 -- Scope: vga.ui's nameplates as the accepted draft draws them: the bar on top in a black rim, grey when another holds the loot, the level either in a tab centred on it that ends flat on the bar, its number in the enemy's difficulty colour and the kind's chevron beside it, or as a bare number at the bar's left above it in a thick black edge, the kind's chevron after it, as the settings say; the name beneath, a thin cast bar under the name, gone as soon as the unit no longer casts (K0590), the quest bag right behind the bar, Blizzard's own debuff list moved above our bar, so the player's debuffs show in a fight too; an edge behind the bar and the tab together - on the current target in the game's own difficulty colour, as Blizzard colours the level, grey easy to red hard, gold where there is none, black on every other plate; Blizzard's own plate hidden, and kept hidden when it sets its alpha again; another addon's icon on the plate hidden, so only our bag shows; a friendly player or NPC wears the friends' plate of Friends.lua instead, and so does an enemy while the simple plates of Platesimple.lua are switched on (K0743).
 
--- {K0269} {K0270} {K0271} {K0272} {K0273} {K0274} {K0301} {K0321} {K0323} {K0326} {K0328} {K0329} {K0330} {K0334} {K0341} {K0347} {K0348} {K0360} {K0351} {K0364} {K0365} {K0367} {K0368} {K0369} {K0590} {K0743}
+-- {K0789} {K0269} {K0270} {K0271} {K0272} {K0273} {K0274} {K0301} {K0321} {K0323} {K0326} {K0328} {K0329} {K0330} {K0334} {K0341} {K0347} {K0348} {K0360} {K0351} {K0364} {K0365} {K0367} {K0368} {K0369} {K0590} {K0743}
 
 local _, vga = ...
 local library = LibVGA
@@ -48,7 +48,7 @@ local function create_plate(owner)
     plate.mark = CreateFrame("Frame", nil, plate)
     plate.mark:SetAllPoints()
     plate.mark:SetFrameLevel(plate:GetFrameLevel() + 4)
-    plate.level = library.create_text(plate.mark, "bold")
+    plate.level = library.create_text(plate.mark, "figures_bold")
     plate.shade = plate.mark:CreateTexture(nil, "ARTWORK", nil, 2)
     plate.shade:SetTexture(library.media .. "Chevron")
     plate.shade:SetVertexColor(0, 0, 0, 1)
@@ -73,7 +73,7 @@ local function update_plate_shield(plate, base, tab)
     plate.chevron:SetShown(kind ~= nil)
     plate.chevron:SetSize(math.floor(base * 1.05 + 0.5), math.floor(base * 0.75 + 0.5))
     if kind then plate.chevron:SetVertexColor(kind[1], kind[2], kind[3], 1) end
-    plate.level:SetFontObject(library.read_font("bold"))
+    plate.level:SetFontObject(library.read_font("figures_bold"))
     plate.level:SetTextColor(unpack(plate.difficulty or { 1, 1, 1 }))
     local chevron = kind and plate.chevron:GetWidth() + gap or 0
     local inner = plate.level:GetStringWidth() + chevron + 2 * math.floor(base * 0.55 + 0.5)
@@ -145,8 +145,8 @@ local function update_plate_identity(plate, unit)
     plate.name:SetText(library.read_unit_name(unit))
     local level = UnitLevel(unit)
     plate.level:SetText((level and level > 0) and level or "??")
-    plate.difficulty = vga.read_level_colour(unit, nil)
-    plate.step = vga.read_level_colour(unit, nil)
+    plate.difficulty = library.read_level_colour(unit, nil)
+    plate.step = library.read_level_colour(unit, nil)
     local kind = KINDS[UnitClassification(unit)]
     plate.kind_colour = kind
     local related = C_QuestLog and C_QuestLog.UnitIsRelatedToActiveQuest and C_QuestLog.UnitIsRelatedToActiveQuest(unit)

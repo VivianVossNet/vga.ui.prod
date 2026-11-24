@@ -2,7 +2,7 @@
 -- SPDX-License-Identifier: BSD-3-Clause
 -- Scope: LibVGA's slider as the accepted draft draws it (manual/view/vga-probe.html, .sl): a flat dark track with rounded ends and a fine edge, a rounded gold fill, a round gold thumb ringed in black that rests on its stops - the opacities in steps of ten per cent -, a value between them shown at the nearest, the value grey beside it. A slider may carry its own way of writing its value (render), as the quest tracker's width in pixels. Its value reaches its owner at most once a frame however fast it is dragged, and once more, through on_settle, when the mouse lets it go (K0554).
 
--- {K0319} {K0322} {K0330} {K0337}
+-- {K0794} {K0319} {K0322} {K0330} {K0337}
 
 local library = LibVGA
 local colours = library.colours
@@ -12,6 +12,7 @@ local TRACK = { 0.031, 0.035, 0.043 }
 local function update_flushed(slider)
     slider.waiting = nil
     library.update_safely("slider", slider.on_change, slider.pending)
+    library.render_control_changed(slider)
 end
 
 local function update_changed(slider, index)

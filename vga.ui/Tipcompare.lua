@@ -1,8 +1,8 @@
 -- Copyright 2026 Vivian Voss. Code by Vivian Voss. Licensed under the BSD-3-Clause.
 -- SPDX-License-Identifier: BSD-3-Clause
--- Scope: the item tooltip's comparison with what is worn in the item's place, as the accepted draft draws form B (manual/view/vga-tooltip.html, K0605 to K0607): one verdict on top, in a head of its own kept by the tooltip's top padding - Besser in green, Schlechter in red, Gemischt in gold, each after the chips' own flat picture of its sign tinted alike, never a glyph, which none of LibVGA's faces carries (K0763), »als Angelegtes« quiet at its right -, judged by the main stat of the player's class and specialisation and stamina: more of the main stat without less stamina better, less of it worse, more with less stamina mixed, and where the main stat stays the same, stamina alone; then beside each value of the game's lines that changed, LibVGA's chip - the arrow left, the number right, green up, red down -, every chip as wide as the others, the line's right text holding their room unseen; a set that would break a line of its own in red, »Bricht Set: name 3 → 2« after the chips' down arrow as an inline picture. What is worn comes from the bags' upgrade (Bagupgrade.lua): the weaker of two places, both hands for a two-hander; an empty place compares with nothing. Only for weapons and armour the player can use, never for the worn item itself (K0754).
+-- Scope: the item tooltip's comparison with what is worn in the item's place, as the accepted draft draws form B (manual/view/vga-tooltip.html, K0605 to K0607): one verdict on top, in a head of its own whose room LibVGA's tooltip block keeps by moving the game's first line down (K0780) - Besser in green, Schlechter in red, Gemischt in gold, each after the chips' own flat picture of its sign tinted alike, never a glyph, which none of LibVGA's faces carries (K0763), »als Angelegtes« quiet at its right -, judged by the main stat of the player's class and specialisation and stamina: more of the main stat without less stamina better, less of it worse, more with less stamina mixed, and where the main stat stays the same, stamina alone; then beside each value of the game's lines that changed, LibVGA's chip - the arrow left, the number right, green up, red down -, every chip as wide as the others, the line's right text holding their room unseen; a set that would break a line of its own in red, »Bricht Set: name 3 → 2« after the chips' down arrow as an inline picture. What is worn comes from the bags' upgrade (Bagupgrade.lua): the weaker of two places, both hands for a two-hander; an empty place compares with nothing. Only for weapons and armour the player can use, never for the worn item itself (K0754).
 
--- {K0754} {K0763} {K0605} {K0606} {K0607}
+-- {K0783} {K0780} {K0754} {K0763} {K0605} {K0606} {K0607}
 
 local _, vga = ...
 local library = LibVGA
@@ -68,11 +68,10 @@ local function create_kept(tip)
     pieces.verdict.mark = pieces.verdict:CreateTexture(nil, "ARTWORK")
     pieces.verdict.word = library.create_text(pieces.verdict, "bold", colours.ink)
     pieces.verdict.note = library.create_text(pieces.verdict, "small", colours.quiet)
-    pieces.verdict.line = pieces.verdict:CreateTexture(nil, "ARTWORK")
-    pieces.verdict.line:SetColorTexture(colours.edge[1], colours.edge[2], colours.edge[3], 1)
+    pieces.verdict.line = library.create_hairline(pieces.verdict)
     pieces.verdict:Hide()
     kept[tip] = pieces
-    vga.create_tip_room(tip)
+    library.create_tooltip_block(tip)
     tip:HookScript("OnTooltipCleared", function(self) library.update_safely("compare cleared", vga.update_compare_cleared, self) end)
     return pieces
 end
@@ -112,8 +111,7 @@ local function update_verdict(tip, pieces, verdict)
     frame.line:SetHeight(1)
     frame:Show()
     pieces.shown_verdict = frame.word:GetText()
-    tip.vga_head = head
-    vga.update_tip_room(tip)
+    library.update_tooltip_block(tip, "head", head)
 end
 
 local function read_line_for(tip, label)

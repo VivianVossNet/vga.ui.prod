@@ -2,12 +2,11 @@
 -- SPDX-License-Identifier: BSD-3-Clause
 -- Scope: vga.ui's minimap as the accepted draft draws it (manual/view/vga-minimap.html): wide - four by three, then forty pixels wider at the normal size, the same share at the others - or square, as the settings choose, small, normal or large, its corners gently rounded, framed as every widget of ours is - the tooltip's look, its outline, black line, dark ground and gold corner -, the game's round frame art put away; the game's own parts - zoom, mail, the queue - left as they are; the map sized and placed in our frame's own scale even where the game gives the minimap a scale of its own, its mouse area cut to the visible part so the square's hidden bands never take the clicks meant for the rims; the frame kept on the screen by the square's upper band too, so the square never reaches past the screen's top, where the game would cut the picture and squeeze the mask; the game's zoom buttons, plus above minus, in the visible map's lower right corner; the whole placed in the screen's upper right corner by default and moved as one while arranging, kept by its outer corner, the game's zone bar put away; only the VGA badge stays with the map, beneath the frame, four draft pixels down, its right edge two pixels in from the frame's lower right corner; the frame widened above and beneath the map by a line each, which Maprim.lua fills; other addons' pins outside the visible map hidden by Mappins.lua; a compass rose in the map, Maprose.lua; every other addon's small button is caught and set beneath the map, left-aligned at the frame's left edge and gathering to the right in slots of one size, a second row begun before it would reach the VGA badge at the right; each button's own gold border and round ground put away, each slot on the map frame's dark ground, the button brought to the slot's layer so our ring lies above it, its icon - the standard library's own, or else the button's largest picture that is no highlight, pressed or ground picture - set to fill the slot but a small inset and cut to a rounded square, any mask of its own taken off, a grey rounded square of ours laid closely round it, lit gold while the mouse rests on the button, the game's blue highlight put away, a button without an icon not shown at all, its tooltip - the game's or the addon library's own - and menu shown left of the frame, forty-eight pixels apart; the tab »Minimap« in the settings.
 
--- {K0421} {K0423} {K0424} {K0425} {K0427} {K0429} {K0430} {K0431} {K0432} {K0433} {K0434} {K0435} {K0436} {K0438} {K0439} {K0440} {K0441} {K0442} {K0443} {K0444} {K0445} {K0446} {K0447}
+-- {K0799} {K0793} {K0421} {K0423} {K0424} {K0425} {K0427} {K0429} {K0430} {K0431} {K0432} {K0433} {K0434} {K0435} {K0436} {K0438} {K0439} {K0440} {K0441} {K0442} {K0443} {K0444} {K0445} {K0446} {K0447}
 
 local _, vga = ...
 local library = LibVGA
 local colours = library.colours
-local DRAFT_BASE = 13
 local SIDES = { small = 187, normal = 227, large = 280 }
 local SHAPES = { "wide", "square" }
 local SIZES = { "small", "normal", "large" }
@@ -25,16 +24,12 @@ local TRACKING_BORDER = 136430
 local ROUND_GROUND = 136467
 local BADGE_SHIFT = 2
 local ZOOM_GAP = 3
-local SLOT_TOP = { 0.071, 0.075, 0.09 }
-local SLOT_BOTTOM = { 0.043, 0.047, 0.059 }
 local KEPT_OUT = { LibVGAMinimapButton = true, MinimapBackdrop = true, MinimapZoomIn = true, MinimapZoomOut = true }
 local SET_POINT, CLEAR_POINTS, SET_PARENT = UIParent.SetPoint, UIParent.ClearAllPoints, UIParent.SetParent
 local frame
 local caught = {}
 
-local function read_draft(pixels)
-    return math.floor(pixels * library.read_base() / DRAFT_BASE + 0.5)
-end
+local read_draft = library.read_draft_size
 
 local function read_shape()
     return LibVGASettings.map_shape == "square" and "square" or "wide"
@@ -98,29 +93,6 @@ local function read_icon(button)
     return found
 end
 
-local function update_masks_away(icon)
-    if not (icon.GetNumMaskTextures and icon.GetMaskTexture) then return end
-    for index = icon:GetNumMaskTextures(), 1, -1 do icon:RemoveMaskTexture(icon:GetMaskTexture(index)) end
-end
-
-local function update_rounded_icon(button, slot)
-    local icon = slot.icon
-    if not (icon and icon.AddMaskTexture) then return end
-    update_masks_away(icon)
-    slot.rounded = slot.rounded or slot:CreateMaskTexture()
-    slot.rounded:SetTexture(library.media .. "MaskRounded", "CLAMPTOBLACKADDITIVE", "CLAMPTOBLACKADDITIVE")
-    slot.rounded:SetAllPoints(icon)
-    icon:AddMaskTexture(slot.rounded)
-end
-
-local function create_ring(slot)
-    slot.ground = library.create_surface(slot, "BACKGROUND", 0)
-    slot.over = CreateFrame("Frame", nil, slot)
-    slot.over:SetAllPoints()
-    slot.over:SetFrameLevel(slot:GetFrameLevel() + 3)
-    slot.ring = library.create_ring(slot.over, "OVERLAY", 0)
-end
-
 local function update_beside(shown)
     shown:ClearAllPoints()
     shown:SetPoint("TOPRIGHT", frame.widget, "TOPLEFT", -read_draft(BESIDE), 0)
@@ -159,7 +131,7 @@ local function update_icon_in_button(slot)
 end
 
 local function update_ring_lit(slot, lit)
-    library.update_ring(slot.ring, 1, lit and colours.gold or colours.metal_top, 1)
+    library.update_cell_lit(slot, lit)
 end
 
 local function update_lit(button)
@@ -187,7 +159,7 @@ end
 local function write_caught(button)
     caught[button] = true
     frame.caught[#frame.caught + 1] = button
-    local slot = CreateFrame("Frame", nil, frame.widget)
+    local slot = library.create_cell(frame.widget, { kind = "round", frame = "Frame" })
     slot.button = button
     button:HookScript("OnEnter", update_tip_place_safely)
     button:HookScript("OnEnter", update_lit)
@@ -196,10 +168,9 @@ local function write_caught(button)
     button:HookScript("OnMouseUp", update_menu_place_soon)
     update_border_away(button)
     slot.icon = read_icon(button)
-    update_rounded_icon(button, slot)
+    library.update_cell_round_mask(slot, slot.icon)
     button:HookScript("OnMouseDown", update_icon_again_safely)
     button:HookScript("OnMouseUp", update_icon_again_safely)
-    create_ring(slot)
     frame.slots[#frame.slots + 1] = slot
     SET_PARENT(button, slot)
     button:SetFrameStrata(slot:GetFrameStrata())
@@ -293,8 +264,7 @@ local function update_button_in_slot(slot, size)
     CLEAR_POINTS(button)
     SET_POINT(button, "CENTER", slot, "CENTER")
     update_icon_in_button(slot)
-    library.update_surface(slot.ground, 0, 4, SLOT_TOP, SLOT_BOTTOM, library.read_ground("map"))
-    library.update_ring(slot.ring, 1, colours.metal_top, 1)
+    library.update_round_cell(slot, false, library.read_ground("map"))
 end
 
 
@@ -312,14 +282,20 @@ local function update_tray(width)
     local size, gap = read_draft(BUTTON), read_draft(GAP)
     local room = width - read_badge_room() - BADGE_SHIFT - 2 * gap
     local per_row = math.max(1, math.floor((room + gap) / (size + gap)))
+    local columns, rows = {}, {}
+    for column = 1, per_row do columns[column] = BUTTON end
     for index, slot in ipairs(shown) do
-        local row, column = math.floor((index - 1) / per_row), (index - 1) % per_row
+        local row = math.floor((index - 1) / per_row) + 1
+        rows[row] = rows[row] or {}
+        rows[row][(index - 1) % per_row + 1] = slot
         slot:SetSize(size, size)
-        slot:ClearAllPoints()
-        slot:SetPoint("TOPLEFT", frame.widget, "BOTTOMLEFT", column * (size + gap), -(read_draft(BADGE_GAP) + row * (size + gap)))
         slot:Show()
         update_button_in_slot(slot, size)
     end
+    frame.tray.grid.plan.columns = columns
+    frame.tray:ClearAllPoints()
+    frame.tray:SetPoint("TOPLEFT", frame.widget, "BOTTOMLEFT", 0, -read_draft(BADGE_GAP))
+    library.update_grid(frame.tray.grid, rows)
 end
 
 local function update_frame_size()
@@ -383,6 +359,9 @@ local function create_map()
     frame = { caught = {}, slots = {} }
     frame.view = CreateFrame("Frame", nil, Minimap:GetParent())
     frame.widget = library.create_frame("VGAMapFrame", Minimap:GetParent())
+    frame.tray = CreateFrame("Frame", nil, frame.widget)
+    frame.tray:SetSize(1, 1)
+    frame.tray.grid = library.create_grid(frame.tray, { columns = {}, gap = GAP, row = BUTTON, row_gap = GAP, y = "top" })
     frame.widget:SetFrameLevel(math.max(0, Minimap:GetFrameLevel() - 1))
     frame.widget.ground_key = "map"
     frame.widget.corner:SetScript("OnClick", render_options)

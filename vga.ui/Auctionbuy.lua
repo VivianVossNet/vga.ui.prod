@@ -1,8 +1,8 @@
 -- Copyright 2026 Vivian Voss. Code by Vivian Voss. Licensed under the BSD-3-Clause.
 -- SPDX-License-Identifier: BSD-3-Clause
--- Scope: vga.auctions' page Kaufen, step 3c rethought and made calm (K0627: the gold »Suchen« beside the field, the path line always there, fine lines round the fields, a header over the results, »Suche läuft …« until the game answers) (manual/view/vga-auctions.html »Kaufen, neu gedacht« and »Die Ebenen, zu Ende gedacht«, K0603, K0621, K0622, K0624): one search field as Spotlight draws it - the lens, ✕ to empty it, ☆ to keep the search, gold when kept -, the kept searches, up to eight for the account, in the window's sidebar under their own heading as the draft draws them (K0632); then the path - »Alle« and every level chosen, each a way back - and the next choice as LibVGA's segmented choice, »Alle« first, the quality from which on, as the game names and colours it, and on the same line the level from and to (K0638) with »Alle Stufen« or »Passend für meine Stufe ±2« as a segmented choice too, no pills (K0634); the levels run to the end - weapons to their sorts, armour to the places on the body by the game's inventory types, the chest with the robe, jewellery to its places, trade goods, recipes and bags to the game's own subclasses -, a chosen last level staying on the path with its siblings beside it;  the game's own obsolete classes - named »…(OBSOLETE)« by the game, as Jewelry and Generic in Forever - left out at every level (K0667); every opening of the window starting afresh - text, path, quality and levels reset, the list empty (K0666), and the purchase too: no »Bestätigen«, no price, the quantity back at one; the watched items stay (K0683) -; nothing listed until »Suchen« or Enter is pressed - setting a filter only sets it, ✕ only empties the field (K0661) -; a search takes the filters as they stand and runs through the game's own auction window as its engine, as NaowhForever does - its Buy mode, the category our node names in the game's words, the text, the levels and the qualities set there and its own SendBrowseQuery called, once the throttle is ready; a node standing for several of the game's categories - Ausrüstung, Handwerk, bundles - searched once in each, one after another, the answers merged; a node with no counterpart searched without a category (K0664), a named path the game's tree does not hold skipped, never searched without a category (K0667) -; only the answers after our query are shown, cut to our finer levels where the game's categories are coarser; buying always at the live price (K0662); empty text meaning everything in the path, the qualities from the chosen one on asked for, all by default as the game's own window does; the search, the path, the choice and the levels in one of LibVGA's groups, the results in another under their heads (K0632), in LibVGA's list, scrolling, as many as the game sends (K0631) - picture, name in its quality's colour, the required level - red above the player's (K0647) -, quantity, lowest price, market value, the lowest price against it as a chip -, an eye at the row's end watching the item (K0655); every column title sorting the results, a second click the other way (K0655); the columns laid by library.read_columns, each as wide as its widest content, never running into each other (K0686); where the path runs through Handwerk, Behälter or Quest, whose items have no level, the level fields, the level choice and the level column are hidden, the name taking the column's room, the row keeping its height, and the search asks for every level (K0687); the chosen ringed in gold on a faint gold ground, known by its item key so a fresh reading of the results keeps it (K0642); beneath, the quantity and the gold »Kaufen«, which asks the game for the real price first and turns into »Bestätigen«, so nothing is bought by one click; »Kaufen« and »Bestätigen« shown off and taking no click while the player's money does not cover the price - the lowest price times the quantity, then the real price -, weighed again whenever the money changes (K0683); every query sent only when the game's throttle is ready, a refused one sent once more a second later (K0629).
+-- Scope: vga.auctions' page Kaufen, step 3c rethought and made calm (K0627: the gold »Suchen« beside the field, the path line always there, fine lines round the fields, a header over the results, »Suche läuft …« until the game answers) (manual/view/vga-auctions.html »Kaufen, neu gedacht« and »Die Ebenen, zu Ende gedacht«, K0603, K0621, K0622, K0624): one search field as Spotlight draws it - the lens, ✕ to empty it, ☆ to keep the search, gold when kept -, the kept searches, up to eight for the account, in the window's sidebar under their own heading as the draft draws them (K0632); then the path - »Alle« and every level chosen, each a way back - and the next choice as LibVGA's segmented choice, »Alle« first, the quality from which on, as the game names and colours it, and on the same line the level from and to (K0638) with »Alle Stufen« or »Passend für meine Stufe ±2« as a segmented choice too, no pills (K0634); the levels run to the end - weapons to their sorts, armour to the places on the body by the game's inventory types, the chest with the robe, jewellery to its places, trade goods, recipes and bags to the game's own subclasses -, a chosen last level staying on the path with its siblings beside it;  the game's own obsolete classes - named »…(OBSOLETE)« by the game, as Jewelry and Generic in Forever - left out at every level (K0667); every opening of the window starting afresh - text, path, quality and levels reset, the list empty (K0666), and the purchase too: no »Bestätigen«, no price, the quantity back at one; the watched items stay (K0683) -; nothing listed until »Suchen« or Enter is pressed - setting a filter only sets it, ✕ only empties the field (K0661) -; a search takes the filters as they stand and runs through the game's own auction window as its engine, as NaowhForever does - its Buy mode, the category our node names in the game's words, the text, the levels and the qualities set there and its own SendBrowseQuery called, once the throttle is ready; a node standing for several of the game's categories - Ausrüstung, Handwerk, bundles - searched once in each, one after another, the answers merged; a node with no counterpart searched without a category (K0664), a named path the game's tree does not hold skipped, never searched without a category (K0667) -; only the answers after our query are shown, cut to our finer levels where the game's categories are coarser; buying always at the live price (K0662); empty text meaning everything in the path, the qualities from the chosen one on asked for, all by default as the game's own window does; the search, the path, the choice and the levels in one of LibVGA's groups, the results in another under their heads (K0632), in LibVGA's list, scrolling, as many as the game sends (K0631) - picture, name in its quality's colour, the required level - red above the player's (K0647) -, quantity, lowest price, market value, the lowest price against it as a chip -, an eye at the row's end watching the item (K0655); every column title sorting the results, a second click the other way (K0655); the columns laid by library.read_columns, each as wide as its widest content, never running into each other (K0686); where the path runs through Handwerk, Behälter or Quest, whose items have no level, the level fields, the level choice and the level column are hidden, the name taking the column's room, the row keeping its height, and the search asks for every level (K0687); the chosen ringed in gold on a faint gold ground, known by its item key so a fresh reading of the results keeps it (K0642); beneath, the quantity and the gold »Kaufen«, which asks the game for the real price first and turns into »Bestätigen«, so nothing is bought by one click; »Kaufen« and »Bestätigen« shown off and taking no click while the player's money does not cover the price - the lowest price times the quantity, then the real price -, weighed again whenever the money changes (K0683); every query sent only when the game's throttle is ready, a refused one sent once more a second later (K0629). The results list is LibVGA's item table (K0862): its columns, sorters and heads a plan filled once, a path without levels laying the level column without width and its head hidden.
 
--- {K0621} {K0622} {K0624} {K0627} {K0629} {K0631} {K0632} {K0634} {K0638} {K0642} {K0647} {K0648} {K0649} {K0655} {K0660} {K0661} {K0662} {K0664} {K0666} {K0667} {K0683} {K0686} {K0687}
+-- {K0862} {K0802} {K0800} {K0798} {K0795} {K0792} {K0789} {K0785} {K0777} {K0621} {K0622} {K0624} {K0627} {K0629} {K0631} {K0632} {K0634} {K0638} {K0642} {K0647} {K0648} {K0649} {K0655} {K0660} {K0661} {K0662} {K0664} {K0666} {K0667} {K0683} {K0686} {K0687}
 
 local _, vga = ...
 local library = LibVGA
@@ -11,8 +11,6 @@ local SAVED = 8
 local LEVEL_NEAR = 2
 local CRUMBS = 5
 local LEVEL_CAP = 60
-local FIELD_GROUND = { 0.031, 0.035, 0.043 }
-local HEADS = { "item", "level", "quantity", "price_each", "market_value", "to_market" }
 local QUALITIES = { "PoorQuality", "CommonQuality", "UncommonQuality", "RareQuality", "EpicQuality", "LegendaryQuality", "ArtifactQuality" }
 local ARMOUR_SLOTS = { "IndexHeadType", "IndexShoulderType", "IndexChestType", "IndexWaistType", "IndexLegsType", "IndexFeetType", "IndexWristType", "IndexHandType" }
 local CLOTH_SLOTS = { "IndexHeadType", "IndexShoulderType", "IndexChestType", "IndexWaistType", "IndexLegsType", "IndexFeetType", "IndexWristType", "IndexHandType", "IndexCloakType" }
@@ -163,11 +161,6 @@ local function check_saved(text)
     return false
 end
 
-local function read_quality_colour(quality)
-    local colour = ITEM_QUALITY_COLORS and ITEM_QUALITY_COLORS[quality or 1]
-    return colour and { colour.r, colour.g, colour.b } or colours.ink
-end
-
 local function update_status(page, text, money)
     page.status:SetText(text or "")
     page.status_money:SetShown(money ~= nil)
@@ -291,8 +284,6 @@ local function update_field(page)
     local text = page.input:GetText() or ""
     local saved = text ~= "" and check_saved(text)
     local star = saved and colours.gold or colours.quiet
-    page.input.hint:SetShown(text == "")
-    page.clear:SetShown(text ~= "")
     page.star.picture:SetTexture(library.media .. (saved and "StarFull" or "StarLine"))
     page.star.picture:SetVertexColor(star[1], star[2], star[3], 1)
 end
@@ -311,37 +302,16 @@ local function render_save()
     if vga.update_saved_searches then vga.update_saved_searches() end
 end
 
-local function render_clear()
-    local page = buy_page
-    page.input:SetText("")
-    page.input:ClearFocus()
+local function render_search_changed()
+    update_field(buy_page)
 end
 
-local function create_icon_button(page, picture, on_click)
-    local button = CreateFrame("Button", nil, page.input)
-    button.picture = button:CreateTexture(nil, "ARTWORK")
-    button.picture:SetAllPoints()
-    button.picture:SetTexture(library.media .. picture)
-    button.picture:SetVertexColor(colours.quiet[1], colours.quiet[2], colours.quiet[3], 1)
-    button:SetScript("OnClick", on_click)
-    return button
+local function render_search_entered()
+    render_search(buy_page)
 end
 
 local function create_input(page)
-    local input = CreateFrame("EditBox", nil, page)
-    input:SetAutoFocus(false)
-    input:SetMaxLetters(60)
-    input.edge = library.create_surface(input, "BACKGROUND", 0)
-    input.ground = library.create_surface(input, "BACKGROUND", 1)
-    input.lens = input:CreateTexture(nil, "ARTWORK")
-    input.lens:SetTexture(library.media .. "Search")
-    input.lens:SetVertexColor(colours.quiet[1], colours.quiet[2], colours.quiet[3], 1)
-    input.hint = library.create_text(input, "small", colours.quiet)
-    input.hint:SetText(library.texts.search_hint)
-    input:SetScript("OnEscapePressed", input.ClearFocus)
-    input:SetScript("OnTextChanged", function() update_field(page) end)
-    input:SetScript("OnEnterPressed", function(field) field:ClearFocus() render_search(page) end)
-    return input
+    return library.create_input(page, { hint = library.texts.search_hint, picture = "Search", clear = true, most = 60, on_change = render_search_changed, on_enter = render_search_entered })
 end
 
 local function read_key_text(key)
@@ -369,39 +339,22 @@ end
 
 local function update_result_row(line, row)
     local page = buy_page
-    local size = library.read_draft_size(26)
     local market = vga.read_market(row.known.itemID)
-    line.icon:SetTexture(row.known.iconFileID)
-    library.update_unusable(line.unusable, row.known.itemID)
-    line.icon:SetSize(size, size)
-    line.icon:SetPoint("LEFT", line, "LEFT", page.pad, 0)
-    local quality = read_quality_colour(row.known.quality)
-    line.name:SetText(row.known.itemName)
-    line.name:SetTextColor(quality[1], quality[2], quality[3], 1)
-    local columns, x = page.columns, page.pad
-    line.name:SetPoint("LEFT", line.icon, "RIGHT", library.read_size(-4), 0)
-    line.name:SetWidth(math.max(1, columns.rights[1] - size - library.read_size(-4)))
+    local columns, x = page.table.columns, page.table.pad
+    library.update_item_row(line, { icon = row.known.iconFileID, id = row.known.itemID, name = row.known.itemName, quality = row.known.quality }, x, x + columns.rights[1])
     line.level:SetText(vga.read_level_text(vga.read_item_level(row.known.itemID)))
     line.level:SetShown(not page.levelless)
-    line.level:ClearAllPoints()
-    line.level:SetPoint("LEFT", line, "LEFT", x + columns.lefts[2], 0)
     line.quantity:SetText(row.quantity)
-    line.quantity:SetPoint("LEFT", line, "LEFT", x + columns.lefts[3], 0)
     library.update_money(line.price, row.price)
-    line.price:SetPoint("RIGHT", line, "LEFT", x + columns.rights[4], 0)
     library.update_money(line.market, math.floor((market or 0) + 0.5))
     line.market:SetShown(market ~= nil)
-    line.market:SetPoint("RIGHT", line, "LEFT", x + columns.rights[5], 0)
     library.update_chip(line.chip, vga.read_deal(row.price, market))
-    line.chip:SetPoint("LEFT", line, "LEFT", x + columns.lefts[6], 0)
     library.update_eye_layout(line.eye)
     library.update_eye_shown(line.eye, vga.check_watched(row.known.itemID))
-    line.eye:ClearAllPoints()
-    line.eye:SetPoint("RIGHT", line, "LEFT", x + columns.rights[7], 0)
+    library.update_grid_columns(line, columns, x, { { line.level, 2 }, { line.quantity, 3 }, { line.price, 4, "right" }, { line.market, 5, "right" }, { line.chip, 6 }, { line.eye, 7, "right" } })
     line.item = { key = row.key, id = row.known.itemID }
     local chosen = page.chosen_key == read_key_text(row.key)
-    library.update_surface(line.fill, 0, library.read_draft_size(8), colours.gold, colours.gold, chosen and 0.08 or 0)
-    library.update_ring(line.ring, 1, colours.gold, chosen and 1 or 0)
+    library.update_item_row_chosen(line, chosen)
 end
 
 local function update_chip_column(list)
@@ -421,16 +374,29 @@ local function read_sort_deal(row)
     return market and market > 0 and row.price / market or nil
 end
 
+local function read_level_room(sheet)
+    if buy_page.levelless then return 0 end
+    return library.read_item_table_text(sheet, "60")
+end
+
+local function read_eye_room()
+    return library.read_size(2)
+end
+
+local function update_results_table(page)
+    local sheet = page.table
+    page.levelless = check_levelless(page)
+    page.heads[2]:SetShown(not page.levelless)
+    sheet.heads[2] = not page.levelless and page.heads[2] or nil
+    library.update_item_table(sheet, page.rows, sheet:GetWidth(), sheet:GetHeight())
+end
+
 function update_results(page)
     page.rows = read_result_rows()
     for _, row in ipairs(page.rows) do
         if read_key_text(row.key) == page.chosen_key then page.chosen = row end
     end
-    local height = library.read_draft_size(40)
-    local room = page.results_group:GetHeight() - (page.head_height or 0)
-    page.list:ClearAllPoints()
-    page.list:SetPoint("TOPLEFT", page.results_group, "TOPLEFT", 0, -(page.head_height or 0))
-    library.update_list(page.list, page.rows, page.results_group:GetWidth(), math.max(room, height), height)
+    update_results_table(page)
     if page.answered then page.none:SetText(library.texts.no_results) end
     page.none:SetShown(page.query ~= nil and #page.rows == 0)
 end
@@ -549,31 +515,13 @@ local function update_choice(page, top)
 end
 
 local function update_crumbs(page, top)
-    local x, gap, height = 0, library.read_size(-4), library.read_size(1) + library.read_size(-4)
-    for index, crumb in ipairs(page.crumbs) do
+    local words = { library.texts.all_kinds }
+    for index = 2, CRUMBS do
         local node = page.path[index - 1]
-        local shown = index == 1 or node ~= nil
-        crumb:SetShown(shown)
-        crumb.mark:SetShown(shown and index > 1)
-        if shown then
-            local ink = index == 1 and colours.label or colours.gold
-            crumb.word:SetFontObject(library.read_font("small"))
-            crumb.word:SetTextColor(ink[1], ink[2], ink[3], 1)
-            crumb.word:SetText(index == 1 and library.texts.all_kinds or node.word())
-            crumb.mark:SetFontObject(library.read_font("small"))
-            if index > 1 then
-                crumb.mark:ClearAllPoints()
-                crumb.mark:SetPoint("LEFT", page.area, "TOPLEFT", x, -(top + height / 2))
-                x = x + math.ceil(crumb.mark:GetStringWidth()) + gap
-            end
-            local width = math.ceil(crumb.word:GetStringWidth())
-            crumb:SetSize(width, height)
-            crumb:ClearAllPoints()
-            crumb:SetPoint("TOPLEFT", page.area, "TOPLEFT", x, -top)
-            x = x + width + gap
-        end
+        if not node then break end
+        words[index] = node.word()
     end
-    return height
+    return library.update_crumbs(page.crumbs, words, top)
 end
 
 local function render_crumb(crumb)
@@ -617,42 +565,23 @@ local function render_level_choice(index)
 end
 
 local function create_level_field(page)
-    local field = CreateFrame("EditBox", nil, page)
-    field:SetAutoFocus(false)
-    field:SetNumeric(true)
-    field:SetMaxLetters(2)
-    field:SetJustifyH("CENTER")
-    field.edge = library.create_surface(field, "BACKGROUND", 0)
-    field.ground = library.create_surface(field, "BACKGROUND", 1)
-    field:SetScript("OnEscapePressed", field.ClearFocus)
-    field:SetScript("OnEnterPressed", field.ClearFocus)
-    field:SetScript("OnEditFocusLost", render_level)
-    return field
+    return library.create_input(page, { numeric = true, most = 2, centred = true, on_leave = render_level })
 end
 
 local function read_quality_labels(texts)
     local labels = { texts.all_kinds }
     for quality = 1, 4 do
-        local colour = read_quality_colour(quality)
+        local colour = library.read_quality_colour(quality)
         labels[#labels + 1] = string.format("|cff%02x%02x%02x%s|r", math.floor(colour[1] * 255), math.floor(colour[2] * 255), math.floor(colour[3] * 255), _G["ITEM_QUALITY" .. quality .. "_DESC"] or tostring(quality))
     end
     return labels
 end
 
 local function create_filters_row(page, texts)
-    page.path, page.crumbs = {}, {}
+    page.path = {}
     page.kind_choice = library.create_choice(page, { texts.all_kinds }, 1, render_kind)
     page.kind_choice.natural = true
-    for index = 1, CRUMBS do
-        local crumb = CreateFrame("Button", nil, page)
-        crumb.index = index
-        crumb.word = library.create_text(crumb, "small", colours.gold)
-        crumb.word:SetPoint("LEFT")
-        crumb.mark = library.create_text(page.area, "small", colours.quiet)
-        crumb.mark:SetText("›")
-        crumb:SetScript("OnClick", render_crumb)
-        page.crumbs[index] = crumb
-    end
+    page.crumbs = library.create_crumbs(page, page.area, CRUMBS, render_crumb)
     page.quality_word = library.create_text(page.area, "small", colours.label)
     page.quality_word:SetText(texts.quality_from)
     page.quality_least = 0
@@ -665,19 +594,8 @@ local function create_filters_row(page, texts)
     page.least, page.most = create_level_field(page), create_level_field(page)
     page.least:SetText("1")
     page.level_choice = library.create_choice(page, { texts.levels_all, texts.levels_near }, 1, render_level_choice)
+    page.filter_grid = library.create_grid(page.area, { columns = { "auto", "auto", "auto", "auto", "auto", "auto", "auto" }, row = 0 })
     page.level_choice.natural = true
-end
-
-local function update_field_ground(field)
-    local radius = library.read_size(-6)
-    library.update_surface(field.edge, -1, radius + 1, colours.edge, colours.edge)
-    library.update_surface(field.ground, 0, radius, FIELD_GROUND, FIELD_GROUND)
-end
-
-local function update_level_field(field, height)
-    field:SetFontObject(library.read_font("body"))
-    field:SetSize(library.read_size(4), height)
-    update_field_ground(field)
 end
 
 local function read_level_chosen(page)
@@ -685,41 +603,34 @@ local function read_level_chosen(page)
     return read_level(page.least, 1) == least and read_level(page.most, read_level_cap()) == most and 2 or 1
 end
 
-local function update_quality_row(page, top)
+local function update_quality_row(page)
     page.quality_word:SetFontObject(library.read_font("small"))
     page.quality_choice.chosen = page.quality_least + 1
     page.quality_choice.most = page.width / 2
     library.update_choice(page.quality_choice)
-    page.quality_choice:ClearAllPoints()
-    page.quality_choice:SetPoint("LEFT", page.quality_word, "RIGHT", library.read_size(-4), 0)
-    page.quality_word:ClearAllPoints()
-    page.quality_word:SetPoint("LEFT", page.area, "TOPLEFT", 0, -(top + library.read_size(2) / 2))
-    return page.quality_choice:GetHeight()
+end
+
+local function read_filter_gaps()
+    local gap = { pixels = library.read_size(-4) }
+    return { gap, gap, 24, gap, gap, gap, { pixels = 2 * gap.pixels } }
 end
 
 local function update_levels(page, top)
-    local gap, cap = library.read_size(-4), read_level_cap()
-    local height = library.read_size(2)
+    local cap = read_level_cap()
     if page.most:GetText() == "" then page.most:SetText(tostring(cap)) end
     page.level_word:SetFontObject(library.read_font("small"))
     page.level_to:SetFontObject(library.read_font("small"))
-    update_level_field(page.least, height)
-    update_level_field(page.most, height)
-    page.level_word:ClearAllPoints()
-    page.level_word:SetPoint("LEFT", page.quality_choice, "RIGHT", library.read_draft_size(24), 0)
-    page.least:ClearAllPoints()
-    page.least:SetPoint("LEFT", page.level_word, "RIGHT", gap, 0)
-    page.level_to:ClearAllPoints()
-    page.level_to:SetPoint("LEFT", page.least, "RIGHT", gap, 0)
-    page.most:ClearAllPoints()
-    page.most:SetPoint("LEFT", page.level_to, "RIGHT", gap, 0)
+    library.update_input(page.least, library.read_size(4))
+    library.update_input(page.most, library.read_size(4))
     page.level_choice.chosen = read_level_chosen(page)
     library.update_choice(page.level_choice)
-    page.level_choice:ClearAllPoints()
-    page.level_choice:SetPoint("LEFT", page.most, "RIGHT", 2 * gap, 0)
     local shown = not check_levelless(page)
     for _, part in ipairs({ page.level_word, page.least, page.level_to, page.most, page.level_choice }) do part:SetShown(shown) end
-    return height
+    page.filter_grid.plan.padding = { { pixels = top }, 0, 0, 0 }
+    page.filter_grid.plan.gaps = read_filter_gaps()
+    local row = { page.quality_word, page.quality_choice, page.level_word, page.least, page.level_to, page.most, page.level_choice }
+    local _, height = library.update_grid(page.filter_grid, { row })
+    return height - top
 end
 
 local function render_line_tip(line)
@@ -727,32 +638,18 @@ local function render_line_tip(line)
 end
 
 local function create_line(parent, index)
-    local line = CreateFrame("Button", nil, parent)
+    local line = library.create_item_row(parent, { chosen = true, on_click = render_chosen, on_enter = render_line_tip, on_leave = vga.update_item_tip_hidden })
     line.index = index
-    line.fill = library.create_surface(line, "BACKGROUND", 0)
-    line.ring = library.create_ring(line, "OVERLAY", 0)
-    line.icon = line:CreateTexture(nil, "ARTWORK")
-    line.unusable = library.create_unusable(line, line.icon)
-    line.name = library.create_text(line, "body", colours.ink)
-    line.name:SetJustifyH("LEFT")
-    line.name:SetWordWrap(false)
-    line.quantity = library.create_text(line, "small", colours.quiet)
-    line.level = library.create_text(line, "small", colours.label)
+    line.quantity = library.create_text(line, "figures_small", colours.quiet)
+    line.level = library.create_text(line, "figures_small", colours.label)
     line.price = library.create_money(line, colours.ink)
     line.market = library.create_money(line, colours.quiet)
     line.chip = library.create_chip(line)
     line.eye = library.create_eye(line, function(on) if line.item then vga.write_watched(line.item.id, on) end end, { library.texts.watch_on, library.texts.watch_off })
-    line:SetScript("OnClick", render_chosen)
-    line:SetScript("OnEnter", render_line_tip)
-    line:SetScript("OnLeave", vga.update_item_tip_hidden)
     return line
 end
 
 local function create_buy_row(page, texts)
-    page.probe_money = library.create_money(page, colours.ink)
-    page.probe_text = library.create_text(page, "small", colours.ink)
-    page.probe_chip = library.create_chip(page)
-    page.probe_chip:Hide()
     page.stepper = library.create_stepper(page, render_step)
     page.buy = library.create_button(page, texts.buy_now, "gold", render_buy)
     page.status = library.create_text(page, "small", colours.quiet)
@@ -793,74 +690,41 @@ function vga.create_buy_page(page)
     buy_page = page
     page.top_group = library.create_group(page)
     page.area = CreateFrame("Frame", nil, page)
+    page.search_grid = library.create_grid(page.area, { columns = { "rest", "auto" }, row = 0, x = { "left", "right" }, y = "top" })
+    page.stack = library.create_grid(page, { columns = { "rest" }, row = 0, row_gap = 14, y = "top" })
     page.input = create_input(page)
-    page.clear = create_icon_button(page, "Clear", render_clear)
-    page.star = create_icon_button(page, "StarLine", render_save)
+    page.star = library.create_icon_button(page.input, "StarLine", render_save, {})
     page.search_button = library.create_button(page, texts.search, "gold", function() page.input:ClearFocus() render_search(page) end)
     create_filters_row(page, texts)
-    page.results_group = library.create_group(page)
-    page.list = library.create_list(page.results_group, create_line, update_result_row)
-    page.list.sorters = { item = read_sort_name, level = read_sort_level, quantity = read_sort_quantity, price_each = read_sort_price, market_value = read_sort_market, to_market = read_sort_deal }
-    page.list.on_sort = render_results_sorted
-    page.heads = {}
-    for index, key in ipairs(HEADS) do page.heads[index] = library.create_sort_head(page.list, page.results_group, texts[key]:upper(), key) end
-    page.list.on_rows = update_chip_column
+    local columns = {
+        { key = "item", word = texts.item, sort = read_sort_name, inset = "icon" },
+        { key = "level", word = texts.level, sort = read_sort_level, least = read_level_room },
+        { key = "quantity", word = texts.quantity, sort = read_sort_quantity, least = "99999" },
+        { key = "price_each", word = texts.price_each, sort = read_sort_price, least = "money", x = "right" },
+        { key = "market_value", word = texts.market_value, sort = read_sort_market, least = "money", x = "right" },
+        { key = "to_market", word = texts.to_market, sort = read_sort_deal, least = "chip" },
+        { key = "eye", least = read_eye_room },
+    }
+    page.table = library.create_item_table(page, { columns = columns, create_row = create_line, update_row = update_result_row, empty = texts.no_results, on_sort = render_results_sorted, on_rows = update_chip_column })
+    page.list, page.none, page.results_group = page.table.list, page.table.empty, page.table
+    page.heads = { unpack(page.table.heads, 1, #columns - 1) }
     page.lines = page.list.rows
-    page.none = library.create_text(page.results_group, "small", colours.quiet)
-    page.none:SetText(texts.no_results)
     create_buy_row(page, texts)
     page.rows = {}
 end
 
 local function update_search_field(page)
-    local pad, height, mark = library.read_size(-2), library.read_size(2), library.read_size(0)
-    page.input:SetFontObject(library.read_font("body"))
-    page.input:SetTextInsets(pad + mark + library.read_size(-4), 2 * (mark + pad), 0, 0)
-    page.input:ClearAllPoints()
+    local pad, mark = library.read_size(-2), library.read_size(0)
     library.update_button(page.search_button)
-    page.search_button:ClearAllPoints()
-    page.search_button:SetPoint("TOPRIGHT", page.area, "TOPLEFT", page.width, 0)
-    page.input:SetPoint("TOPLEFT", page.area, "TOPLEFT")
-    page.input:SetPoint("RIGHT", page.search_button, "LEFT", -pad, 0)
-    page.input:SetHeight(height)
-    update_field_ground(page.input)
-    page.input.lens:SetSize(mark, mark)
-    page.input.lens:ClearAllPoints()
-    page.input.lens:SetPoint("LEFT", page.input, "LEFT", pad, 0)
-    page.input.hint:SetFontObject(library.read_font("small"))
-    page.input.hint:ClearAllPoints()
-    page.input.hint:SetPoint("LEFT", page.input.lens, "RIGHT", library.read_size(-4), 0)
+    page.input.room = mark + pad
+    library.update_input(page.input, page.width - page.search_button:GetWidth() - pad)
+    page.search_grid.plan.gap = { pixels = pad }
+    library.update_grid(page.search_grid, { { page.input, page.search_button } }, page.width)
     page.star:SetSize(mark, mark)
     page.star:ClearAllPoints()
     page.star:SetPoint("RIGHT", page.input, "RIGHT", -pad, 0)
-    page.clear:SetSize(mark * 0.8, mark * 0.8)
-    page.clear:ClearAllPoints()
-    page.clear:SetPoint("RIGHT", page.star, "LEFT", -pad, 0)
     update_field(page)
-    return height
-end
-
-local function read_buy_columns(page)
-    for index, head in ipairs(page.heads) do library.update_sort_head(head, index == 4 or index == 5) end
-    local money = library.read_widest_money(page.probe_money)
-    local chip = library.read_widest_chip(page.probe_chip)
-    local function read_room(index, least) return math.max(page.heads[index]:GetWidth(), least) end
-    page.levelless = check_levelless(page)
-    page.heads[2]:SetShown(not page.levelless)
-    return library.read_columns(page.width, { false, page.levelless and 0 or read_room(2, library.read_widest_text(page.probe_text, "60")), read_room(3, library.read_widest_text(page.probe_text, "99999")), read_room(4, money), read_room(5, money), read_room(6, chip), library.read_size(2) })
-end
-
-local function update_heads(page)
-    local height, icon = library.read_draft_size(28), library.read_draft_size(26) + library.read_size(-4)
-    page.columns = read_buy_columns(page)
-    local columns = page.columns
-    local places = { { "LEFT", columns.lefts[1] + icon }, { "LEFT", columns.lefts[2] }, { "LEFT", columns.lefts[3] }, { "RIGHT", columns.rights[4] }, { "RIGHT", columns.rights[5] }, { "LEFT", columns.lefts[6] } }
-    for index, head in ipairs(page.heads) do
-        local place = places[index]
-        head:ClearAllPoints()
-        head:SetPoint(place[1], page.results_group, "TOPLEFT", page.pad + place[2], -height / 2)
-    end
-    page.head_height = height
+    return page.input:GetHeight()
 end
 
 local function update_top(page, width)
@@ -873,18 +737,13 @@ local function update_top(page, width)
     top = top + update_choice(page, top) + gap
     page.level_word:SetFontObject(library.read_font("small"))
     page.quality_word:SetFontObject(library.read_font("small"))
-    update_quality_row(page, top)
+    update_quality_row(page)
     top = top + update_levels(page, top)
-    page.top_group:ClearAllPoints()
-    page.top_group:SetPoint("TOPLEFT", page, "TOPLEFT")
     page.top_group:SetSize(width, top + 2 * inset)
     library.update_group(page.top_group)
     local below = top + 2 * inset + apart
-    page.results_group:ClearAllPoints()
-    page.results_group:SetPoint("TOPLEFT", page, "TOPLEFT", 0, -below)
     page.results_group:SetSize(width, math.max(page:GetHeight() - below - page.buy:GetHeight() - apart, library.read_draft_size(120)))
-    library.update_group(page.results_group)
-    update_heads(page)
+    library.update_grid(page.stack, { { page.top_group }, { page.results_group } }, width)
 end
 
 function vga.update_buy_page(page, width)
@@ -894,9 +753,7 @@ function vga.update_buy_page(page, width)
     local pad = library.read_size(-2)
     library.update_button(page.buy)
     update_top(page, width)
-    page.none:ClearAllPoints()
     page.none:SetFontObject(library.read_font("body"))
-    page.none:SetPoint("TOP", page.results_group, "TOP", 0, -(page.head_height + library.read_draft_size(40)))
 
     library.update_button(page.buy)
     page.buy:ClearAllPoints()

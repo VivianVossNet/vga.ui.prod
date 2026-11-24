@@ -1,8 +1,8 @@
 -- Copyright 2026 Vivian Voss. Code by Vivian Voss. Licensed under the BSD-3-Clause.
 -- SPDX-License-Identifier: BSD-3-Clause
--- Scope: vga.auctions' page Verkaufen as the accepted draft draws it (manual/view/vga-auctions.html »Seite Verkaufen«, K0603, K0617, K0619, K0632), every part in LibVGA's groups: at the left the bags' items the auction house takes in LibVGA's list (K0631) - picture, name in its quality's colour with the count and the required level beneath it (K0647), the market value at the right -, the chosen one ringed in gold on a faint gold ground; at the right the figures in one group divided by hairlines - market value, lowest now, the seven days as a chip, the quantity on offer -, the graph in its group with its legend - median, seven-day mean, lowest to median, on offer - and the range 7, 30 or 90 days, the item's current offers in LibVGA's list under their heads, each sorting them (K0655) - the rating against the market as a chip, the quantity, the price each, the player's own marked -, the posting row - the price each in LibVGA's money field, the quantity in its stepper, 12, 24 or 48 hours, the gold »Einstellen« -, the player's average cost and the result after the cut as a chip, and the note how the price is proposed and what the deposit is: one copper under the cheapest offer neither the player's own nor a bargain. Offers asked for as the game's own window asks (K0629), anew on every visit (K0625). The bags read for it are every bag the player carries, the reagent bag too, and the profession bags in the bag slots (K0738).
+-- Scope: vga.auctions' page Verkaufen as the accepted draft draws it (manual/view/vga-auctions.html »Seite Verkaufen«, K0603, K0617, K0619, K0632), every part in LibVGA's groups: at the left the bags' items the auction house takes in LibVGA's list (K0631) - picture, name in its quality's colour with the count and the required level beneath it (K0647), the market value at the right -, the chosen one ringed in gold on a faint gold ground; at the right the figures in LibVGA's figure strip (library.create_figure_strip, K0869) - market value, lowest now, the seven days as a chip, the quantity on offer -, the graph in its group with its legend - median, seven-day mean, lowest to median, on offer - and the range 7, 30 or 90 days, the item's current offers in LibVGA's list under their heads, each sorting them (K0655) - the rating against the market as a chip, the quantity, the price each, the player's own marked -, the posting row - the price each in LibVGA's money field, the quantity in its stepper, 12, 24 or 48 hours, the gold »Einstellen« -, the player's average cost and the result after the cut as a chip, and the note how the price is proposed and what the deposit is: one copper under the cheapest offer neither the player's own nor a bargain. Offers asked for as the game's own window asks (K0629), anew on every visit (K0625). The bags read for it are every bag the player carries, the reagent bag too, and the profession bags in the bag slots (K0738). The offers' list is LibVGA's item table (K0862); the bags' list stays LibVGA's plain list, having no sortable heads.
 
--- {K0617} {K0619} {K0625} {K0628} {K0693} {K0629} {K0631} {K0632} {K0647} {K0648} {K0655} {K0738}
+-- {K0869} {K0862} {K0802} {K0800} {K0798} {K0789} {K0785} {K0617} {K0619} {K0625} {K0628} {K0693} {K0629} {K0631} {K0632} {K0647} {K0648} {K0655} {K0738}
 
 local _, vga = ...
 local library = LibVGA
@@ -14,6 +14,9 @@ local BAND = { 0.894, 0.718, 0.314, 0.16 }
 local BARS = { 0.227, 0.243, 0.275, 1 }
 local MEAN = { 0.604, 0.588, 0.549, 1 }
 local OFFERS = 4
+local OFFER_HEAD = 28
+local OFFER_ROW = 30
+local OFFER_CHIP = 82
 local BARGAIN, GOOD_DEAL, USUAL = -0.15, -0.03, 0.03
 local sell_page
 local update_offers
@@ -48,11 +51,6 @@ local function read_mean(values, count)
         if seen > 0 then means[index] = sum / seen end
     end
     return means
-end
-
-local function read_quality_colour(quality)
-    local colour = ITEM_QUALITY_COLORS and ITEM_QUALITY_COLORS[quality or 1]
-    return colour and { colour.r, colour.g, colour.b } or colours.ink
 end
 
 local function read_name(item)
@@ -118,10 +116,11 @@ end
 
 local function update_figures(page, entry)
     local market, lowest, quantity = vga.read_market(entry.item)
-    library.update_money(page.figures[1].money, math.floor((market or 0) + 0.5))
-    library.update_money(page.figures[2].money, math.floor((lowest or 0) + 0.5))
-    library.update_chip(page.figures[3].chip, vga.read_week_trend(entry.item))
-    page.figures[4].text:SetText(quantity or "–")
+    local figures = page.facts.figures
+    library.update_money(figures[1].value, math.floor((market or 0) + 0.5))
+    library.update_money(figures[2].value, math.floor((lowest or 0) + 0.5))
+    library.update_chip(figures[3].value, vga.read_week_trend(entry.item))
+    figures[4].value:SetText(quantity or "–")
     return lowest
 end
 
@@ -159,31 +158,23 @@ end
 
 local function update_entry_line(line, entry)
     local page = sell_page
-    local size, pad = library.read_draft_size(26), library.read_draft_size(12)
+    local size = library.read_draft_size(26)
     local chosen = page.chosen == entry
     line.icon:SetTexture(entry.icon)
     library.update_unusable(line.unusable, entry.item)
     line.icon:SetSize(size, size)
-    line.icon:ClearAllPoints()
-    line.icon:SetPoint("LEFT", line, "LEFT", pad, 0)
     line.name:SetFontObject(library.read_font("body"))
     line.name:SetText(read_name(entry.item))
-    local quality = read_quality_colour(entry.quality)
+    local quality = library.read_quality_colour(entry.quality)
     line.name:SetTextColor(quality[1], quality[2], quality[3], 1)
-    line.name:ClearAllPoints()
-    line.name:SetPoint("BOTTOMLEFT", line.icon, "RIGHT", library.read_draft_size(10), 0)
     line.name:SetWidth(page.list_width * 0.55)
-    line.count:SetFontObject(library.read_font("small"))
+    line.count:SetFontObject(library.read_font("figures_small"))
     local level = vga.read_item_level(entry.item)
     line.count:SetText(string.format(library.texts.pieces, entry.count) .. ((level and level > 1) and (" · " .. library.texts.level .. " " .. vga.read_level_text(level)) or ""))
-    line.count:ClearAllPoints()
-    line.count:SetPoint("TOPLEFT", line.name, "BOTTOMLEFT", 0, 0)
     library.update_money(line.money, math.floor((vga.read_market(entry.item) or 0) + 0.5))
-    line.money:ClearAllPoints()
-    line.money:SetPoint("RIGHT", line, "RIGHT", -pad, 0)
-    local radius = library.read_draft_size(8)
-    library.update_surface(line.fill, 0, radius, colours.gold, colours.gold, chosen and 0.08 or 0)
-    library.update_ring(line.ring, 1, colours.gold, chosen and 1 or 0)
+    library.update_grid(line.grid, { { line.icon, { stack = { line.name, line.count } }, nil, line.money } }, page.list_width)
+    library.update_item_hover(line, line.icon, line.name, size)
+    library.update_item_row_chosen(line, chosen)
     line.rule:SetShown(line.index > 1 and not chosen)
 end
 
@@ -214,20 +205,11 @@ local function render_entry_tip(line)
 end
 
 local function create_entry_line(parent, index)
-    local line = CreateFrame("Button", nil, parent)
+    local line = library.create_item_row(parent, { chosen = true, on_click = render_chosen, on_enter = render_entry_tip, on_leave = vga.update_item_tip_hidden })
     line.index = index
-    line:SetScript("OnClick", render_chosen)
-    line:SetScript("OnEnter", render_entry_tip)
-    line:SetScript("OnLeave", vga.update_item_tip_hidden)
-    line.fill = library.create_surface(line, "BACKGROUND", 0)
-    line.ring = library.create_ring(line, "OVERLAY", 0)
-    line.icon = line:CreateTexture(nil, "ARTWORK")
-    line.unusable = library.create_unusable(line, line.icon)
-    line.name = library.create_text(line, "body", colours.ink)
-    line.name:SetJustifyH("LEFT")
-    line.name:SetWordWrap(false)
-    line.count = library.create_text(line, "small", colours.quiet)
+    line.count = library.create_text(line, "figures_small", colours.quiet)
     line.money = library.create_money(line, colours.ink)
+    line.grid = library.create_grid(line, { columns = { 26, "auto", "rest", "auto" }, gaps = { 10, 0, 0 }, padding = { 0, 12, 0, 12 }, row = 40, x = { "left", "left", "left", "right" } })
     return line
 end
 
@@ -282,30 +264,27 @@ end
 
 local function update_offer_line(line, offer)
     local page = sell_page
-    local pad = library.read_draft_size(12)
     library.update_chip(line.chip, read_deal(offer.unit, page.market))
-    line.chip:ClearAllPoints()
-    line.chip:SetPoint("LEFT", line, "LEFT", pad, 0)
     line.quantity:SetText(offer.quantity)
-    line.quantity:ClearAllPoints()
-    line.quantity:SetPoint("LEFT", line, "LEFT", pad + library.read_draft_size(86), 0)
     line.own:SetShown(offer.own == true)
-    line.own:ClearAllPoints()
-    line.own:SetPoint("LEFT", line.quantity, "RIGHT", library.read_draft_size(8), 0)
     library.update_money(line.money, offer.unit)
-    line.money:ClearAllPoints()
-    line.money:SetPoint("RIGHT", line, "RIGHT", -pad, 0)
+    library.update_grid(line.grid, { { line.chip, line.quantity, line.own, nil, line.money } }, page.detail_width)
 end
 
 local function create_offer_line(parent)
     local line = CreateFrame("Frame", nil, parent)
+    line.grid = library.create_grid(line, { columns = { 86, "auto", "auto", "rest", "auto" }, gaps = { 0, 8, 0, 0 }, padding = { 0, 12, 0, 12 }, row = 30, x = { "left", "left", "left", "left", "right" } })
     line.chip = library.create_chip(line)
-    line.quantity = library.create_text(line, "small", colours.ink)
+    line.quantity = library.create_text(line, "figures_small", colours.ink)
     line.own = library.create_text(line, "caption", colours.gold)
     line.own:SetText(library.texts.yours)
     line.money = library.create_money(line, colours.ink)
     line.money.kind = "small"
     return line
+end
+
+local function read_offers_height()
+    return library.read_draft_size(OFFER_HEAD) + OFFERS * (library.read_draft_size(OFFER_ROW) + 2)
 end
 
 local function update_offer_chips(list)
@@ -318,9 +297,7 @@ function update_offers(page)
     local entry = page.chosen
     local offers = entry and read_offers(entry) or {}
     page.market = entry and vga.read_market(entry.item)
-    local row = library.read_draft_size(30)
-    library.update_list(page.offers, offers, page.detail_width, OFFERS * (row + 2), row)
-    page.offers_none:SetShown(#offers == 0)
+    library.update_item_table(page.offers_group, offers, page.detail_width, read_offers_height())
     return offers
 end
 
@@ -357,17 +334,8 @@ function render_search(page)
 end
 
 local function create_figures(page, texts)
-    page.facts = library.create_group(page.detail)
-    page.figures = {}
-    for index, key in ipairs({ "market_value", "lowest_now", "days_7", "offered" }) do
-        local figure = { label = library.create_text(page.facts, "caption", colours.quiet) }
-        figure.label:SetText(texts[key]:upper())
-        if index <= 2 then figure.money = library.create_money(page.facts, colours.ink) end
-        if index == 3 then figure.chip = library.create_chip(page.facts) end
-        if index == 4 then figure.text = library.create_text(page.facts, "bold", colours.ink) end
-        if index > 1 then figure.rule = library.create_hairline(page.facts) end
-        page.figures[index] = figure
-    end
+    local figures = { { word = texts.market_value, kind = "money" }, { word = texts.lowest_now, kind = "money" }, { word = texts.days_7, kind = "chip" }, { word = texts.offered, kind = "text", font = "bold" } }
+    page.facts = library.create_figure_strip(page.detail, { figures = figures })
 end
 
 local function render_range(index)
@@ -400,17 +368,13 @@ local function render_offers_sorted()
 end
 
 local function create_offers(page, texts)
-    page.offers_group = library.create_group(page.detail)
-    page.offers = library.create_list(page.offers_group, create_offer_line, update_offer_line)
-    page.offers.sorters = { to_market = read_offer_share, quantity = read_offer_quantity, price_each = read_offer_unit }
-    page.offers.on_sort = render_offers_sorted
-    page.offer_heads = {}
-    for index, key in ipairs({ "to_market", "quantity", "price_each" }) do
-        page.offer_heads[index] = library.create_sort_head(page.offers, page.offers_group, texts[key]:upper(), key)
-    end
-    page.offers.on_rows = update_offer_chips
-    page.offers_none = library.create_text(page.offers_group, "small", colours.quiet)
-    page.offers_none:SetText(texts.no_offers)
+    local columns = {
+        { key = "to_market", word = texts.to_market, sort = read_offer_share, least = OFFER_CHIP },
+        { key = "quantity", word = texts.quantity, sort = read_offer_quantity },
+        { key = "price_each", word = texts.price_each, sort = read_offer_unit, least = "money_small", x = "right" },
+    }
+    page.offers_group = library.create_item_table(page.detail, { columns = columns, create_row = create_offer_line, update_row = update_offer_line, empty = texts.no_offers, on_sort = render_offers_sorted, on_rows = update_offer_chips, head = OFFER_HEAD, row = OFFER_ROW })
+    page.offers, page.offer_heads, page.offers_none = page.offers_group.list, page.offers_group.heads, page.offers_group.empty
 end
 
 local function create_post_row(page, texts)
@@ -446,6 +410,7 @@ function vga.create_sell_page(page)
     page.empty:SetText(texts.nothing_to_post)
     page.empty:SetPoint("TOPLEFT")
     page.detail = CreateFrame("Frame", nil, page)
+    page.detail_grid = library.create_grid(page.detail, { columns = { "rest" }, row = 0, row_gap = 14, y = "top" })
     create_figures(page, texts)
     create_chart(page, texts)
     create_offers(page, texts)
@@ -453,51 +418,27 @@ function vga.create_sell_page(page)
 end
 
 local function update_facts_layout(page, top, gap)
-    local pad, height = library.read_draft_size(12), library.read_draft_size(52)
-    page.facts:ClearAllPoints()
-    page.facts:SetPoint("TOPLEFT", page.detail, "TOPLEFT", 0, -top)
-    page.facts:SetSize(page.detail_width, height)
-    library.update_group(page.facts)
-    local cell = page.detail_width / 4
-    for index, figure in ipairs(page.figures) do
-        local x = (index - 1) * cell
-        figure.label:SetFontObject(library.read_font("caption"))
-        figure.label:ClearAllPoints()
-        figure.label:SetPoint("TOPLEFT", page.facts, "TOPLEFT", x + pad, -library.read_draft_size(10))
-        figure.label:SetWidth(cell - 2 * pad)
-        local shown = figure.money or figure.chip or figure.text
-        shown:ClearAllPoints()
-        shown:SetPoint("TOPLEFT", figure.label, "BOTTOMLEFT", 0, -library.read_draft_size(4))
-        if figure.rule then
-            figure.rule:ClearAllPoints()
-            figure.rule:SetPoint("TOPLEFT", page.facts, "TOPLEFT", x, -1)
-            figure.rule:SetPoint("BOTTOMLEFT", page.facts, "BOTTOMLEFT", x, 1)
-            figure.rule:SetWidth(1)
-        end
-    end
-    return top + height + gap
+    return top + library.update_figure_strip(page.facts, page.detail_width) + gap
 end
 
 local function update_chart_layout(page, top, gap, height)
     local pad = library.read_draft_size(12)
-    page.chart:ClearAllPoints()
-    page.chart:SetPoint("TOPLEFT", page.detail, "TOPLEFT", 0, -top)
     page.chart:SetSize(page.detail_width, height)
     library.update_group(page.chart)
     library.update_choice(page.ranges)
     page.ranges:ClearAllPoints()
     page.ranges:SetPoint("TOPRIGHT", page.chart, "TOPRIGHT", -pad, -library.read_draft_size(8))
-    local x = pad
+    local row, columns, gaps = {}, {}, {}
     for index, item in ipairs(page.legend) do
-        local line = index <= 2 and 2 or library.read_draft_size(7)
-        item.mark:SetSize(library.read_draft_size(14), line)
-        item.mark:ClearAllPoints()
-        item.mark:SetPoint("LEFT", page.chart, "TOPLEFT", x, -(library.read_draft_size(8) + page.ranges:GetHeight() / 2))
+        item.mark:SetSize(library.read_draft_size(14), index <= 2 and 2 or library.read_draft_size(7))
         item.word:SetFontObject(library.read_font("small"))
-        item.word:ClearAllPoints()
-        item.word:SetPoint("LEFT", item.mark, "RIGHT", library.read_draft_size(5), 0)
-        x = x + library.read_draft_size(19) + math.ceil(item.word:GetStringWidth()) + library.read_draft_size(14)
+        row[#row + 1], row[#row + 2] = item.mark, item.word
+        columns[#columns + 1], columns[#columns + 2] = 14, "auto"
+        gaps[#gaps + 1], gaps[#gaps + 2] = 5, 14
     end
+    page.legend_grid = page.legend_grid or library.create_grid(page.chart, {})
+    page.legend_grid.plan = { columns = columns, gaps = gaps, padding = { 8, 0, 0, { pixels = pad } }, row = { pixels = page.ranges:GetHeight() } }
+    library.update_grid(page.legend_grid, { row })
     local graph_top = library.read_draft_size(16) + page.ranges:GetHeight()
     page.graph_width, page.graph_height = page.detail_width - 2 * pad, height - graph_top - library.read_draft_size(6)
     page.graph:ClearAllPoints()
@@ -506,73 +447,45 @@ local function update_chart_layout(page, top, gap, height)
 end
 
 local function update_offers_layout(page, top, gap)
-    local pad, head = library.read_draft_size(12), library.read_draft_size(28)
-    local row = library.read_draft_size(30)
-    local height = head + OFFERS * (row + 2)
-    page.offers_group:ClearAllPoints()
-    page.offers_group:SetPoint("TOPLEFT", page.detail, "TOPLEFT", 0, -top)
-    page.offers_group:SetSize(page.detail_width, height)
-    library.update_group(page.offers_group)
-    local places = { { "LEFT", pad }, { "LEFT", pad + library.read_draft_size(86) }, { "RIGHT", page.detail_width - pad } }
-    for index, heading in ipairs(page.offer_heads) do
-        library.update_sort_head(heading, places[index][1] == "RIGHT")
-        heading:ClearAllPoints()
-        heading:SetPoint(places[index][1], page.offers_group, "TOPLEFT", places[index][2], -head / 2)
-    end
-    page.offers:ClearAllPoints()
-    page.offers:SetPoint("TOPLEFT", page.offers_group, "TOPLEFT", 0, -head)
-    page.offers_none:ClearAllPoints()
-    page.offers_none:SetPoint("TOP", page.offers_group, "TOP", 0, -(head + row))
-    return top + height + gap
+    update_offers(page)
+    return top + read_offers_height() + gap
+end
+
+local function read_cells(row)
+    local cells = {}
+    for column, cell in ipairs(row) do cells[column] = cell or nil end
+    return cells
 end
 
 local function update_post_layout(page, top, gap)
     local pad, height = library.read_draft_size(12), library.read_draft_size(50)
-    page.post_group:ClearAllPoints()
-    page.post_group:SetPoint("TOPLEFT", page.detail, "TOPLEFT", 0, -top)
     page.post_group:SetSize(page.detail_width, height)
     library.update_group(page.post_group)
     page.price_label:SetFontObject(library.read_font("small"))
-    page.price_label:ClearAllPoints()
-    page.price_label:SetPoint("LEFT", page.post_group, "LEFT", pad, 0)
     library.update_money_field_layout(page.price)
-    page.price:ClearAllPoints()
-    page.price:SetPoint("LEFT", page.price_label, "RIGHT", library.read_draft_size(8), 0)
     library.update_button(page.post)
-    page.post:ClearAllPoints()
-    page.post:SetPoint("RIGHT", page.post_group, "RIGHT", -pad, 0)
     library.update_choice(page.durations)
-    page.durations:ClearAllPoints()
-    page.durations:SetPoint("RIGHT", page.post, "LEFT", -pad, 0)
     library.update_stepper(page.stepper)
-    page.stepper:ClearAllPoints()
-    page.stepper:SetPoint("RIGHT", page.durations, "LEFT", -pad, 0)
     local needed = pad + math.ceil(page.price_label:GetStringWidth()) + library.read_draft_size(8) + page.price:GetWidth() + page.stepper:GetWidth() + page.durations:GetWidth() + page.post:GetWidth() + 4 * pad
-    page.price_label:SetShown(needed <= page.detail_width)
-    page.price:ClearAllPoints()
-    page.price:SetPoint("LEFT", page.post_group, "LEFT", needed <= page.detail_width and (pad + math.ceil(page.price_label:GetStringWidth()) + library.read_draft_size(8)) or pad, 0)
+    local fits = needed <= page.detail_width
+    page.price_label:SetShown(fits)
+    page.post_grid = page.post_grid or library.create_grid(page.post_group, {})
+    local tail = { "auto", "auto", "auto" }
+    page.post_grid.plan = { columns = fits and { "auto", "auto", "rest", unpack(tail) } or { "auto", "rest", unpack(tail) }, gaps = fits and { 8, 0, 0, 12, 12 } or { 0, 0, 12, 12 }, padding = { 0, 12, 0, 12 }, row = 50 }
+    local row = fits and { page.price_label, page.price, false, page.stepper, page.durations, page.post } or { page.price, false, page.stepper, page.durations, page.post }
+    library.update_grid(page.post_grid, { read_cells(row) }, page.detail_width)
     return top + height + gap
 end
 
 local function update_result_layout(page, top, gap)
     local pad, height = library.read_draft_size(12), library.read_draft_size(36)
-    page.result_group:ClearAllPoints()
-    page.result_group:SetPoint("TOPLEFT", page.detail, "TOPLEFT", 0, -top)
     page.result_group:SetSize(page.detail_width, height)
     library.update_group(page.result_group)
     local near = library.read_draft_size(4)
-    page.cost_text:ClearAllPoints()
-    page.cost_text:SetPoint("LEFT", page.result_group, "LEFT", pad, 0)
-    page.cost_money:ClearAllPoints()
-    page.cost_money:SetPoint("LEFT", page.cost_text, "RIGHT", near, 0)
-    page.cost_more:ClearAllPoints()
-    page.cost_more:SetPoint("LEFT", page.cost_money, "RIGHT", near, 0)
-    page.after_cut:ClearAllPoints()
-    page.after_cut:SetPoint("LEFT", page.cost_more, "RIGHT", library.read_draft_size(10), 0)
-    page.result:ClearAllPoints()
-    page.result:SetPoint("LEFT", page.after_cut, "RIGHT", library.read_draft_size(10), 0)
+    page.result_grid = page.result_grid or library.create_grid(page.result_group, { columns = { "auto", "auto", "auto", "auto", "auto" }, gaps = { 4, 4, 10, 10 }, padding = { 0, 0, 0, 12 }, row = 36 })
+    library.update_grid(page.result_grid, { { page.cost_text, page.cost_money, page.cost_more, page.after_cut, page.result } })
     page.note:ClearAllPoints()
-    page.note:SetPoint("TOPLEFT", page.detail, "TOPLEFT", near, -(top + height + near))
+    page.note:SetPoint("TOPLEFT", page.result_group, "BOTTOMLEFT", near, -near)
     page.note:SetWidth(page.detail_width - 2 * near)
     return top + height + gap
 end
@@ -582,12 +495,13 @@ local function update_detail_layout(page)
     page.detail:ClearAllPoints()
     page.detail:SetPoint("TOPLEFT", page, "TOPLEFT", page.list_width + gap, 0)
     page.detail:SetPoint("BOTTOMRIGHT")
-    local fixed = library.read_draft_size(52) + library.read_draft_size(28) + OFFERS * (library.read_draft_size(30) + 2) + library.read_draft_size(50) + library.read_draft_size(36) + library.read_draft_size(34) + 5 * gap
+    local fixed = library.read_draft_size(52) + read_offers_height() + library.read_draft_size(50) + library.read_draft_size(36) + library.read_draft_size(34) + 5 * gap
     local top = update_facts_layout(page, 0, gap)
     top = update_chart_layout(page, top, gap, math.max(library.read_draft_size(140), page:GetHeight() - fixed))
     top = update_offers_layout(page, top, gap)
     top = update_post_layout(page, top, gap)
     update_result_layout(page, top, gap)
+    library.update_grid(page.detail_grid, { { page.facts }, { page.chart }, { page.offers_group }, { page.post_group }, { page.result_group } }, page.detail_width)
 end
 
 function vga.update_sell_page(page, width)

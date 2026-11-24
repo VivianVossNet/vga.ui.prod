@@ -1,19 +1,18 @@
 -- Copyright 2026 Vivian Voss. Code by Vivian Voss. Licensed under the BSD-3-Clause.
 -- SPDX-License-Identifier: BSD-3-Clause
--- Scope: LibVGA's shimmer for something new: the button brightened, every three seconds a light running once round its rim that ends in a star flashing at its corner - the bags' new items' (K0403, K0477) and the action keys' newly learned spells' (K0482) -, laid by its owner each frame with the cycle's phase and the button's side, taken away whole by delete_shimmer; or, by create_running_shimmer, laid once as an animation that runs by itself, for frames the addon may not touch each frame - the game's aura buttons while auras are secret (K0615). Its light runs round the rim in four straight legs of Translation animations, one after another - right, down, left, up -, not along a Path: Forever's Path has no SetCurve, whose call broke every own debuff's button on foes since K0615 (K0719), and without it the light ran the top edge alone and stood at the right (K0720).
+-- Scope: LibVGA's shimmer for something new: the button brightened, every three seconds a light running once round its rim that ends in a star flashing at its corner - the bags' new items' (K0403, K0477) and the action keys' newly learned spells' (K0482) -, laid by its owner each frame with the cycle's phase and the button's side, taken away whole by delete_shimmer; or, by create_running_shimmer, laid once as an animation that runs by itself, for frames the addon may not touch each frame - the game's aura buttons while auras are secret (K0615). Its light runs round the rim in four straight legs of Translation animations, one after another - right, down, left, up -, not along a Path: Forever's Path has no SetCurve, whose call broke every own debuff's button on foes since K0615 (K0719), and without it the light ran the top edge alone and stood at the right (K0720). And a timed run for a key whose work repeats at a known pace - the auto attack's swings (K0881): library.create_swing_run makes, on a frame of its own above the key, the bags' bold ring in white at the key's rim width, so it lies exactly on the key's rim; library.render_swing_run starts it anew for a given number of seconds - and, given a reader of the next round's seconds, starts it again at once at each round's end, for as long as it runs (K0883) -, the white frame growing from the top's left end clockwise round the rim, from nothing to whole, as manual/view/vga-mainbar.html's section C draws it, and standing whole once the time is over; library.update_swing_run_stopped takes it away. A duration the game keeps secret, or none, starts nothing. It touches no attribute of the key, which may be protected.
 
--- {K0719} {K0720} {K0403} {K0482} {K0615}
+-- {K0719} {K0720} {K0403} {K0482} {K0615} {K0881} {K0883}
 
 local library = LibVGA
 local colours = library.colours
-local DRAFT_BASE = 13
 local CYCLE = 3
 local RUN_END = 0.26
 local STAR_FROM, STAR_PEAK, STAR_END = 0.24, 0.27, 0.34
 local TRAIL = { { 0, 1 }, { 0.025, 0.6 }, { 0.05, 0.3 } }
 
 local function read_draft(pixels)
-    return math.floor(pixels * library.read_base() / DRAFT_BASE + 0.5)
+    return library.read_draft_size(pixels)
 end
 
 function library.create_shimmer(button)
@@ -167,4 +166,75 @@ function library.delete_shimmer(button)
     button.vga_bright:Hide()
     for _, dot in ipairs(button.vga_trail) do dot:Hide() end
     button.vga_star:Hide()
+end
+
+local WHITE = { 1, 1, 1 }
+local RUN_PATH = {
+    { "EDGETOP", "TOPLEFT", 1, 0, true }, { "TOPRIGHT" }, { "EDGERIGHT", "TOPRIGHT", 0, -1, false }, { "BOTTOMRIGHT" },
+    { "EDGEBOTTOM", "BOTTOMRIGHT", -1, 0, true }, { "BOTTOMLEFT" }, { "EDGELEFT", "BOTTOMLEFT", 0, 1, false }, { "TOPLEFT" },
+}
+
+local function check_plain_seconds(seconds)
+    if issecretvalue and issecretvalue(seconds) then return false end
+    return type(seconds) == "number" and seconds > 0
+end
+
+local function update_run_edge(run, piece, step, length)
+    local thickness, radius = run.thickness_whole, run.radius
+    piece:SetShown(length > 0)
+    if length <= 0 then return end
+    piece:ClearAllPoints()
+    piece:SetPoint(step[2], run, step[2], step[3] * radius, step[4] * radius)
+    if step[5] then piece:SetSize(length, thickness) else piece:SetSize(thickness, length) end
+end
+
+local function update_run_path(run)
+    local straight = math.max(0, run:GetWidth() - 2 * run.radius)
+    local bend = run.radius * math.pi / 2
+    local walked, start = run.share * 4 * (straight + bend), 0
+    for _, step in ipairs(RUN_PATH) do
+        local piece, length = run.ring.pieces[step[1]], step[2] and straight or bend
+        local reached = math.min(math.max(walked - start, 0), length)
+        if step[2] then update_run_edge(run, piece, step, reached) else piece:SetShown(length > 0 and reached >= length / 2) end
+        start = start + length
+    end
+end
+
+local function update_swing_run_share(run)
+    run.share = math.min((GetTime() - run.start) / run.seconds, 1)
+    update_run_path(run)
+    if run.share < 1 then return end
+    run:SetScript("OnUpdate", nil)
+    if run.read_next then library.render_swing_run(run, run.read_next(), run.read_next) end
+end
+
+local function update_swing_run_safely(run)
+    library.update_safely("swing run", update_swing_run_share, run)
+end
+
+function library.create_swing_run(frame, thickness)
+    local run = CreateFrame("Frame", nil, frame)
+    run:SetAllPoints(frame)
+    run:SetFrameLevel(frame:GetFrameLevel() + 2)
+    run.thickness = thickness
+    run.ring = library.create_ring(run, "OVERLAY", 7, nil, true)
+    run:Hide()
+    return run
+end
+
+function library.render_swing_run(run, seconds, read_next)
+    if not check_plain_seconds(seconds) then return end
+    run.read_next = read_next
+    library.update_ring(run.ring, run.thickness, WHITE, 1)
+    run.thickness_whole = library.read_whole_pixels(run.thickness, run)
+    run.radius = run.ring.ratio * run.thickness_whole
+    run.start, run.seconds = GetTime(), seconds
+    run:Show()
+    run:SetScript("OnUpdate", update_swing_run_safely)
+    update_swing_run_share(run)
+end
+
+function library.update_swing_run_stopped(run)
+    run:SetScript("OnUpdate", nil)
+    run:Hide()
 end

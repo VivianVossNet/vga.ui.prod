@@ -1,12 +1,11 @@
 -- Copyright 2026 Vivian Voss. Code by Vivian Voss. Licensed under the BSD-3-Clause.
 -- SPDX-License-Identifier: BSD-3-Clause
--- Scope: vga.ui's own action bars as manual/view/vga-mainbar.html draws them, each key edged as the bags' slots - three pixels with gently rounded corners in the slot's grey, laid over the icon: eight bars of twelve protected keys of our own, on Blizzard's own pages - the main bar on the player's action slots, turning its page with stance, form, vehicle and override as Blizzard's does - a stance's or stealth's page only while the player's own page is the first, so sub-bar B can be chosen in any stance (K0534) -, the second on page 6, the third on 5, the fourth and fifth on 3 and 4, Blizzard's right bars, the sixth to eighth on 13 to 15 -, bound to the player's own keys, each shown or hidden as the settings say, bars 4 to 8 at first as the player had them in Blizzard's settings; two rows by default, the second and third bar side by side above the main bar, the second at the left, the upper row always centred on the screen's middle as the lower row is, whatever the lower row's parts weigh (K0535), or all in one row, as the settings' »Leisten« page says, the bottom row centred on the screen whole; in one row two or three bars as the settings say, three by default, in two rows always three; the whole element - bars, game menu, bag bar and gryphons - scaled down as far as needed for the gryphons' outer ends to fit the screen's width, in steps that keep a key whole screen pixels wide (K0562), the widget itself never scaled but drawn around them at whole pixels, so its pieces show no seams; the game menu and the bag bar beside them; behind them one widget in the tooltip's look with its gold corner, the experience bar of Experience.lua between the rows; the keys dressed as the draft's .key; the game's own gryphons drawn at both ends, each end figure - the gryphon, dragon, wolf or bear - backed by its own shape three times over in near black, so nothing shows through where its picture is faint (K0561). Dragon, wolf, bear, lion, raptor and kneeling knight are painted after the gryphon - hewn statues in its dark brown, its light and its soft outline, their seam fading outward - and stand in exactly its box, as wide and high, overlapping the bar as it does (K0568, K0569). Bars 4 to 8 always stand free, each in a widget of its own. In the third form, »lose«, the gryphons and the shared widget go: each bar, the game menu, the bag bar and the experience bar stands in a widget of its own, with its own ground and gold corner, moved in the edit mode, at first scattered over the screen so that arranging them is plainly the next step; each free bar stacks its keys 1, 2, 3, 4, 6 or 12 to a row and each area is drawn small, normal or large - 80, 100 or 125 per cent - as the »Leisten« page says, which Barsettings.lua draws. Blizzard's eight bars and experience bars are put away in a hidden frame and put back there whenever Blizzard's managed layout takes them out again; nothing protected is moved in a fight. The game's range dot, which an unbound key shows in its key's corner, is drawn in the game's Arial Narrow, since our faces lack the glyph; the bars are laid anew when the game's Edit Mode layouts arrive, late on a character's first login.
+-- Scope: vga.ui's own action bars as manual/view/vga-mainbar.html draws them, each key edged as the bags' slots - three pixels with gently rounded corners in the slot's grey, laid over the icon: eight bars of twelve protected keys of our own, on Blizzard's own pages - the main bar on the player's action slots, turning its page with stance, form, vehicle and override as Blizzard's does - a stance's or stealth's page only while the player's own page is the first, so sub-bar B can be chosen in any stance (K0534) -, the second on page 6, the third on 5, the fourth and fifth on 3 and 4, Blizzard's right bars, the sixth to eighth on 13 to 15 -, bound to the player's own keys, each shown or hidden as the settings say, bars 4 to 8 at first as the player had them in Blizzard's settings; two rows by default, the second and third bar side by side above the main bar, the second at the left, the upper row always centred on the screen's middle as the lower row is, whatever the lower row's parts weigh (K0535), or all in one row, as the settings' »Leisten« page says, the bottom row centred on the screen whole; in one row two or three bars as the settings say, three by default, in two rows always three; the whole element - bars, game menu, bag bar and gryphons - scaled down as far as needed for the gryphons' outer ends to fit the screen's width, in steps that keep a key whole screen pixels wide (K0562), the widget itself never scaled but drawn around them at whole pixels, so its pieces show no seams; the game menu and the bag bar beside them; behind them one widget in the tooltip's look with its gold corner, the experience bar of Experience.lua between the rows; the keys dressed as the draft's .key; the game's own gryphons drawn at both ends, each end figure - the gryphon, dragon, wolf or bear - backed by its own shape three times over in near black, so nothing shows through where its picture is faint (K0561). Dragon, wolf, bear, lion, raptor and kneeling knight are painted after the gryphon - hewn statues in its dark brown, its light and its soft outline, their seam fading outward - and stand in exactly its box, as wide and high, overlapping the bar as it does (K0568, K0569). Bars 4 to 8 always stand free, each in a widget of its own. In the third form, »lose«, the gryphons and the shared widget go: each bar, the game menu, the bag bar and the experience bar stands in a widget of its own, with its own ground and gold corner, moved in the edit mode, at first scattered over the screen so that arranging them is plainly the next step; each free bar stacks its keys 1, 2, 3, 4, 6 or 12 to a row and each area is drawn small, normal or large - 80, 100 or 125 per cent - as the »Leisten« page says, which Barsettings.lua draws. Blizzard's eight bars and experience bars are put away in a hidden frame and put back there whenever Blizzard's managed layout takes them out again; nothing protected is moved in a fight. The game's range dot, which an unbound key shows in its key's corner, is drawn in the game's Arial Narrow by the action key, since our faces lack the glyph; the bars are laid anew when the game's Edit Mode layouts arrive, late on a character's first login. Every key is LibVGA's action key, its meta-object (K0883, K0860): library.create_action_key makes it whole - the template's parts laid away, the icon cropped, the cell dress, the shimmer, the hotkey's face, the auto attack's quiet flash and checked fill and its running frame (K0881) -, library.update_action_key lays it; the bars only fill it.
 
--- {K0375} {K0376} {K0377} {K0380} {K0382} {K0384} {K0385} {K0419} {K0482} {K0503} {K0506} {K0561} {K0562} {K0568} {K0573}
+-- {K0793} {K0375} {K0376} {K0377} {K0380} {K0382} {K0384} {K0385} {K0419} {K0482} {K0503} {K0506} {K0561} {K0562} {K0568} {K0573} {K0883} {K0881} {K0860}
 
 local _, vga = ...
 local library = LibVGA
-local DRAFT_BASE = 13
 local KEYS = 12
 local BACK_LAYERS = 3
 local BACKING = { 0.05, 0.05, 0.06 }
@@ -23,11 +22,7 @@ local BARS = {
     { name = "VGASeventhBar", page = 14, command = "MULTIACTIONBAR6BUTTON", blizzard = "MultiBar6", visible = "MultiBar6_IsVisible" },
     { name = "VGAEighthBar", page = 15, command = "MULTIACTIONBAR7BUTTON", blizzard = "MultiBar7", visible = "MultiBar7_IsVisible" },
 }
-local DOT_FONT = "Fonts\\ARIALN.TTF"
 local ALWAYS_FREE = 4
-local BLACK = { 0, 0, 0 }
-local EDGE_WIDTH = 3
-local SLOT_EDGE = { 0.18, 0.192, 0.22 }
 local PAGES = "[vehicleui][possessbar] 12; [overridebar] 14; [shapeshift] 13; [bar:2] 2; [bar:3] 3; [bar:4] 4; [bar:5] 5; [bar:6] 6; [bonusbar:5] 11; [bonusbar:4] 10; [bonusbar:3] 9; [bonusbar:2] 8; [bonusbar:1] 7; 1"
 local TURN_PAGE = [[
     for index = 1, 12 do
@@ -44,9 +39,7 @@ local UPRIGHT = { [4] = 1, [5] = 1 }
 local mainbar
 local kept = {}
 
-local function read_draft(pixels)
-    return math.floor(pixels * library.read_base() / DRAFT_BASE + 0.5)
-end
+local read_draft = library.read_draft_size
 
 local function read_one_row()
     return LibVGASettings.mainbar_form == "one"
@@ -91,68 +84,15 @@ local function write_blizzard_shown()
     end
 end
 
-local function update_hotkey_face(hotkey, text)
-    if text == RANGE_INDICATOR then
-        local _, size = library.read_font("caption"):GetFont()
-        hotkey:SetFont(DOT_FONT, size or 10, "OUTLINE")
-    else
-        hotkey:SetFontObject(library.read_font("caption"))
-    end
-end
-
-local function create_key(bar, name, index, command)
-    local key = CreateFrame("CheckButton", name .. index, bar, "ActionBarButtonTemplate")
-    key:SetID(index)
-    key.buttonType = command
-    key:SetAttribute("actionpage", bar.page)
-    key:RegisterForClicks("AnyUp")
-    key.command = command .. index
-    if key.HotKey then hooksecurefunc(key.HotKey, "SetText", update_hotkey_face) end
-    if key.UpdateHotkeys then key:UpdateHotkeys(command) end
-    for _, part in ipairs({ key.NormalTexture, key.SlotArt, key.SlotBackground, key.IconMask }) do
-        if part then part:SetAlpha(0) end
-    end
-    if key.icon and key.IconMask then key.icon:RemoveMaskTexture(key.IconMask) end
-    if key.icon then
-        key.icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
-        library.update_cell_picture(key.icon, key, EDGE_WIDTH)
-    end
-    if key.cooldown then library.update_cell_picture(key.cooldown, key, EDGE_WIDTH) end
-    key.vga_line = library.create_surface(key, "BACKGROUND", -8)
-    key.vga_edge = library.create_ring(key, "OVERLAY", 6, nil, true)
-    library.create_shimmer(key)
-    library.delete_shimmer(key)
-    for _, state in ipairs({ key:GetHighlightTexture(), key:GetPushedTexture(), key:GetCheckedTexture() }) do
-        state:SetTexture("Interface\\Buttons\\WHITE8X8")
-        state:SetVertexColor(1, 1, 1, 0.15)
-        state:SetAllPoints(key.icon)
-    end
-    return key
-end
-
 local function create_bar(name, page, command)
     local bar = CreateFrame("Frame", name, UIParent, "SecureHandlerStateTemplate")
     bar.page = page
     bar.keys = {}
     for index = 1, KEYS do
-        bar.keys[index] = create_key(bar, name .. "Key", index, command)
+        bar.keys[index] = library.create_action_key(bar, name .. "Key", index, command)
         bar:SetFrameRef("key" .. index, bar.keys[index])
     end
     return bar
-end
-
-local function update_key_look(key, size, across, down)
-    local radius = 2 * EDGE_WIDTH
-    key:SetSize(size, size)
-    key:ClearAllPoints()
-    key:SetPoint("TOPLEFT", key:GetParent(), "TOPLEFT", across, -down)
-    library.update_surface(key.vga_line, -1, radius + 1, BLACK, BLACK)
-    library.update_ring(key.vga_edge, EDGE_WIDTH, SLOT_EDGE, 1)
-    if key.HotKey then
-        update_hotkey_face(key.HotKey, key.HotKey:GetText())
-        key.HotKey:ClearAllPoints()
-        key.HotKey:SetPoint("TOPRIGHT", key, "TOPRIGHT", -read_draft(4), -read_draft(2))
-    end
 end
 
 local function update_bar_layout(bar, columns)
@@ -161,7 +101,7 @@ local function update_bar_layout(bar, columns)
     bar:SetSize(columns * size + (columns - 1) * gap, rows * size + (rows - 1) * gap)
     for index, key in ipairs(bar.keys) do
         local column, row = (index - 1) % columns, math.floor((index - 1) / columns)
-        update_key_look(key, size, column * (size + gap), row * (size + gap))
+        library.update_action_key(key, size, column * (size + gap), row * (size + gap))
     end
 end
 

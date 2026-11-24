@@ -5,7 +5,6 @@
 -- {K0548} {K0631} {K0648}
 
 local library = LibVGA
-local DRAFT_BASE = 13
 local THUMB = 4
 local THUMB_ALPHA = 0.35
 local INSET = 3
@@ -14,7 +13,7 @@ local THUMB_SHORTEST = 24
 local TOP_LEVEL = 200
 
 local function read_draft(pixels)
-    return math.floor(pixels * library.read_base() / DRAFT_BASE + 0.5)
+    return library.read_draft_size(pixels)
 end
 
 local function update_thumb(body)

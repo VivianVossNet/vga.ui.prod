@@ -2,7 +2,7 @@
 -- SPDX-License-Identifier: BSD-3-Clause
 -- Scope: LibVGA's accordion label, first drawn for the quest tracker's zones (manual/view/vga-questzones.html, K0547) and lifted here (K0633) for the item tooltip's Auktionen and Entzaubern (manual/view/vga-tooltip.html, K0604): a thin line above, a chevron pointing right when closed and down when open - none where the label cannot be opened, as in the plain item tooltip, the word then at the chevron's place (K0752) -, the word in small capitals and a figure or money at the right, all in VGA's orange but the money in the ink; twenty-six draft pixels high, with eight draft pixels of room before the line and eight more after it by default, so a separator never sits tight against the lines around it (K0671).
 
--- {K0752} {K0547} {K0633} {K0671}
+-- {K0837} {K0789} {K0752} {K0547} {K0633} {K0671}
 
 local library = LibVGA
 local colours = library.colours
@@ -10,7 +10,7 @@ local LABEL_HEIGHT = 26
 local MARGIN = 8
 local CHEVRON = 9
 local LINE = { 0.173, 0.184, 0.208 }
-local CAPITALS = { ["ä"] = "Ä", ["ö"] = "Ö", ["ü"] = "Ü", ["é"] = "É", ["è"] = "È", ["à"] = "À", ["ç"] = "Ç", ["ñ"] = "Ñ" }
+local CAPITALS = { ["à"] = "À", ["á"] = "Á", ["â"] = "Â", ["ã"] = "Ã", ["ä"] = "Ä", ["å"] = "Å", ["æ"] = "Æ", ["ç"] = "Ç", ["è"] = "È", ["é"] = "É", ["ê"] = "Ê", ["ë"] = "Ë", ["ì"] = "Ì", ["í"] = "Í", ["î"] = "Î", ["ï"] = "Ï", ["ð"] = "Ð", ["ñ"] = "Ñ", ["ò"] = "Ò", ["ó"] = "Ó", ["ô"] = "Ô", ["õ"] = "Õ", ["ö"] = "Ö", ["ø"] = "Ø", ["ù"] = "Ù", ["ú"] = "Ú", ["û"] = "Û", ["ü"] = "Ü", ["ý"] = "Ý", ["þ"] = "Þ", ["а"] = "А", ["б"] = "Б", ["в"] = "В", ["г"] = "Г", ["д"] = "Д", ["е"] = "Е", ["ж"] = "Ж", ["з"] = "З", ["и"] = "И", ["й"] = "Й", ["к"] = "К", ["л"] = "Л", ["м"] = "М", ["н"] = "Н", ["о"] = "О", ["п"] = "П", ["р"] = "Р", ["с"] = "С", ["т"] = "Т", ["у"] = "У", ["ф"] = "Ф", ["х"] = "Х", ["ц"] = "Ц", ["ч"] = "Ч", ["ш"] = "Ш", ["щ"] = "Щ", ["ъ"] = "Ъ", ["ы"] = "Ы", ["ь"] = "Ь", ["э"] = "Э", ["ю"] = "Ю", ["я"] = "Я", ["ё"] = "Ё" }
 
 function library.read_capitals(name)
     local upper = name:upper()
@@ -56,7 +56,7 @@ function library.update_accordion(label, word, open, width, count, copper)
     label.name:SetText(word)
     label.name:ClearAllPoints()
     label.name:SetPoint("LEFT", label, "LEFT", pad + (open ~= nil and library.read_draft_size(20) or 0), middle)
-    label.count:SetFontObject(library.read_frame_font("small"))
+    label.count:SetFontObject(library.read_frame_font("figures_small"))
     label.count:SetText(count or "")
     label.count:ClearAllPoints()
     label.count:SetPoint("RIGHT", label, "RIGHT", -pad, middle)

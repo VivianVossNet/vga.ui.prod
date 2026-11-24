@@ -1,12 +1,11 @@
 -- Copyright 2026 Vivian Voss. Code by Vivian Voss. Licensed under the BSD-3-Clause.
 -- SPDX-License-Identifier: BSD-3-Clause
--- Scope: The experience bar as the accepted draft draws it (manual/view/vga-xp.html, V1a): above it the level and the share in the light ink at the left, the rested bonus white at the right, without one a quiet »kein Bonus«, both set in far enough that the gryphons never cover them, after the level and share, in brackets, the time left to the next level, »Stufe 22 · 71 % (~28 m)«, reckoned from the experience of the last fifteen minutes and refreshed every minute or after every fight as the settings say, the brackets left out whole while no time is known; all three to be switched off; then the frame rate, the world latency and the addons' memory, 60 fps · 42 ms · 38 MB, the memory white below 200 MB, yellow from 200 to red at 300 (K0587), and the money with the accepted coins (manual/view/vga-windows.html), each switched on and off, and the bag slots in use of all, »35/40«, yellow with ten or fewer left, orange with fewer than five, red when none is; the row laid as a table of equal columns over the width between the insets - level with its time, values, money and slots together in one column, parted by a small dot as the system values are, »2 · 7/24«, bonus -, the first column's content left-aligned, the last's right-aligned, every middle one's centred, and a column switched off or not needed gone, the others sharing its room; on its own tab of the settings, its colour chosen from the same seven swatches as the reputation bar's - blue, green, silver, violet, gold, orange, bronze -, the player's choice, blue for experience and green for reputation by default, a choice made earlier kept (K0695); the bar the mage's blue by default, without the fine light streaks - any of the seven as the settings say (K0567, K0695) -, its colour darkened a little towards grey while no rested bonus is left, rounded, in a black line, with ten fine divisions, moving like every other bar of LibVGA; the rested bonus, as the game shows it, a fainter underlay of the bar's colour at 0.3 opacity, swept by the bars' slanted shine at the same opacity whenever it grows - resting in a city, an inn or a camp - reaching beyond the fill as far as the bonus goes. While a faction is watched the bar shows its reputation instead, in a colour of its own chosen from three swatches - the hunter's green by default, gold or our orange, never blue -, hatched with light diagonal strokes: »Ruf« with the standing's name and the share at the left, the faction's name at the right, without a time column - or, as the settings say (»Ruf und Erfahrung: Beide«), both at once, each bar half as high, two pixels apart, the experience above with its texts, the reputation beneath (K0549). Laid by the main bar between its rows.
+-- Scope: The experience bar as the accepted draft draws it (manual/view/vga-xp.html, V1a): above it the level and the share in the light ink at the left, the rested bonus white at the right, without one a quiet »kein Bonus«, both set in far enough that the gryphons never cover them, after the level and share, in brackets, the time left to the next level, »Stufe 22 · 71 % (~28 m)«, reckoned from the experience of the last fifteen minutes and refreshed every minute or after every fight as the settings say, the brackets left out whole while no time is known; all three to be switched off; then the frame rate, the world latency and the addons' memory, 60 fps · 42 ms · 38 MB, the memory white below 200 MB, yellow from 200 to red at 300 (K0587), and the money with the accepted coins (manual/view/vga-windows.html), each switched on and off, and the bag slots in use of all, »35/40«, yellow with ten or fewer left, orange with fewer than five, red when none is; the row laid as a table of equal columns over the width between the insets - level with its time, values, money and slots together in one column, parted by a small dot as the system values are, »2 · 7/24«, bonus -, the first column's content left-aligned, the last's right-aligned, every middle one's centred, and a column switched off or not needed gone, the others sharing its room; on its own tab of the settings, its colour chosen from the same seven swatches as the reputation bar's - blue, green, silver, violet, gold, orange, bronze -, the player's choice, blue for experience and green for reputation by default, a choice made earlier kept (K0695); the bar the mage's blue by default, without the fine light streaks - any of the seven as the settings say (K0567, K0695) -, its colour darkened a little towards grey while no rested bonus is left, rounded, in a black line, with ten fine divisions, moving like every other bar of LibVGA; the rested bonus, as the game shows it, a fainter underlay of the bar's colour at 0.3 opacity, swept by the bars' slanted shine at the same opacity whenever it grows - resting in a city, an inn or a camp - reaching beyond the fill as far as the bonus goes. While a faction is watched the bar shows its reputation instead, in a colour of its own chosen from three swatches - the hunter's green by default, gold or our orange, never blue -, hatched with light diagonal strokes: »Ruf« with the standing's name and the share at the left, the faction's name at the right, without a time column - or, as the settings say (»Ruf und Erfahrung: Beide«), both at once, each bar half as high, two pixels apart, the experience above with its texts, the reputation beneath (K0549). Laid by the main bar between its rows. Its colour rows are LibVGA's pictures row (library.create_pictures_row, K0872).
 
--- {K0298} {K0300} {K0375} {K0378} {K0383} {K0388} {K0397} {K0404} {K0428} {K0430} {K0437} {K0451} {K0483} {K0516} {K0519} {K0526} {K0531} {K0549} {K0567} {K0587} {K0695}
+-- {K0872} {K0799} {K0789} {K0782} {K0298} {K0300} {K0375} {K0378} {K0383} {K0388} {K0397} {K0404} {K0428} {K0430} {K0437} {K0451} {K0483} {K0516} {K0519} {K0526} {K0531} {K0549} {K0567} {K0587} {K0695}
 
 local _, vga = ...
 local library = LibVGA
-local DRAFT_BASE = 13
 local DIVISIONS = 10
 local INSET = 40
 local BOTH_GAP = 2
@@ -31,9 +30,7 @@ local MEMORY_RED = 300
 local MEMORY_EVERY = 10
 local memory = { used = 0, read = 0 }
 
-local function read_draft(pixels)
-    return math.floor(pixels * library.read_base() / DRAFT_BASE + 0.5)
-end
+local read_draft = library.read_draft_size
 
 local function create_hatch(bar)
     local hatch = bar:CreateTexture(nil, "ARTWORK", nil, 2)
@@ -47,15 +44,15 @@ end
 
 function vga.create_experience(parent)
     local block = CreateFrame("Frame", nil, parent)
-    block.level = library.create_text(block, "body", LABEL)
-    block.bonus = library.create_text(block, "body", LABEL)
-    block.system = library.create_text(block, "body", LABEL)
+    block.level = library.create_text(block, "figures_body", LABEL)
+    block.bonus = library.create_text(block, "figures_body", LABEL)
+    block.system = library.create_text(block, "figures_body", LABEL)
     block.system:SetJustifyH("CENTER")
     block.purse = CreateFrame("Frame", nil, block)
     block.money = library.create_money(block.purse, LABEL)
     block.dot = library.create_text(block.purse, "body", LABEL)
     block.dot:SetText("·")
-    block.slots = library.create_text(block.purse, "body", LABEL)
+    block.slots = library.create_text(block.purse, "figures_body", LABEL)
     block.cells = { block.level, block.system, block.purse, block.bonus }
     vga.experience_block = block
     block.bar = library.create_bar(block, "gold")
@@ -69,16 +66,8 @@ function vga.create_experience(parent)
     block.second = library.create_bar(block, "hunter")
     block.second.hatch = create_hatch(block.second)
     block.second:Hide()
-    block.rested = CreateFrame("StatusBar", nil, block.bar)
+    block.rested = library.create_fill(block.bar, { shine = true })
     block.rested:SetAllPoints()
-    block.rested:SetStatusBarTexture("Interface\\Buttons\\WHITE8X8")
-    block.rested.clip = CreateFrame("Frame", nil, block.rested)
-    block.rested.clip:SetPoint("TOPLEFT")
-    block.rested.clip:SetPoint("BOTTOMRIGHT", block.rested:GetStatusBarTexture(), "BOTTOMRIGHT")
-    block.rested.clip:SetClipsChildren(true)
-    block.rested.shine = block.rested.clip:CreateTexture(nil, "OVERLAY")
-    block.rested.shine:SetTexture(library.media .. "Shine")
-    block.rested.shine:SetBlendMode("ADD")
     block.rested.shine:SetAlpha(RESTED_ALPHA)
     block.rested.shine:Hide()
     vga.create_experience_tips(block)
@@ -146,15 +135,10 @@ local function read_slots_colour(free)
 end
 
 local function update_purse(block)
-    local apart = read_draft(PURSE_APART)
-    block.money:ClearAllPoints()
-    block.money:SetPoint("TOPLEFT", block.purse, "TOPLEFT")
     block.dot:SetFontObject(library.read_frame_font("body"))
-    block.dot:ClearAllPoints()
-    block.dot:SetPoint("TOPLEFT", block.money, "TOPRIGHT", apart, 0)
-    block.slots:ClearAllPoints()
-    block.slots:SetPoint("TOPLEFT", block.dot, "TOPRIGHT", apart, 0)
-    block.purse:SetSize(block.money:GetWidth() + 2 * apart + block.dot:GetStringWidth() + block.slots:GetStringWidth(), library.read_size(0) + read_draft(5))
+    block.purse.grid = block.purse.grid or library.create_grid(block.purse, { columns = { "auto", "auto", "auto" }, gap = PURSE_APART, y = "top", row = 0 })
+    local width = library.update_grid(block.purse.grid, { { block.money, block.dot, block.slots } })
+    block.purse:SetSize(width, library.read_size(0) + read_draft(5))
 end
 
 local function update_extras(block)
@@ -164,7 +148,7 @@ local function update_extras(block)
     block.purse:SetShown(shown and LibVGASettings.xp_money ~= "off")
     block.system:SetText(render_system())
     library.update_money(block.money, GetMoney())
-    block.slots:SetFontObject(library.read_frame_font("body"))
+    block.slots:SetFontObject(library.read_frame_font("figures_body"))
     local used, total = vga.read_bag_slots()
     block.slots:SetText(string.format("%d/%d", used, total))
     block.slots:SetTextColor(unpack(read_slots_colour(total - used)))
@@ -190,11 +174,9 @@ end
 local function create_shade_row(page, title, shades, chosen, key)
     local swatches = {}
     for index, shade in ipairs(shades) do swatches[index] = { colour = SWATCHES[shade] } end
-    local row = library.create_row(page, title)
-    row.control = library.create_pictures(row, swatches, chosen, function(index)
+    return library.create_pictures_row(page, title, swatches, chosen, function(index)
         library.update_choice_setting(key, shades[index])
     end, "swatch")
-    return row
 end
 
 local function check_loose()
@@ -245,14 +227,14 @@ local function update_marks(block, height)
 end
 
 local function read_mixed(colour, other, share)
-    return CreateColor(colour[1] + (other[1] - colour[1]) * share, colour[2] + (other[2] - colour[2]) * share, colour[3] + (other[3] - colour[3]) * share, 1)
+    return { colour[1] + (other[1] - colour[1]) * share, colour[2] + (other[2] - colour[2]) * share, colour[3] + (other[3] - colour[3]) * share }
 end
 
 local function update_fill(block, shade, spent)
     local top, bottom = library.read_bar_colours(shade)
     local share = spent and SPENT_SHARE or 0
-    block.bar:GetStatusBarTexture():SetGradient("VERTICAL", read_mixed(bottom, SPENT_GREY, share), read_mixed(top, SPENT_GREY, share))
-    block.rested:SetStatusBarColor(top[1], top[2], top[3], RESTED_ALPHA)
+    library.update_fill_colour(block.bar, read_mixed(top, SPENT_GREY, share), read_mixed(bottom, SPENT_GREY, share))
+    library.update_fill_colour(block.rested, top, nil, RESTED_ALPHA)
 end
 
 local function read_reputation()
@@ -319,25 +301,22 @@ local function update_second(block, faction, height)
     library.update_bar_value(second, faction.most > 0 and faction.have or 1, faction.most > 0 and faction.most or 1)
 end
 
-local function read_cell_point(index, count)
-    if index == 1 then return "TOPLEFT", 0 end
-    if index == count then return "TOPRIGHT", 1 end
-    return "TOP", 0.5
+local function read_cell_x(index, count)
+    if index == 1 then return "left" end
+    if index == count then return "right" end
+    return "middle"
 end
 
 local function update_columns(block)
-    local inset = read_draft(INSET)
-    local shown = {}
+    local shown, columns, aligned = {}, {}, {}
     for _, cell in ipairs(block.cells) do
         if cell:IsShown() then shown[#shown + 1] = cell end
     end
-    local width = math.max(0, (block:GetWidth() or 0) - 2 * inset) / math.max(#shown, 1)
     block.money:SetHeight(library.read_size(0) + read_draft(5))
-    for index, cell in ipairs(shown) do
-        local point, share = read_cell_point(index, #shown)
-        cell:ClearAllPoints()
-        cell:SetPoint(point, block, "TOPLEFT", inset + (index - 1 + share) * width, 0)
-    end
+    for index in ipairs(shown) do columns[index], aligned[index] = "rest", read_cell_x(index, #shown) end
+    block.columns_grid = block.columns_grid or library.create_grid(block, { padding = { 0, INSET, 0, INSET }, y = "top", row = 0 })
+    block.columns_grid.plan.columns, block.columns_grid.plan.x = columns, aligned
+    library.update_grid(block.columns_grid, { shown }, block:GetWidth() or 0)
 end
 
 function vga.update_experience(block)
@@ -347,14 +326,14 @@ function vga.update_experience(block)
     local height = read_draft(14)
     local share = math.min((UnitXP("player") or 0) / most, 1)
     local bonus = (GetXPExhaustion() or 0) / most
-    block.level:SetFontObject(library.read_frame_font("body"))
-    block.bonus:SetFontObject(library.read_frame_font("body"))
+    block.level:SetFontObject(library.read_frame_font("figures_body"))
+    block.bonus:SetFontObject(library.read_frame_font("figures_body"))
     local watched = read_reputation()
     local both = watched ~= nil and LibVGASettings.xp_both == "both"
     local faction = not both and watched or nil
     block.level:SetShown(vga.read_experience_labels())
     block.bonus:SetShown(vga.read_experience_labels())
-    block.system:SetFontObject(library.read_frame_font("body"))
+    block.system:SetFontObject(library.read_frame_font("figures_body"))
     update_extras(block)
     if faction then
         update_reputation_texts(block, faction)

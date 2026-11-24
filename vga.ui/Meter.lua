@@ -1,8 +1,8 @@
 -- Copyright 2026 Vivian Voss. Code by Vivian Voss. Licensed under the BSD-3-Clause.
 -- SPDX-License-Identifier: BSD-3-Clause
--- Scope: vga.ui's damage meter as the accepted draft draws variant A (manual/view/vga-meter.html, K0721): one widget in the quest tracker's look - its ground, its gold corner, a head with the mark, the chosen type in the tracker's gold and at the right the fight with its time -, beneath it a row per player as a bar in the class's colour, the raid cell's gradient darkened to 55 and 45 per cent, rank, name, amount and, quieter, the second figure; the own row with the gold edge at the left and its rank in gold; alone, the player's own spells beneath the own row; more players than rows, the own row added with its real rank behind a dotted line, the wheel scrolling, a foot naming how many and the total. The figures come from the game's own meter, C_DamageMeter: plain they are written short - whole below 10 000, three places with k or M above -, secret in an instance's fight they are handed to the game as they come. It can be switched off whole, at the head of its page (K0734). No menu of its own: the head's words and the gold corner open the meter's page of the one settings dialog - type and fight as pop-up menus, rows, the second figure, what it does out of combat, its widget row, and »Alle Kämpfe löschen …«. It starts in the screen's top left corner, 8 draft pixels from the top and from the left, at the small size until another is chosen (K0732). The game's own meter window is hidden and kept hidden whenever the game shows it again; its data still come (K0722).
+-- Scope: vga.ui's damage meter as the accepted draft draws variant A (manual/view/vga-meter.html, K0721): one widget in the quest tracker's look - its ground, its gold corner, LibVGA's widget head (library.create_frame_head, K0791) with the mark, the chosen type in the tracker's gold and at the right the fight with its time -, beneath it a row per player as a bar in the class's colour, the raid cell's gradient darkened to 55 and 45 per cent, rank, name, amount and, quieter, the second figure; the own row with the gold edge at the left and its rank in gold; alone, the player's own spells beneath the own row; more players than rows, the own row added with its real rank behind a dotted line, the wheel scrolling, a foot naming how many and the total. The figures come from the game's own meter, C_DamageMeter: plain they are written short - whole below 10 000, three places with k or M above -, secret in an instance's fight they are handed to the game as they come. It can be switched off whole, at the head of its page (K0734). No menu of its own: the head's words and the gold corner open the meter's page of the one settings dialog - type and fight as pop-up menus, rows, the second figure, what it does out of combat, its widget row, and »Alle Kämpfe löschen …«. It starts in the screen's top left corner, 8 draft pixels from the top and from the left, at the small size until another is chosen (K0732). The game's own meter window is hidden and kept hidden whenever the game shows it again; its data still come (K0722). Its settings rows with a popup are LibVGA's (library.create_popup_row, K0872).
 
--- {K0721} {K0722} {K0732} {K0734}
+-- {K0872} {K0829} {K0817} {K0799} {K0791} {K0789} {K0721} {K0722} {K0732} {K0734}
 
 local _, vga = ...
 local library = LibVGA
@@ -14,6 +14,7 @@ local ROW_GAP = 2
 local SIDE = 6
 local RANK = 14
 local SECOND = 34
+local AMOUNT_SAMPLE = "88,88 M"
 local CELL_GAP = 6
 local ICON = 12
 local EDGE = 2
@@ -24,7 +25,6 @@ local BAR_LEFT, BAR_RIGHT = 0.55, 0.45
 local SPELL_LEFT, SPELL_RIGHT = 0.38, 0.30
 local FAINT = 0.5
 local REFRESH = 0.5
-local TITLE = { 0.945, 0.812, 0.431 }
 local GOLD_RANK = { 0.945, 0.812, 0.431 }
 local SECOND_INK = { 0.839, 0.824, 0.792 }
 local ROW_GROUND = { 0.031, 0.035, 0.043 }
@@ -141,14 +141,14 @@ local function create_meter_row(parent)
     row.edge:SetColorTexture(colours.gold[1], colours.gold[2], colours.gold[3], 1)
     row.icon = row.bar:CreateTexture(nil, "OVERLAY")
     row.icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
-    row.rank = library.create_text(row.bar, "small", colours.quiet)
+    row.rank = library.create_text(row.bar, "figures_small", colours.quiet)
     row.rank:SetJustifyH("RIGHT")
     row.name = library.create_text(row.bar, "caption", colours.ink)
     row.name:SetJustifyH("LEFT")
     row.name:SetWordWrap(false)
-    row.amount = library.create_text(row.bar, "caption", colours.ink)
+    row.amount = library.create_text(row.bar, "figures_caption", colours.ink)
     row.amount:SetJustifyH("RIGHT")
-    row.second = library.create_text(row.bar, "small", SECOND_INK)
+    row.second = library.create_text(row.bar, "figures_small", SECOND_INK)
     row.second:SetJustifyH("RIGHT")
     for _, text in ipairs({ row.rank, row.name, row.amount, row.second }) do text:SetDrawLayer("OVERLAY", 7) end
     return row
@@ -161,30 +161,24 @@ end
 
 local function update_row_layout(row, spell)
     local draft = library.read_draft_size
-    local height = draft(spell and SPELL_ROW or ROW)
+    local height = library.read_whole_pixels(draft(spell and SPELL_ROW or ROW), row)
     row:SetSize(draft(WIDTH - 2 * SIDE), height)
     library.update_bar_shape(row.bar, draft(3))
-    row.rank:SetFontObject(library.read_frame_font("small"))
+    row.rank:SetFontObject(library.read_frame_font("figures_small"))
     row.name:SetFontObject(library.read_frame_font("caption"))
-    row.amount:SetFontObject(library.read_frame_font("caption"))
-    row.second:SetFontObject(library.read_frame_font("small"))
+    row.amount:SetFontObject(library.read_frame_font("figures_caption"))
+    row.second:SetFontObject(library.read_frame_font("figures_small"))
     row.name:SetTextColor(unpack(colours.ink))
     row.amount:SetTextColor(unpack(colours.ink))
     row.second:SetTextColor(unpack(SECOND_INK))
-    row.rank:ClearAllPoints()
-    row.rank:SetPoint("LEFT", row, "LEFT", draft(4), 0)
     row.rank:SetWidth(draft(RANK))
-    row.icon:ClearAllPoints()
-    row.icon:SetPoint("RIGHT", row, "LEFT", draft(4 + RANK), 0)
     row.icon:SetSize(draft(ICON), draft(ICON))
-    row.second:ClearAllPoints()
-    row.second:SetPoint("RIGHT", row, "RIGHT", -draft(SIDE), 0)
     row.second:SetWidth(draft(SECOND))
-    row.amount:ClearAllPoints()
-    row.amount:SetPoint("RIGHT", row.second, "LEFT", -draft(CELL_GAP), 0)
-    row.name:ClearAllPoints()
-    row.name:SetPoint("LEFT", row, "LEFT", draft(4 + RANK + CELL_GAP), 0)
-    row.name:SetPoint("RIGHT", row.amount, "LEFT", -draft(CELL_GAP), 0)
+    local amount = { pixels = math.ceil(library.read_sample_width(library.read_frame_font("figures_caption"), AMOUNT_SAMPLE)) }
+    row.grid = row.grid or library.create_grid(row, { columns = { RANK, "rest", amount, SECOND }, gap = CELL_GAP, padding = { 0, SIDE, 0, 4 }, x = { "left", "left", "right", "right" }, cut = { [2] = true } })
+    row.grid.plan.columns[3] = amount
+    row.grid.plan.row = spell and SPELL_ROW or ROW
+    library.update_grid(row.grid, { { { row.rank, { row.icon, "right" } }, row.name, row.amount, row.second } }, draft(WIDTH - 2 * SIDE))
     row.edge:ClearAllPoints()
     row.edge:SetPoint("TOPLEFT")
     row.edge:SetPoint("BOTTOMLEFT")
@@ -289,7 +283,7 @@ local function update_own_pinned(laid, board, wanted)
     meter.cut:SetShown(outside)
     if not outside then return end
     meter.cut:SetSize(library.read_draft_size(WIDTH - 2 * SIDE), 1)
-    update_placed(laid, meter.cut, 1)
+    update_placed(laid, meter.cut, library.read_whole_pixels(1, meter.list))
     local row = read_next_row(laid)
     update_source_row(row, board.sources[own], own, board)
     update_placed(laid, row, row:GetHeight())
@@ -298,7 +292,7 @@ end
 local function update_list_rows(board)
     local wanted, sources = read_rows_wanted(), board.sources
     meter.offset = math.max(0, math.min(meter.offset or 0, #sources - wanted))
-    local laid = { shown = 0, top = 0, gap = library.read_draft_size(ROW_GAP) }
+    local laid = { shown = 0, top = 0, gap = library.read_whole_pixels(library.read_draft_size(ROW_GAP), meter.list) }
     for index = meter.offset + 1, math.min(#sources, meter.offset + wanted) do
         local row = read_next_row(laid)
         update_source_row(row, sources[index], index, board)
@@ -322,45 +316,20 @@ local function update_cut_line()
     end
 end
 
-local function update_head()
-    local draft = library.read_draft_size
-    meter.mark:SetSize(draft(MARK), draft(MARK))
-    meter.mark:ClearAllPoints()
-    meter.mark:SetPoint("TOPLEFT", meter, "TOPLEFT", draft(12), -draft(8))
-    meter.head:SetFontObject(library.read_font("bold"))
-    meter.head:SetTextColor(unpack(TITLE))
-    meter.head:SetText(library.texts["meter_" .. read_type_entry().key])
-    meter.head:ClearAllPoints()
-    meter.head:SetPoint("LEFT", meter.mark, "RIGHT", draft(CORNER_GAP), 0)
-    meter.fight:SetFontObject(library.read_font("small"))
-    meter.fight:SetTextColor(unpack(colours.quiet))
-    meter.fight:ClearAllPoints()
-    meter.fight:SetPoint("RIGHT", meter, "TOPRIGHT", -draft(12), 0)
-    meter.fight:SetPoint("TOP", meter.mark, "TOP")
-    meter.fight:SetPoint("BOTTOM", meter.mark, "BOTTOM")
-    meter.fight:SetPoint("LEFT", meter.head, "RIGHT", draft(CORNER_GAP), 0)
+local function update_head(board)
+    local title = library.texts["meter_" .. read_type_entry().key]
+    local height = library.update_frame_head(meter, title, read_fight_word(board.held), library.read_draft_size(WIDTH))
     meter.opener:ClearAllPoints()
     meter.opener:SetPoint("TOPLEFT", meter.mark, "TOPLEFT")
-    meter.opener:SetPoint("BOTTOMRIGHT", meter.fight, "BOTTOMRIGHT")
-    return draft(8) + math.max(draft(MARK), math.ceil(meter.head:GetStringHeight())) + draft(6)
+    meter.opener:SetPoint("BOTTOMRIGHT", meter.note, "BOTTOMRIGHT")
+    return height
 end
 
 local function update_foot(board)
-    local wanted = read_rows_wanted()
-    local shown = #board.sources > wanted
-    meter.foot:SetShown(shown)
-    meter.total:SetShown(shown)
-    if not shown then return 0 end
-    local draft = library.read_draft_size
-    meter.foot:SetFontObject(library.read_font("small"))
-    meter.total:SetFontObject(library.read_font("small"))
-    meter.foot:SetText(string.format(library.texts.meter_players, #board.sources))
-    update_amount_text(meter.total, board.total)
-    meter.foot:ClearAllPoints()
-    meter.foot:SetPoint("BOTTOMLEFT", meter, "BOTTOMLEFT", draft(12), draft(8))
-    meter.total:ClearAllPoints()
-    meter.total:SetPoint("BOTTOMRIGHT", meter, "BOTTOMRIGHT", -draft(12), draft(8))
-    return draft(6) + math.ceil(meter.foot:GetStringHeight())
+    local shown = #board.sources > read_rows_wanted()
+    local height = library.update_frame_foot(meter, shown and string.format(library.texts.meter_players, #board.sources) or nil)
+    if shown then update_amount_text(meter.foot_figure, board.total) end
+    return height
 end
 
 local function check_meter_off()
@@ -382,11 +351,10 @@ local function update_meter()
     update_shown()
     if check_meter_off() then return end
     local board = read_board()
-    meter.fight:SetText(read_fight_word(board.held))
-    local head = update_head()
+    local head = update_head(board)
     local draft = library.read_draft_size
     meter.list:ClearAllPoints()
-    meter.list:SetPoint("TOPLEFT", meter, "TOPLEFT", draft(SIDE), -head)
+    meter.list:SetPoint("TOPLEFT", meter, "TOPLEFT", draft(SIDE), -library.read_whole_pixels(head, meter))
     meter.list:SetSize(draft(WIDTH - 2 * SIDE), 1)
     update_cut_line()
     local list = update_list_rows(board)
@@ -474,10 +442,8 @@ end
 local function create_meter_page(page)
     local texts = library.texts
     local shown = library.create_choice_row(page, texts.meter, { texts.on, texts.off }, check_meter_off() and 2 or 1, write_meter_shown)
-    local kind = library.create_row(page, texts.meter_type)
-    kind.control = library.create_popup(kind, read_type_sections(), LibVGASettings.meter_type or "damage", write_meter_setting("meter_type"))
-    page.fight = library.create_row(page, texts.meter_fight)
-    page.fight.control = library.create_popup(page.fight, read_fight_sections(), LibVGASettings.meter_fight or "current", write_meter_setting("meter_fight"))
+    local kind = library.create_popup_row(page, texts.meter_type, read_type_sections(), LibVGASettings.meter_type or "damage", write_meter_setting("meter_type"))
+    page.fight = library.create_popup_row(page, texts.meter_fight, read_fight_sections(), LibVGASettings.meter_fight or "current", write_meter_setting("meter_fight"))
     local rows = library.create_row(page, texts.meter_rows)
     rows.control = library.create_stepper(rows, write_rows)
     library.update_stepper(rows.control, read_rows_wanted())
@@ -519,19 +485,13 @@ local function create_meter()
     delete_game_meter()
     meter = library.create_frame("VGADamageMeter", UIParent)
     meter.corner:SetScript("OnClick", render_meter_page)
-    meter.mark = meter:CreateTexture(nil, "OVERLAY")
-    meter.mark:SetTexture(library.media .. "Mark")
-    meter.head = library.create_text(meter, "bold", TITLE)
-    meter.fight = library.create_text(meter, "small", colours.quiet)
-    meter.fight:SetJustifyH("RIGHT")
-    meter.fight:SetWordWrap(false)
+    library.create_frame_head(meter, {})
     meter.opener = CreateFrame("Button", nil, meter)
     meter.opener:SetScript("OnClick", render_meter_page)
     meter.list = CreateFrame("Frame", nil, meter)
     meter.cut = CreateFrame("Frame", nil, meter.list)
     meter.cut.dots = {}
-    meter.foot = library.create_text(meter, "small", colours.quiet)
-    meter.total = library.create_text(meter, "small", colours.quiet)
+    library.create_frame_foot(meter)
     meter.rows, meter.offset = {}, 0
     meter:EnableMouseWheel(true)
     meter:SetScript("OnMouseWheel", update_wheel)

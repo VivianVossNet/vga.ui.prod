@@ -2,42 +2,33 @@
 -- SPDX-License-Identifier: BSD-3-Clause
 -- Scope: the loot as a dialog in the bags' look, as the accepted draft draws variant B (manual/view/vga-loot.html, K0700): LibVGA's dialog with the bags' head - the mark, the title naming what is looted, else »Beute« - and a foot with the bag slots still free; beneath the head every loot slot as one row of LibVGA's list - the item's picture in a slot with the bags' edge in its quality's colour, a quest item's in gold, its count in the slot, beside it the name in its quality's colour, rare and epic in the brighter colours vga.auctions uses so they read on the dark ground, and below it what it is - its kind and sort, »Geld«, or »Questgegenstand« in gold -; the whole row the click that takes it, a modified click linking it as everywhere, the game's tooltip of the slot on hover, the row lit as the template's rows are; a slot taken keeps its place, greyed, so nothing moves under the pointer; the dialog one size for six rows, more scrolling, compact since K0704 - each row one line, the picture small, the name beside it and its kind at the right, both in the bags' small face, the title in the bold face of the body, not the large one of a full dialog, a long name ending in »…« before the close button (K0707) - and as large as the bags' tab chooses for it, Klein, Mittel or Groß; opened with its first row under the pointer and closed with the loot. The game's own loot frame hears nothing.
 
--- {K0700} {K0704} {K0707}
+-- {K0802} {K0793} {K0789} {K0786} {K0785} {K0784} {K0783} {K0700} {K0704} {K0707}
 
 local _, vga = ...
 local library = LibVGA
 local colours = library.colours
 local ROWS = 6
-local ROW = 26
+local ROW = 40
 local WIDTH = 240
-local CELL = 22
-local EDGE = 2
+local PAD = 12
+local ICON = 26
 local MONEY = 2
-local KIND_MOST = 90
-local TAKEN = { 0.29, 0.29, 0.29 }
-local BRIGHT = { [3] = { 0.31, 0.56, 0.91 }, [4] = { 0.69, 0.36, 0.91 } }
 local loot
 
-local function read_quality_colour(quality)
-    if BRIGHT[quality] then return BRIGHT[quality] end
-    local colour = ITEM_QUALITY_COLORS and ITEM_QUALITY_COLORS[quality or 1]
-    return colour and { colour.r, colour.g, colour.b } or colours.ink
-end
-
-local function read_edge_colour(entry)
-    if entry.quest then return colours.gold end
-    if (entry.quality or 0) >= 2 then return read_quality_colour(entry.quality) end
-    return colours.metal_top
-end
-
-local function read_kind(entry)
+local function read_kind(entry, link)
     local texts = library.texts
-    if entry.money then return texts.money_kind, colours.quiet end
+    if entry.coin then return texts.money_kind end
     if entry.quest then return texts.quest_item, colours.gold end
-    local link = GetLootSlotLink and GetLootSlotLink(entry.slot)
     local kind, sort = link and select(6, C_Item.GetItemInfo(link))
-    if not kind then return "", colours.quiet end
-    return sort and sort ~= kind and (kind .. " · " .. sort) or kind, colours.quiet
+    if not kind then return "" end
+    return sort and sort ~= kind and (kind .. " · " .. sort) or kind
+end
+
+local function read_copper(slot)
+    if not GetLootSourceInfo then return nil end
+    local sources, copper = { GetLootSourceInfo(slot) }, 0
+    for index = 2, #sources, 2 do copper = copper + (sources[index] or 0) end
+    return copper > 0 and copper or nil
 end
 
 local function read_entries()
@@ -45,50 +36,32 @@ local function read_entries()
     for slot = 1, GetNumLootItems() do
         local icon, name, count, _, quality, _, quest = GetLootSlotInfo(slot)
         if icon then
-            entries[#entries + 1] = { slot = slot, icon = icon, name = name or "", count = count or 0, quality = quality, quest = quest, money = GetLootSlotType(slot) == MONEY }
+            local coin = GetLootSlotType(slot) == MONEY
+            entries[#entries + 1] = { slot = slot, icon = icon, name = name or "", count = count or 0, quality = quality, quest = quest, coin = coin, copper = coin and read_copper(slot) or nil }
         end
     end
     return entries
 end
 
+local function read_item(entry)
+    local link = not entry.coin and GetLootSlotLink and GetLootSlotLink(entry.slot)
+    local sub, ink = read_kind(entry, link)
+    return { icon = entry.icon, id = link and C_Item.GetItemInfoInstant(link), name = entry.name, quality = entry.quality, count = entry.count, sub = sub, sub_colour = ink, quest = entry.quest == true, taken = entry.taken == true, money = entry.copper }
+end
+
 local function update_loot_row(row, entry)
-    local size, gap = library.read_draft_size(CELL), library.read_draft_size(6)
     row.entry = entry
-    row.cell:SetSize(size, size)
-    row.cell:ClearAllPoints()
-    row.cell:SetPoint("LEFT", row, "LEFT", library.read_draft_size(8), 0)
-    row.icon:SetTexture(entry.icon)
-    row.icon:SetDesaturated(entry.taken == true)
-    local link = not entry.money and GetLootSlotLink and GetLootSlotLink(entry.slot)
-    library.update_unusable(row.unusable, link and C_Item.GetItemInfoInstant(link))
-    library.update_cell_picture(row.icon, row.cell, library.read_draft_size(EDGE))
-    library.update_ring(row.edge, library.read_draft_size(EDGE), entry.taken and TAKEN or read_edge_colour(entry), 1)
-    row.count:SetText(entry.count > 1 and entry.count or "")
-    local colour = entry.taken and TAKEN or read_quality_colour(entry.quality)
-    row.name:SetText(entry.name)
-    row.name:SetTextColor(colour[1], colour[2], colour[3], 1)
-    row.name:ClearAllPoints()
-    row.name:SetPoint("LEFT", row.cell, "RIGHT", gap, 0)
-    row.name:SetPoint("RIGHT", row.kind, "LEFT", -gap, 0)
-    local kind, ink = read_kind(entry)
-    ink = entry.taken and TAKEN or ink
-    row.kind:SetText(kind)
-    row.kind:SetTextColor(ink[1], ink[2], ink[3], 1)
-    row.kind:ClearAllPoints()
-    row.kind:SetPoint("RIGHT", row, "RIGHT", -library.read_draft_size(8), 0)
-    row.kind:SetWidth(math.min(math.ceil(row.kind:GetStringWidth()), library.read_draft_size(KIND_MOST)))
+    library.update_item_row(row, read_item(entry), library.read_draft_size(PAD), library.read_draft_size(WIDTH - PAD))
 end
 
 local function render_loot_tip(row)
-    row.light:Show()
     if not (row.entry and not row.entry.taken) then return end
-    GameTooltip:SetOwner(row, "ANCHOR_RIGHT")
+    library.update_item_tip_owner(GameTooltip, row)
     GameTooltip:SetLootItem(row.entry.slot)
     GameTooltip:Show()
 end
 
-local function update_loot_tip_hidden(row)
-    row.light:Hide()
+local function update_loot_tip_hidden()
     GameTooltip:Hide()
 end
 
@@ -100,28 +73,8 @@ local function render_taken(row)
 end
 
 local function create_loot_row(parent)
-    local row = CreateFrame("Button", nil, parent)
+    local row = library.create_item_row(parent, { cell = true, lit = true, on_click = render_taken, on_enter = render_loot_tip, on_leave = update_loot_tip_hidden })
     row:RegisterForClicks("LeftButtonUp", "RightButtonUp")
-    row.light = row:CreateTexture(nil, "BACKGROUND")
-    row.light:SetAllPoints()
-    row.light:SetColorTexture(colours.gold[1], colours.gold[2], colours.gold[3], 0.08)
-    row.light:Hide()
-    row.cell = CreateFrame("Frame", nil, row)
-    row.icon = row.cell:CreateTexture(nil, "ARTWORK")
-    row.icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
-    row.unusable = library.create_unusable(row.cell, row.icon)
-    row.edge = library.create_ring(row.cell, "OVERLAY", 5, nil, true)
-    row.count = library.create_text(row.cell, "caption", colours.ink)
-    row.count:SetPoint("BOTTOMRIGHT", row.cell, "BOTTOMRIGHT", -2, 2)
-    row.name = library.create_text(row, "small", colours.ink)
-    row.name:SetJustifyH("LEFT")
-    row.name:SetWordWrap(false)
-    row.kind = library.create_text(row, "small", colours.quiet)
-    row.kind:SetJustifyH("LEFT")
-    row.kind:SetWordWrap(false)
-    row:SetScript("OnClick", render_taken)
-    row:SetScript("OnEnter", render_loot_tip)
-    row:SetScript("OnLeave", update_loot_tip_hidden)
     return row
 end
 
@@ -137,17 +90,13 @@ local function update_loot_layout()
     loot.title:SetFontObject(library.read_font("bold"))
     loot.title:SetWordWrap(false)
     loot.title:SetPoint("RIGHT", loot.close, "LEFT", -library.read_size(-4), 0)
-    local inner, head, row = library.read_size(-4), library.read_size(4), library.read_draft_size(ROW)
+    local inner, row = library.read_size(-4), library.read_draft_size(ROW)
     local width = library.read_draft_size(WIDTH)
-    local foot = library.read_size(2)
-    loot:SetSize(width + 2 * inner, head + 1 + ROWS * row + foot + 2 * inner)
+    loot:SetSize(width + 2 * inner, library.read_dialog_frame_height(loot) + ROWS * row)
     loot.list:ClearAllPoints()
     loot.list:SetPoint("TOPLEFT", loot.body, "TOPLEFT")
     library.update_list(loot.list, loot.entries or {}, width, ROWS * row, row)
-    loot.foot:SetFontObject(library.read_font("small"))
-    loot.foot:ClearAllPoints()
-    loot.foot:SetPoint("BOTTOMLEFT", loot, "BOTTOMLEFT", inner + library.read_draft_size(12), inner + library.read_size(-4))
-    loot.foot:SetText(string.format(library.texts.slots_free, read_free_slots()))
+    library.update_dialog_foot(loot, string.format(library.texts.slots_free, read_free_slots()))
 end
 
 local function update_loot_place()
@@ -155,13 +104,12 @@ local function update_loot_place()
     local x, y = GetCursorPosition()
     local inner, head = library.read_size(-4), library.read_size(4)
     loot:ClearAllPoints()
-    loot:SetPoint("TOPLEFT", UIParent, "BOTTOMLEFT", x / scale - inner - library.read_draft_size(12 + CELL / 2), y / scale + inner + head + library.read_draft_size(ROW) / 2)
+    loot:SetPoint("TOPLEFT", UIParent, "BOTTOMLEFT", x / scale - inner - library.read_draft_size(PAD + ICON / 2), y / scale + inner + head + library.read_draft_size(ROW) / 2)
 end
 
 local function create_loot()
-    loot = library.create_dialog("VGALootWindow", library.texts.loot)
+    loot = library.create_dialog("VGALootWindow", library.texts.loot, {})
     loot.list = library.create_list(loot.body, create_loot_row, update_loot_row)
-    loot.foot = library.create_text(loot, "small", colours.quiet)
     loot:SetScript("OnHide", function() if CloseLoot then CloseLoot() end end)
     loot:Hide()
     if LootFrame then LootFrame:UnregisterAllEvents() end

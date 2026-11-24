@@ -2,7 +2,7 @@
 -- SPDX-License-Identifier: BSD-3-Clause
 -- Scope: The navigation arrow centred between the player frame and the target frame: three gold chevrons, the foremost strongest and each behind it fainter, laid on the ground as if they lay on the way, each tilted back on its own, with room between them, the farther a little smaller - turned towards the nearest open quest's target as the player sees it - the quest set as the game's tracked one, so the game's own navigation tells where its target stands on the screen, and the arrow points from the screen's middle there, turning with the camera however it is turned, behind the camera pointing back; the addon never sets a map marker of its own, markers are the player's alone (K0749) - one an earlier version left, remembered in LibVGASettings.navigation_waypoint, is cleared on entering the world -; the game's report is read only half a second after the target changes, when it has caught up (K0746); while a marker the player set stands, it is the arrow's target instead of any quest, tracked by the game, every quest's arrow in the tracker grey, until a click on one of them takes it off the map and makes that quest the target (K0748); only where the game gives no place on the screen, by the character's facing - and tilted back (K0545) -, its distance beneath it; shown whenever the tracker has such a target, in a fight too, gone without one.
 
--- {K0370} {K0372} {K0398} {K0399} {K0545} {K0728} {K0746} {K0748} {K0749}
+-- {K0789} {K0370} {K0372} {K0398} {K0399} {K0545} {K0728} {K0746} {K0748} {K0749}
 
 local _, vga = ...
 local library = LibVGA
@@ -28,7 +28,7 @@ local function create_navigation()
         texture.ahead = chevron.ahead
         navigation.chevrons[index] = texture
     end
-    navigation.distance = library.create_text(navigation, "figure", colours.ink)
+    navigation.distance = library.create_text(navigation, "figures_figure", colours.ink)
     navigation:Hide()
 end
 
@@ -67,7 +67,7 @@ local function update_place()
     navigation:SetPoint("TOPLEFT", player, "TOPRIGHT")
     navigation:SetPoint("BOTTOMRIGHT", target, "BOTTOMLEFT")
     navigation.lying:SetSize(width, math.floor(width * TILT + 0.5))
-    navigation.distance:SetFontObject(library.read_font("figure"))
+    navigation.distance:SetFontObject(library.read_font("figures_figure"))
     navigation.distance:ClearAllPoints()
     navigation.distance:SetPoint("TOP", navigation.lying, "BOTTOM", 0, -library.read_size(-6) - math.floor(width * OVERHANG + 0.5))
     return true

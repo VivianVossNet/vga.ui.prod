@@ -2,21 +2,18 @@
 -- SPDX-License-Identifier: BSD-3-Clause
 -- Scope: The minimap frame's two rims, as the owner set them, equally high and every sign and word in each set at its vertical middle: above the map a small magnifier left-aligned at the map's left edge, then a little apart the zone's name, the coordinates right-aligned at its right edge; beneath the map a calendar, a little larger, left-aligned under its left edge, a button of its own that opens the game's calendar, the time and the day's sign - a sun by day, a moon by night - right-aligned at its right edge, resting on either showing a tooltip: »Tag« or »Nacht« in gold, beneath it the realm time and the local time (K0750), the time's digits lowered half a pixel so their middle meets the sign's. The magnifier opens the game's tracking menu, the game's own button lying invisible over it so the menu opens where the sign is. Beside the calendar, a little apart, a letter in the same ink and at its size, shown only while mail waits, the bags' new-item shimmer running round it three draft pixels outside, so the letter keeps its whole size, without their brightening, its tooltip the game's latest senders. The game's zone bar, clock, addon compartment, day sun, coordinates and mail sign are put away.
 
--- {K0750} {K0424} {K0429} {K0430} {K0439} {K0446} {K0509}
+-- {K0802} {K0792} {K0789} {K0750} {K0424} {K0429} {K0430} {K0439} {K0446} {K0509}
 
 local _, vga = ...
 local library = LibVGA
 local colours = library.colours
-local DRAFT_BASE = 13
 local UPDATE_EVERY = 0.2
 local CALENDAR = 1.35
 local GLINT_OUT = 3
 local DIGIT_DROP = 0.5
 local rim
 
-local function read_draft(pixels)
-    return math.floor(pixels * library.read_base() / DRAFT_BASE + 0.5)
-end
+local read_draft = library.read_draft_size
 
 function vga.read_map_line()
     return library.read_size(-1) + read_draft(8)
@@ -122,22 +119,18 @@ function vga.update_map_rim(view, band)
     local size, middle, text = library.read_size(-1), band / 2, library.read_font("small")
     for _, line in ipairs({ rim.zone, rim.coords, rim.time }) do line:SetFontObject(text) end
     update_sign(rim.glass, size)
-    rim.glass:SetPoint("LEFT", view, "TOPLEFT", 0, middle)
     rim.zone:SetFontObject(library.read_font("caption"))
-    rim.zone:ClearAllPoints()
-    rim.zone:SetPoint("LEFT", rim.glass, "RIGHT", read_draft(6), 0)
-    rim.coords:ClearAllPoints()
-    rim.coords:SetPoint("RIGHT", view, "TOPRIGHT", 0, middle)
     local calendar = math.floor(size * CALENDAR + 0.5)
     rim.calendar:SetSize(calendar, calendar)
-    rim.calendar:ClearAllPoints()
-    rim.calendar:SetPoint("LEFT", view, "BOTTOMLEFT", 0, -middle)
     rim.mail:SetSize(calendar, calendar)
-    rim.mail:ClearAllPoints()
-    rim.mail:SetPoint("LEFT", rim.calendar, "RIGHT", read_draft(6), 0)
     rim.mail.glint:SetSize(calendar + 2 * read_draft(GLINT_OUT), calendar + 2 * read_draft(GLINT_OUT))
     update_sign(rim.day, size)
-    rim.day:SetPoint("RIGHT", view, "BOTTOMRIGHT", 0, -middle)
+    for _, grid in ipairs({ rim.above, rim.below }) do
+        grid.frame, grid.plan.row = view, { pixels = band }
+    end
+    local width = view:GetWidth()
+    library.update_grid(rim.above, { { rim.glass, rim.zone, rim.coords } }, width, -band)
+    library.update_grid(rim.below, { { rim.calendar, rim.mail, nil, rim.day } }, width, view:GetHeight())
     rim.time:ClearAllPoints()
     rim.time:SetPoint("RIGHT", rim.day, "LEFT", -read_draft(6), -DIGIT_DROP)
     rim.hover:ClearAllPoints()
@@ -171,11 +164,8 @@ local function render_calendar_safely()
 end
 
 local function create_calendar(widget)
-    local calendar = CreateFrame("Button", "VGAMapCalendar", widget)
+    local calendar = library.create_icon_button(widget, "Calendar", render_calendar_safely, { name = "VGAMapCalendar", tint = colours.ink })
     calendar:SetFrameLevel(widget:GetFrameLevel() + 6)
-    calendar.sign = create_sign(calendar, "Calendar")
-    calendar.sign:SetAllPoints()
-    calendar:SetScript("OnClick", render_calendar_safely)
     return calendar
 end
 
@@ -189,30 +179,28 @@ local function create_day_hover(widget)
 end
 
 local function create_mail(widget)
-    local mail = CreateFrame("Frame", "VGAMapMail", widget)
+    local mail = library.create_icon_button(widget, "Mail", nil, { frame = "Frame", name = "VGAMapMail", tint = colours.ink, on_enter = render_mail_tip, on_leave = update_mail_left })
     mail:SetFrameLevel(widget:GetFrameLevel() + 6)
-    mail.sign = create_sign(mail, "Mail")
-    mail.sign:SetAllPoints()
     mail.glint = CreateFrame("Frame", nil, mail)
     mail.glint:SetPoint("CENTER")
     library.create_shimmer(mail.glint)
     mail:EnableMouse(true)
-    mail:SetScript("OnEnter", render_mail_tip)
-    mail:SetScript("OnLeave", update_mail_left)
     mail:Hide()
     return mail
 end
 
 function vga.create_map_rim(widget)
     rim = { widget = widget }
+    rim.above = library.create_grid(widget, { columns = { "auto", "rest", "auto" }, gaps = { 6, 0 }, x = { "left", "left", "right" } })
+    rim.below = library.create_grid(widget, { columns = { "auto", "auto", "rest", "auto" }, gaps = { 6, 0, 0 }, x = { "left", "left", "left", "right" } })
     rim.glass = create_sign(widget, "Search")
     rim.calendar = create_calendar(widget)
     rim.mail = create_mail(widget)
     rim.day = create_sign(widget, "DaySun")
     rim.hover = create_day_hover(widget)
     rim.zone = library.create_text(widget, "caption", colours.gold)
-    rim.coords = library.create_text(widget, "small", colours.ink)
-    rim.time = library.create_text(widget, "small", colours.ink)
+    rim.coords = library.create_text(widget, "figures_small", colours.ink)
+    rim.time = library.create_text(widget, "figures_small", colours.ink)
     local tracking = MinimapCluster and MinimapCluster.Tracking
     if tracking then
         tracking:SetParent(widget)

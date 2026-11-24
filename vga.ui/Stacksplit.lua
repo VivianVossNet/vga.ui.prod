@@ -1,8 +1,8 @@
 -- Copyright 2026 Vivian Voss. Code by Vivian Voss. Licensed under the BSD-3-Clause.
 -- SPDX-License-Identifier: BSD-3-Clause
--- Scope: vga.ui's own dialog for splitting a stack and for buying an amount, after the accepted draft manual/view/vga-stacksplit.html (K0757): wherever the game opens its split frame - a shift-click on a stack in the bags, on a ware at a merchant - the game's frame is put away at once and this one opens at the same place, always in front: LibVGA's dialog headed »Stapel teilen« or »Menge kaufen«, the item with its picture, its quality's rim and its count, its name in its quality's colour, cut short with »…« where it is too long, beneath it how many are in the stack or how many one purchase gives at what price; LibVGA's stepper for the amount, in steps of one or of the merchant's bundle, from one bundle up to what the game allows; digits typed set it, Backspace takes one back, Enter confirms, Escape cancels; when buying, the price of the chosen amount in our coins; »Abbrechen« and the gold »Teilen« or »Kaufen«, which hand the amount to the game's own SplitStack of the clicked button. The dialog never grows with its content.
+-- Scope: vga.ui's own dialog for splitting a stack and for buying an amount, after the accepted draft manual/view/vga-stacksplit.html (K0757): wherever the game opens its split frame - a shift-click on a stack in the bags, on a ware at a merchant - the game's frame is put away at once and this one opens at the same place, always in front: LibVGA's dialog headed »Stapel teilen« or »Menge kaufen«, the item with its picture, its quality's rim and its count, its name in its quality's colour, cut short with »…« where it is too long, beneath it how many are in the stack or how many one purchase gives at what price; LibVGA's stepper for the amount, in steps of one or of the merchant's bundle, from one bundle up to what the game allows; digits typed set it, Backspace takes one back, Enter confirms, Escape cancels; when buying, the price of the chosen amount in our coins; »Abbrechen« and the gold »Teilen« or »Kaufen« in the foot LibVGA's dialog owns, which hand the amount to the game's own SplitStack of the clicked button; the rows laid by LibVGA's grid, each parted by its hairline with eight draft pixels above and below (K0783). The dialog never grows with its content.
 
--- {K0757}
+-- {K0802} {K0793} {K0789} {K0783} {K0757}
 
 local _, vga = ...
 local library = LibVGA
@@ -105,13 +105,9 @@ local function update_slot(item)
     local edge = item.quality and item.quality >= UNCOMMON and read_quality_colour(item.quality) or SLOT_EDGE
     library.update_ring(slot.edge, library.read_draft_size(3), edge, 1)
     slot.icon:SetTexture(item.icon)
-    slot.icon:ClearAllPoints()
-    slot.icon:SetPoint("TOPLEFT", library.read_draft_size(4), -library.read_draft_size(4))
-    slot.icon:SetPoint("BOTTOMRIGHT", -library.read_draft_size(4), library.read_draft_size(4))
-    slot.count:SetFontObject(library.read_font("figure"))
+    slot.count:SetFontObject(library.read_font("figures_figure"))
     slot.count:SetText(item.count or item.bundle or "")
-    slot.count:ClearAllPoints()
-    slot.count:SetPoint("BOTTOMRIGHT", -library.read_draft_size(4), library.read_draft_size(2))
+    library.update_cell_inside(slot, slot.icon, slot.count, library.read_draft_size(4))
 end
 
 local function read_meta(item)
@@ -120,82 +116,63 @@ local function read_meta(item)
     return string.format(texts.buy_per_purchase, dialog.bundle, library.read_money_text(item.price or 0))
 end
 
-local function update_row(row, label, control, top, width)
-    local pad = library.read_draft_size(2)
-    row.line:ClearAllPoints()
-    row.line:SetPoint("TOPLEFT", dialog.body, "TOPLEFT", library.read_draft_size(14), -top)
-    row.line:SetSize(width, 1)
-    row.label:SetFontObject(library.read_font("small"))
-    row.label:SetText(label)
-    row.label:ClearAllPoints()
-    row.label:SetPoint("LEFT", row.line, "TOPLEFT", pad, -library.read_draft_size(15))
-    control:ClearAllPoints()
-    control:SetPoint("RIGHT", row.line, "TOPRIGHT", -pad, -library.read_draft_size(15))
-    return top + library.read_draft_size(30)
+local function read_rows()
+    local rows = { { dialog.amount_label, dialog.stepper } }
+    if dialog.buying then rows[2] = { dialog.price_label, dialog.price } end
+    return rows
+end
+
+local function update_item(item, width)
+    update_slot(item)
+    dialog.name:SetFontObject(library.read_font("bold"))
+    dialog.name:SetText(read_name(item))
+    dialog.name:SetTextColor(unpack(library.read_quality_colour(item.quality)))
+    dialog.meta:SetFontObject(library.read_font("small"))
+    dialog.meta:SetText(read_meta(item))
+    library.update_grid(dialog.item_grid, { { dialog.slot, { stack = { dialog.name, dialog.meta }, gap = { pixels = 2 } } } }, width)
 end
 
 local function update_layout()
-    local texts, item = library.texts, dialog.item
-    local width, pad = library.read_draft_size(WIDTH), library.read_draft_size(14)
-    local inner = width - 2 * library.read_size(-4) - 2 * pad
+    local texts, width = library.texts, library.read_draft_size(WIDTH)
     library.update_dialog(dialog)
     dialog.title:SetText(dialog.buying and texts.buy_title or texts.split_title)
-    update_slot(item)
-    dialog.slot:ClearAllPoints()
-    dialog.slot:SetPoint("TOPLEFT", dialog.body, "TOPLEFT", pad, -pad)
-    dialog.name:SetFontObject(library.read_font("bold"))
-    dialog.name:SetText(read_name(item))
-    dialog.name:SetTextColor(unpack(read_quality_colour(item.quality)))
-    dialog.name:SetWidth(inner - library.read_draft_size(SLOT + 10))
-    dialog.name:ClearAllPoints()
-    dialog.name:SetPoint("BOTTOMLEFT", dialog.slot, "RIGHT", library.read_draft_size(10), 1)
-    dialog.meta:SetFontObject(library.read_font("small"))
-    dialog.meta:SetText(read_meta(item))
-    dialog.meta:SetWidth(inner - library.read_draft_size(SLOT + 10))
-    dialog.meta:ClearAllPoints()
-    dialog.meta:SetPoint("TOPLEFT", dialog.slot, "RIGHT", library.read_draft_size(10), -1)
-    local top = pad + library.read_draft_size(SLOT) + pad
-    top = update_row(dialog.amount_row, dialog.buying and texts.split_amount or texts.split_take, dialog.stepper, top, inner)
-    dialog.price_row.line:SetShown(dialog.buying)
-    dialog.price_row.label:SetShown(dialog.buying)
+    update_item(dialog.item, width - 2 * library.read_size(-4))
+    dialog.amount_label:SetText(dialog.buying and texts.split_amount or texts.split_take)
+    dialog.price_label:SetText(texts.price)
+    dialog.price_label:SetShown(dialog.buying)
     dialog.price:SetShown(dialog.buying)
-    if dialog.buying then top = update_row(dialog.price_row, texts.price, dialog.price, top, inner) end
+    library.update_stepper(dialog.stepper, dialog.amount)
     dialog.confirm.words = dialog.buying and texts.buy or texts.split_do
     dialog.confirm.text:SetText(dialog.confirm.words)
-    library.update_button(dialog.confirm)
-    library.update_button(dialog.cancel)
-    dialog.confirm:ClearAllPoints()
-    dialog.confirm:SetPoint("TOPRIGHT", dialog.body, "TOPRIGHT", -pad, -(top + library.read_draft_size(6)))
-    dialog.cancel:ClearAllPoints()
-    dialog.cancel:SetPoint("RIGHT", dialog.confirm, "LEFT", -library.read_draft_size(8), 0)
-    local head = library.read_size(4) + library.read_size(-4)
-    dialog:SetSize(width, head + top + library.read_draft_size(6) + library.read_size(2) + pad + library.read_size(-4))
-end
-
-local function create_row()
-    return { line = dialog.body:CreateTexture(nil, "ARTWORK"), label = library.create_text(dialog.body, "small", colours.label) }
+    library.update_dialog(dialog)
+    local _, height = library.update_grid(dialog.grid, read_rows(), width - 2 * library.read_size(-4))
+    dialog:SetSize(width, library.read_dialog_frame_height(dialog) + height)
 end
 
 local function create_dialog()
-    dialog = library.create_dialog("VGAStackSplit", "")
+    local texts = library.texts
+    dialog = library.create_dialog("VGAStackSplit", "", { buttons = { { texts.cancel, "plain", render_cancel }, { texts.split_do, "gold", render_confirm } } })
+    dialog.cancel, dialog.confirm = dialog.foot.buttons[1], dialog.foot.buttons[2]
     dialog.slot = CreateFrame("Frame", nil, dialog.body)
-    dialog.slot.ground = library.create_surface(dialog.slot, "BACKGROUND", 0)
+    library.create_cell_dress(dialog.slot, { ground = 0, edge = 5 })
+    dialog.slot.ground = dialog.slot.vga_ground
     dialog.slot.icon = dialog.slot:CreateTexture(nil, "ARTWORK")
-    dialog.slot.edge = library.create_ring(dialog.slot, "OVERLAY", 5, nil, true)
-    dialog.slot.count = library.create_text(dialog.slot, "figure", colours.ink)
+    dialog.slot.edge = dialog.slot.vga_edge
+    dialog.slot.count = library.create_text(dialog.slot, "figures_figure", colours.ink)
     dialog.name = library.create_text(dialog.body, "bold", colours.ink)
-    dialog.name:SetWordWrap(false)
-    dialog.name:SetJustifyH("LEFT")
     dialog.meta = library.create_text(dialog.body, "small", colours.quiet)
-    dialog.meta:SetWordWrap(false)
-    dialog.meta:SetJustifyH("LEFT")
-    dialog.amount_row, dialog.price_row = create_row(), create_row()
-    for _, row in ipairs({ dialog.amount_row, dialog.price_row }) do row.line:SetColorTexture(colours.edge[1], colours.edge[2], colours.edge[3], 1) end
+    for _, text in ipairs({ dialog.name, dialog.meta }) do
+        text:SetWordWrap(false)
+        text:SetJustifyH("LEFT")
+    end
+    dialog.amount_label = library.create_text(dialog.body, "small", colours.label)
+    dialog.price_label = library.create_text(dialog.body, "small", colours.label)
     dialog.stepper = library.create_stepper(dialog.body, render_step)
     dialog.price = library.create_money(dialog.body, colours.ink)
     dialog.price.kind = "small"
-    dialog.cancel = library.create_button(dialog.body, library.texts.cancel, "plain", render_cancel)
-    dialog.confirm = library.create_button(dialog.body, library.texts.split_do, "gold", render_confirm)
+    dialog.item_grid = library.create_grid(dialog.body, { columns = { SLOT, "rest" }, gap = 10, padding = { 14, 14, 0, 14 }, row = SLOT, y = { "top", "middle" }, cut = { [2] = true } })
+    local top = 14 + SLOT + 6
+    dialog.grid = library.create_grid(dialog.body, { columns = { "rest", "auto" }, gap = 10, padding = { top, 14, 6, 14 }, x = { "left", "right" }, lines = "all" })
     dialog:SetScript("OnKeyDown", function(self, key) library.update_safely("stack split key", update_key, self, key) end)
     dialog:Hide()
 end

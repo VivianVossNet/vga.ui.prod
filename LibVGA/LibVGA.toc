@@ -2,7 +2,7 @@
 ## Title: LibVGA
 ## Notes: The graphics library of vga.ui: frames, widgets, bars and settings in VGA's look, for every VGA addon.
 ## Author: Vivian Voss
-## Version: 0.9.19
+## Version: 0.9.20
 ## IconTexture: Interface/AddOns/LibVGA/Media/Mark
 ## SavedVariables: LibVGAAccount, LibVGASettings
 ## SavedVariablesPerCharacter: LibVGACharacter
@@ -18,7 +18,30 @@ Daybars.lua
 Unusable.lua
 Scroll.lua
 List.lua
+Table.lua
 Group.lua
+Grid.lua
+Input.lua
+Active.lua
+Tooltipblock.lua
+Cooldown.lua
+Cell.lua
+Fill.lua
+Sign.lua
+Itemrow.lua
+Veil.lua
+Routeline.lua
+Toast.lua
+Tick.lua
+Bubble.lua
+Conversation.lua
+Section.lua
+Options.lua
+Talk.lua
+Pills.lua
+Crumbs.lua
+Tooltipskin.lua
+Iconbutton.lua
 Stepper.lua
 Moneyfield.lua
 Progress.lua
@@ -27,14 +50,23 @@ Eye.lua
 Pictures.lua
 Button.lua
 Sidebar.lua
+Pagedwindow.lua
 Slider.lua
 Dialog.lua
 Frame.lua
 Bar.lua
 Counter.lua
+Classdot.lua
+Unitframe.lua
 Money.lua
+Figurestrip.lua
+Ledgerpage.lua
+Searchbar.lua
+Listpage.lua
+Listdialog.lua
 Bead.lua
 Shimmer.lua
+Actionkey.lua
 Overlaps.lua
 Settings.lua
 Gamepanel.lua
@@ -43,3 +75,7 @@ Defaults.lua
 Profiles.lua
 Minimap.lua
 Switches.lua
+Mapcanvas.lua
+Mapmark.lua
+Mapfog.lua
+Switchlist.lua

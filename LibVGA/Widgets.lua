@@ -1,8 +1,8 @@
 -- Copyright 2026 Vivian Voss. Code by Vivian Voss. Licensed under the BSD-3-Clause.
 -- SPDX-License-Identifier: BSD-3-Clause
--- Scope: What concerns one widget, in its tab of the one settings dialog, as the accepted draft draws it (manual/view/vga-settings-one.html): a group »Widgets« at the tab's foot, its title naming what its columns set - Deckkraft des Hintergrunds, and Größe where a widget has sizes -, a row a widget - its name, its background reading »wie Allgemein« until moved, following the general background, a double click setting it back (K0734), room kept at the right for the widest of its words so they never run past the row (K0733) -, and beneath it, where a widget has sizes, a row of its own »Größe« choosing Klein, Normal or Groß, written out, named after its widget where a page has several (K0727); a widget's gold corner opens the dialog on that tab, and its row shines gold a moment and fades.
+-- Scope: What concerns one widget, in its tab of the one settings dialog, as the accepted draft draws it (manual/view/vga-settings-one.html): a group »Widgets« at the tab's foot, its title naming what its columns set - Deckkraft des Hintergrunds, and Größe where a widget has sizes -, a row a widget - its name, its background reading »wie Allgemein« until moved, following the general background, a double click setting it back (K0734), room kept at the right for the widest of its words so they never run past the row (K0733) -, and beneath it, where a widget has sizes, a row of its own »Größe« choosing Klein, Normal or Groß, written out, named after its widget where a page has several (K0727); a widget's gold corner opens the dialog on that tab, and its row shines gold a moment and fades. A widget's background row is LibVGA's slider row (library.create_slider_row, K0872).
 
--- {K0267} {K0319} {K0382} {K0383} {K0384} {K0727} {K0733} {K0734}
+-- {K0872} {K0267} {K0319} {K0382} {K0383} {K0384} {K0727} {K0733} {K0734}
 
 local library = LibVGA
 local colours = library.colours
@@ -29,13 +29,13 @@ end
 
 local function create_widget_row(page, entry)
     local texts = library.texts
-    local row = library.create_row(page, entry.title, "widget")
-    row.key, row.when = entry.key, entry.when
-    row.control = library.create_slider(row, library.ground_stops, library.read_ground(entry.key), function(value)
+    local row
+    row = library.create_slider_row(page, entry.title, library.ground_stops, library.read_ground(entry.key), function(value)
         LibVGASettings.grounds[row.key] = value
         row.control.like = nil
         library.update_grounds()
-    end)
+    end, "widget")
+    row.key, row.when = entry.key, entry.when
     row.control.on_settle = library.update_elements
     row.control.row = row
     row.control:HookScript("OnMouseUp", update_reset)

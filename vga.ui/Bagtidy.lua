@@ -2,7 +2,7 @@
 -- SPDX-License-Identifier: BSD-3-Clause
 -- Scope: the bags' »Aufräumen« (K0644): every item pushed together from the top left - in the general bags as one run, in each special bag on its own -, the last item moved into the first gap, one move at a time, each waiting until the game has unlocked both places and the cursor is free; nothing is sorted, nothing merged, nothing moved in a fight.
 
--- {K0644}
+-- {K0794} {K0644}
 
 local _, vga = ...
 local library = LibVGA
@@ -35,6 +35,7 @@ end
 
 local function update_stopped()
     if tidy.ticker then tidy.ticker:Cancel() end
+    if tidy.moves and #tidy.moves == 0 then library.render_toast({ head = library.texts.bags, line = library.texts.bags_tidied, picture = library.media .. "TabBags" }) end
     tidy.ticker, tidy.moves = nil, nil
 end
 

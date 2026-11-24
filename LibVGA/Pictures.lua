@@ -2,7 +2,7 @@
 -- SPDX-License-Identifier: BSD-3-Clause
 -- Scope: LibVGA's choice by pictures as the accepted draft draws it (manual/view/vga-settings.html): tiles with a small picture of what is chosen, or a sample in a font, and a word under it (.tile), small boxes with a picture of a shape (.grids), or smooth round swatches of colour (.swatches), the chosen swatch ringed in gold a pixel clear of its colour; the chosen tile or box ringed in gold, its picture gold; drawn from rectangles in the draft's own units, so nothing needs a texture of its own.
 
--- {K0383}
+-- {K0794} {K0383}
 
 local library = LibVGA
 local colours = library.colours
@@ -43,6 +43,7 @@ local function create_cell(choice, item, index, on_choose)
         choice.chosen = index
         library.update_pictures(choice)
         on_choose(index)
+        library.render_control_changed(choice)
     end)
     return cell
 end

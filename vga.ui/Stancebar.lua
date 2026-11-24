@@ -2,51 +2,30 @@
 -- SPDX-License-Identifier: BSD-3-Clause
 -- Scope: vga.ui's own stance bar, built as the pet bar (Petbar.lua): a protected key of our own for each of the player's stances, forms, auras or presences, each casting its form's spell, dressed as the main bar's keys - rounded, a black line, the icon cropped, edged as the bags' slots - three pixels with gently rounded corners over the icon, the slot's grey, gold while its form is taken -, bound to the player's own stance keys, a click taken on press and on release; shown while the player has a form; standing four pixels above the main bar's widget, its left edge sixteen draft pixels in from the widget's, in the one-row and two-row forms alike, at the bars' scale, free to be placed on its own in the edit mode. Blizzard's stance bar is put away; nothing protected is moved or changed in a fight, a form learnt in one is laid after it. Each key shows the game's tooltip of its form (K0726).
 
--- {K0377} {K0518} {K0726}
+-- {K0781} {K0377} {K0518} {K0726}
 
 local _, vga = ...
 local library = LibVGA
-local colours = library.colours
-local DRAFT_BASE = 13
 local KEYS = 10
 local ABOVE = 4
 local INWARD = 16
-local BLACK = { 0, 0, 0 }
-local EDGE_WIDTH = 3
-local SLOT_EDGE = { 0.18, 0.192, 0.22 }
 local stancebar
 
-local function read_draft(pixels)
-    return math.floor(pixels * library.read_base() / DRAFT_BASE + 0.5)
-end
+local read_draft = library.read_draft_size
 
 local function create_key(index)
-    local key = CreateFrame("CheckButton", "VGAStanceKey" .. index, stancebar, "SecureActionButtonTemplate")
+    local key = library.create_cell(stancebar, { kind = "key", name = "VGAStanceKey" .. index, template = "SecureActionButtonTemplate" })
     key:SetAttribute("type", "spell")
     key:RegisterForClicks("AnyUp", "AnyDown")
-    key.icon = key:CreateTexture(nil, "ARTWORK")
-    library.update_cell_picture(key.icon, key, EDGE_WIDTH)
-    key.icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
-    key.cooldown = CreateFrame("Cooldown", nil, key, "CooldownFrameTemplate")
-    library.update_cell_picture(key.cooldown, key, EDGE_WIDTH)
-    key.line = library.create_surface(key, "BACKGROUND", 0)
-    key.edge = library.create_ring(key, "OVERLAY", 6, nil, true)
-    key.hotkey = library.create_text(key, "caption")
-    key:SetHighlightTexture("Interface\\Buttons\\WHITE8X8")
-    key:GetHighlightTexture():SetVertexColor(1, 1, 1, 0.15)
     vga.create_key_tip(key, "SetShapeshift", index)
     return key
 end
 
 local function update_key(key, index)
     local texture, active, castable, spell = GetShapeshiftFormInfo(index)
-    key.icon:SetTexture(texture)
-    key.icon:SetDesaturated(castable == false)
-    library.update_ring(key.edge, EDGE_WIDTH, active and colours.gold or SLOT_EDGE, 1)
     local start, duration, enabled = GetShapeshiftFormCooldown(index)
-    if start and duration and (enabled == 1 or enabled == true) then key.cooldown:SetCooldown(start, duration) end
     local binding = GetBindingKey("SHAPESHIFTBUTTON" .. index)
-    key.hotkey:SetText(binding and GetBindingText(binding, 1) or "")
+    library.update_cell(key, { picture = texture, active = active, unusable = castable == false, start = (enabled == 1 or enabled == true) and start or nil, duration = duration, hotkey = binding and GetBindingText(binding, 1) or "" })
     if not InCombatLockdown() then key:SetAttribute("spell", spell) end
 end
 
@@ -59,17 +38,13 @@ local function update_keys()
 end
 
 local function update_layout()
-    local size, gap, radius, count = read_draft(30), read_draft(3), 2 * EDGE_WIDTH, read_count()
+    local size, gap, count = read_draft(30), read_draft(3), read_count()
     stancebar:SetSize(math.max(count * size + (count - 1) * gap, 1), size)
     for index, key in ipairs(stancebar.keys) do
         key:SetShown(index <= count)
-        key:SetSize(size, size)
+        library.update_cell_size(key, size)
         key:ClearAllPoints()
         key:SetPoint("LEFT", stancebar, "LEFT", (index - 1) * (size + gap), 0)
-        library.update_surface(key.line, -1, radius + 1, BLACK, BLACK)
-        key.hotkey:SetFontObject(library.read_font("caption"))
-        key.hotkey:ClearAllPoints()
-        key.hotkey:SetPoint("TOPRIGHT", key, "TOPRIGHT", -read_draft(3), -read_draft(2))
     end
 end
 

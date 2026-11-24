@@ -1,8 +1,8 @@
 -- Copyright 2026 Vivian Voss. Code by Vivian Voss. Licensed under the BSD-3-Clause.
 -- SPDX-License-Identifier: BSD-3-Clause
--- Scope: The settings' tab »Leisten« as the accepted drafts order it (manual/view/vga-settings.html, vga-settings-one.html): the form as three picture tiles - Eine Reihe, Zwei Reihen, Frei -, under Eine Reihe the number of bars; a row 1 to 8 choosing a bar, and beneath it, in a fieldset named after it, that bar's own settings - Anzeigen, Tasten je Reihe as pictures of the shape, Größe, Hintergrund -, what the form fixes for bars 1 to 3 greyed with its fixed value; under Frei the game menu and the bag bar as widgets; a bar's gold corner choosing it.
+-- Scope: The settings' tab »Leisten« as the accepted drafts order it (manual/view/vga-settings.html, vga-settings-one.html): the form as three picture tiles - Eine Reihe, Zwei Reihen, Frei -, under Eine Reihe the number of bars; a row 1 to 8 choosing a bar, and beneath it, in a fieldset named after it, that bar's own settings - Anzeigen, Tasten je Reihe as pictures of the shape, Größe, Hintergrund -, what the form fixes for bars 1 to 3 greyed with its fixed value; under Frei the game menu and the bag bar as widgets; a bar's gold corner choosing it. Its settings rows with a popup, pictures or a slider are LibVGA's (library.create_popup_row, library.create_pictures_row, library.create_slider_row, K0872).
 
--- {K0382} {K0383} {K0384} {K0385}
+-- {K0872} {K0382} {K0383} {K0384} {K0385}
 
 local _, vga = ...
 local library = LibVGA
@@ -52,7 +52,7 @@ local function update_bar_rows()
     local index, texts = page.selected, library.texts
     local free = vga.bars.check_free(index)
     local fixed_show = not vga.bars.read_loose() and index < vga.bars.always_free
-    page.bar_heading.label:SetText(string.format(texts.bar_name, index):upper())
+    page.bar_heading.label:SetText(library.read_capitals(string.format(texts.bar_name, index)))
     update_choice_state(page.show.control, vga.bars.read_shown(index) and 1 or 2)
     update_choice_state(page.keys.control, read_place(vga.bars.columns, vga.bars.read_columns(index)))
     local _, size = library.read_size_step("bar" .. index)
@@ -125,8 +125,7 @@ local END_KINDS = { "gryphon", "dragon", "wolf", "bear", "lion", "raptor", "knig
 local function create_end_row(texts, title, key)
     local items = {}
     for index, kind in ipairs(END_KINDS) do items[index] = { kind, texts[kind] } end
-    local row = library.create_row(page, title)
-    row.control = library.create_popup(row, { { items = items } }, LibVGASettings[key] or "gryphon", function(value)
+    local row = library.create_popup_row(page, title, { { items = items } }, LibVGASettings[key] or "gryphon", function(value)
         library.update_choice_setting(key, value)
     end)
     return row
@@ -139,8 +138,7 @@ end
 local function create_form_rows(texts)
     local labels, pictures = { texts.one_row, texts.two_rows, texts.free }, {}
     for index, rects in ipairs(FORM_PICTURES) do pictures[index] = { box = FORM_BOX, rects = rects, label = labels[index] } end
-    local form = library.create_row(page, "", "wide")
-    form.control = library.create_pictures(form, pictures, read_form_index(), write_form, "tile")
+    local form = library.create_pictures_row(page, "", pictures, read_form_index(), write_form, "tile", "wide")
     page.count = library.create_choice_row(page, texts.bars, { texts.count_two, texts.count_three }, LibVGASettings.mainbar_count == "two" and 1 or 2, write_count)
     page.count:SetShown(read_form_index() == 1)
     page.end_left = create_end_row(texts, texts.end_left, "bar_end_left")
@@ -157,11 +155,9 @@ local function create_bar_rows(texts)
     for place in ipairs(vga.bars.columns) do shapes[place] = { box = SHAPE_BOX, rects = SHAPES[place] } end
     page.picker = library.create_choice_row(page, texts.bar, numbers, 1, update_selected)
     page.show = library.create_choice_row(page, texts.show, { texts.on, texts.off }, 1, write_shown)
-    page.keys = library.create_row(page, texts.keys_per_row)
-    page.keys.control = library.create_pictures(page.keys, shapes, 1, write_columns, "shape")
+    page.keys = library.create_pictures_row(page, texts.keys_per_row, shapes, 1, write_columns, "shape")
     page.size = library.create_choice_row(page, texts.size, { texts.small, texts.medium, texts.large }, 2, write_size)
-    page.ground = library.create_row(page, texts.background)
-    page.ground.control = library.create_slider(page.ground, library.ground_stops, library.read_ground(), write_ground)
+    page.ground = library.create_slider_row(page, texts.background, library.ground_stops, library.read_ground(), write_ground)
     page.ground.control.on_settle = library.update_elements
     page.ground.control:HookScript("OnMouseUp", update_ground_reset)
     page.bar_heading = library.create_row(page, "", "heading")

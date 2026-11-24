@@ -2,7 +2,7 @@
 -- SPDX-License-Identifier: BSD-3-Clause
 -- Scope: LibVGA's money field as the accepted draft draws .input.money (manual/view/vga-auctions.html, K0632): one dark rounded field with a fine line, inside it gold, silver and copper to type, each figure followed by its coin as LibVGA's money shows them, each part as wide as its digits need; read back as copper.
 
--- {K0632}
+-- {K0789} {K0632}
 
 local library = LibVGA
 local colours = library.colours
@@ -37,12 +37,12 @@ end
 function library.update_money_field_layout(field)
     local height, pad, coin, near = library.read_size(2), library.read_draft_size(10), library.read_draft_size(10), library.read_draft_size(2)
     local radius = library.read_draft_size(7)
-    field.measure:SetFontObject(library.read_font("small"))
+    field.measure:SetFontObject(library.read_font("figures_small"))
     local x = pad
     for index, part in ipairs(field.parts) do
         field.measure:SetText(string.rep("0", index == 1 and 3 or DIGITS[index]))
         local width = math.ceil(field.measure:GetStringWidth()) + 2
-        part:SetFontObject(library.read_font("small"))
+        part:SetFontObject(library.read_font("figures_small"))
         part:SetSize(width, height)
         part:ClearAllPoints()
         part:SetPoint("LEFT", field, "LEFT", x, 0)
