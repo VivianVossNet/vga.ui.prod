@@ -203,7 +203,7 @@ local function create_talk_delay_row(page)
 end
 
 local function write_talk_immersion(index)
-    LibVGASettings.talk_immersion = index == 1 or nil
+    LibVGASettings.talk_immersion = index == 1
 end
 
 local function write_game_map(index)
@@ -217,7 +217,7 @@ local function create_comfort_page(page)
         library.create_choice_row(page, texts.mouseover_cast, { texts.on, texts.off }, GetCVarBool("enableMouseoverCast") and 1 or 2, write_mouseover_cast),
         library.create_choice_row(page, texts.tip_fix_after, read_seconds_labels(), (LibVGASettings.tip_fix_after or TIP_MOST) + 1, write_tip_fix_after),
         create_talk_delay_row(page),
-        library.create_choice_row(page, texts.talk_immersion, { texts.on, texts.off }, LibVGASettings.talk_immersion and 1 or 2, write_talk_immersion),
+        library.create_choice_row(page, texts.talk_immersion, { texts.on, texts.off }, LibVGASettings.talk_immersion ~= false and 1 or 2, write_talk_immersion),
         library.create_choice_row(page, texts.game_map, { texts.on, texts.off }, LibVGASettings.game_map and 1 or 2, write_game_map),
     }
 end
