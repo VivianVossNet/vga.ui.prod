@@ -1,8 +1,8 @@
 -- Copyright 2026 Vivian Voss. Code by Vivian Voss. Licensed under the BSD-3-Clause.
 -- SPDX-License-Identifier: BSD-3-Clause
--- Scope: The settings' tab »Taschen«: the bags' size - small, normal, large -, and the order the bags show their items in: as they lie - the game's own places, the default -; by value, rising or falling, a stack counted at what it sells for; or by type, the type worth most in all first, within it the dearest first; the empty slots always last when sorted. Only the view is sorted; no item is moved in the bags. Whatever the order, the fixed items stand at its end, after the empty slots - or, chosen on the page Komfort, at its start (LibVGASettings.bag_pins_place) -: the player's own pins first, in the order pinned (LibVGAAccount.bag_pins, by item number), then the tools of the professions as Forever knows them (measured, K0898), the hearthstone the very last - mirrored at the start, the hearthstone the very first. The hearthstone and the tools are always fixed; the player adds or removes only items of their own (vga.write_bag_pin).
+-- Scope: The settings' tab »Taschen«: the bags' size - small, normal, large -, and the order the bags show their items in: as they lie - the game's own places, the default -; by value, rising or falling, a stack counted at what it sells for; or by type, the type worth most in all first, within it the dearest first; the empty slots always last when sorted. The loot's moment after a quick loot, 0, 1 or 2 seconds, one by default (K0906). Only the view is sorted; no item is moved in the bags. Whatever the order, the fixed items stand at its end, after the empty slots - or, chosen on the page Komfort, at its start (LibVGASettings.bag_pins_place) -: the player's own pins first, in the order pinned (LibVGAAccount.bag_pins, by item number), then the tools of the professions as Forever knows them (measured, K0898), the hearthstone the very last - mirrored at the start, the hearthstone the very first. The hearthstone and the tools are always fixed; the player adds or removes only items of their own (vga.write_bag_pin).
 
--- {K0898} {K0414} {K0415}
+-- {K0906} {K0898} {K0414} {K0415}
 
 local _, vga = ...
 local library = LibVGA
@@ -135,6 +135,16 @@ local function read_place(list, wanted)
     return 1
 end
 
+local function read_linger_labels()
+    local labels = {}
+    for index, seconds in ipairs(library.loot_linger_stops) do labels[index] = string.format(library.texts.seconds_short, seconds) end
+    return labels
+end
+
+local function write_loot_linger(index)
+    LibVGASettings.loot_linger = library.loot_linger_stops[index]
+end
+
 function vga.create_bags_page(page)
     local texts = library.texts
     local _, size = library.read_size_step("bags")
@@ -142,6 +152,7 @@ function vga.create_bags_page(page)
     page.rows = {
         library.create_choice_row(page, texts.size, { texts.small, texts.medium, texts.large }, read_place(SIZES, size), write_size),
         library.create_choice_row(page, texts.loot, { texts.small, texts.medium, texts.large }, read_place(SIZES, loot_size), write_loot_size),
+        library.create_choice_row(page, texts.loot_linger, read_linger_labels(), read_place(library.loot_linger_stops, LibVGASettings.loot_linger or library.loot_linger_default), write_loot_linger),
         library.create_choice_row(page, texts.sorting, { texts.as_laid, texts.value_up, texts.value_down, texts.by_kind }, read_place(ORDERS, vga.read_bag_order()), write_order),
     }
 end

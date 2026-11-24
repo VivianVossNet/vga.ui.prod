@@ -1,8 +1,8 @@
 -- Copyright 2026 Vivian Voss. Code by Vivian Voss. Licensed under the BSD-3-Clause.
 -- SPDX-License-Identifier: BSD-3-Clause
--- Scope: the loot as a dialog in the bags' look, as the accepted draft draws variant B (manual/view/vga-loot.html, K0700): LibVGA's dialog with the bags' head - the mark, the title naming what is looted, else »Beute« - and a foot with the bag slots still free; beneath the head every loot slot as one row of LibVGA's list - the item's picture in a slot with the bags' edge in its quality's colour, a quest item's in gold, its count in the slot, beside it the name in its quality's colour, rare and epic in the brighter colours vga.auctions uses so they read on the dark ground, and below it what it is - its kind and sort, »Geld«, or »Questgegenstand« in gold -; the whole row the click that takes it, a modified click linking it as everywhere, the game's tooltip of the slot on hover, the row lit as the template's rows are; a slot taken keeps its place, greyed, so nothing moves under the pointer; the dialog one size for six rows, more scrolling, compact since K0704 - each row one line, the picture small, the name beside it and its kind at the right, both in the bags' small face, the title in the bold face of the body, not the large one of a full dialog, a long name ending in »…« before the close button (K0707) - and as large as the bags' tab chooses for it, Klein, Mittel or Groß; opened with its first row under the pointer and closed with the loot. The game's own loot frame hears nothing.
+-- Scope: the loot as a dialog in the bags' look, as the accepted draft draws variant B (manual/view/vga-loot.html, K0700): LibVGA's dialog with the bags' head - the mark, the title naming what is looted, else »Beute« - and a foot with the bag slots still free; beneath the head every loot slot as one row of LibVGA's list - the item's picture in a slot with the bags' edge in its quality's colour, a quest item's in gold, its count in the slot, beside it the name in its quality's colour, rare and epic in the brighter colours vga.auctions uses so they read on the dark ground, and below it what it is - its kind and sort, »Geld«, or »Questgegenstand« in gold -; the whole row the click that takes it, a modified click linking it as everywhere, the game's tooltip of the slot on hover, the row lit as the template's rows are; a slot taken keeps its place, greyed, so nothing moves under the pointer; the dialog one size for six rows, more scrolling, compact since K0704 - each row one line, the picture small, the name beside it and its kind at the right, both in the bags' small face, the title in the bold face of the body, not the large one of a full dialog, a long name ending in »…« before the close button (K0707) - and as large as the bags' tab chooses for it, Klein, Mittel or Groß; opened with its first row under the pointer and closed with the loot - after a quick loot (the game's autoloot) it stays a moment longer, every taken row greyed, so what was looted can be seen: one second by default, 0, 1 or 2 on the bags' settings page (LibVGASettings.loot_linger, library.loot_linger_default, K0906). The game's own loot frame hears nothing.
 
--- {K0802} {K0793} {K0789} {K0786} {K0785} {K0784} {K0783} {K0700} {K0704} {K0707}
+-- {K0906} {K0802} {K0793} {K0789} {K0786} {K0785} {K0784} {K0783} {K0700} {K0704} {K0707}
 
 local _, vga = ...
 local library = LibVGA
@@ -88,8 +88,6 @@ local function update_loot_layout()
     loot:SetScale(library.read_size_step("loot"))
     library.update_dialog(loot)
     loot.title:SetFontObject(library.read_font("bold"))
-    loot.title:SetWordWrap(false)
-    loot.title:SetPoint("RIGHT", loot.close, "LEFT", -library.read_size(-4), 0)
     local inner, row = library.read_size(-4), library.read_draft_size(ROW)
     local width = library.read_draft_size(WIDTH)
     loot:SetSize(width + 2 * inner, library.read_dialog_frame_height(loot) + ROWS * row)
@@ -115,8 +113,9 @@ local function create_loot()
     if LootFrame then LootFrame:UnregisterAllEvents() end
 end
 
-local function update_loot_opened()
+local function update_loot_opened(auto)
     if not loot then create_loot() end
+    loot.auto, loot.visit = auto == true, (loot.visit or 0) + 1
     loot.entries = read_entries()
     local unit = UnitExists("target") and UnitIsDead("target") and UnitName("target")
     loot.title:SetText(unit or library.texts.loot)
@@ -133,8 +132,16 @@ local function update_slot_taken(slot)
     update_loot_layout()
 end
 
+local function render_lingered(visit)
+    if loot.visit == visit then loot:Hide() end
+end
+
 local function update_loot_closed()
-    if loot then loot:Hide() end
+    if not loot then return end
+    local linger = LibVGASettings.loot_linger or library.loot_linger_default
+    if not (loot.auto and linger > 0 and loot:IsShown()) then return loot:Hide() end
+    local visit = loot.visit
+    C_Timer.After(linger, function() library.update_safely("loot lingered", render_lingered, visit) end)
 end
 
 local events = CreateFrame("Frame")
@@ -143,7 +150,7 @@ events:SetScript("OnEvent", function(_, event, first)
     if event == "PLAYER_LOGIN" then
         library.update_safely("loot", create_loot)
     elseif event == "LOOT_OPENED" then
-        library.update_safely("loot opened", update_loot_opened)
+        library.update_safely("loot opened", update_loot_opened, first)
     elseif event == "LOOT_SLOT_CLEARED" then
         library.update_safely("loot taken", update_slot_taken, first)
     else
