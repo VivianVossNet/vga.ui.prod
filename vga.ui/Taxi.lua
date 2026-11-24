@@ -2,7 +2,7 @@
 -- SPDX-License-Identifier: BSD-3-Clause
 -- Scope: vga.ui's flight master list, as the accepted draft draws it (manual/view/vga-npc-windows.html, K0830, K0831): the game's own flight map stays as the game shows it, and beside it LibVGA's list dialog (library.create_list_dialog, K0871) lists every destination the player can fly to now, its name and its cost in our coins, the place where the player stands named first and quiet; hovering a destination draws its route on the game's map, white, from flight point to flight point at each one's exact place - the game's place, its centre rounded to a whole pixel, never an approximate one -, the chosen one gold; a click takes the flight (K0835). Drawn as the draft draws it (K0836): the title names the flight master, the heads Ziel, Dauer, Preis stand over the list in its group, each destination in its cell with its zone beneath, the duration in the figure face - »–« until flight times are measured -; a click chooses the destination into the foot, »Fliegen« takes it, »Schließen« closes, and the player's gold stands in the status line.
 
--- {K0871} {K0839} {K0838} {K0836} {K0835} {K0830} {K0831}
+-- {K0909} {K0871} {K0839} {K0838} {K0836} {K0835} {K0830} {K0831}
 
 local _, vga = ...
 local library = LibVGA
@@ -94,9 +94,21 @@ local function render_closed()
     if CloseTaxiMap then CloseTaxiMap() end
 end
 
+local function read_name_sort(item)
+    return (item.name or ""):lower()
+end
+
+local function read_duration_sort(item)
+    return item.duration
+end
+
+local function read_cost_sort(item)
+    return item.cost or 0
+end
+
 local function create_window()
     local texts = library.texts
-    local columns = { { key = "head_destination_taxi", word = texts.head_destination }, { key = "head_duration_taxi", word = texts.head_duration, least = 44, x = "right" }, { key = "price_taxi", word = texts.price, least = "money", x = "right" } }
+    local columns = { { key = "head_destination_taxi", word = texts.head_destination, sort = read_name_sort }, { key = "head_duration_taxi", word = texts.head_duration, least = 44, x = "right", sort = read_duration_sort }, { key = "price_taxi", word = texts.price, least = "money", x = "right", sort = read_cost_sort } }
     local buttons = { { texts.close, "plain", render_closing }, { texts.fly, "gold", render_taken } }
     window = library.create_list_dialog("VGATaxiWindow", { title = texts.flight_master, buttons = buttons, width = WIDTH, height = HEIGHT, table = { columns = columns, create_row = create_row, update_row = update_row } })
     window.route = library.create_route_line(read_map())

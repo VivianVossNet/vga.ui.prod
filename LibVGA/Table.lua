@@ -1,8 +1,8 @@
 -- Copyright 2026 Vivian Voss. Code by Vivian Voss. Licensed under the BSD-3-Clause.
 -- SPDX-License-Identifier: BSD-3-Clause
--- Scope: LibVGA's item table, a meta-object (K0860, K0862) as the accepted drafts draw a list of items under sortable column heads (manual/view/vga-auctions.html, vga-npc-windows.html): one group owning LibVGA's list (library.create_list), a sort head over every column that names one, the words shown while it is empty, and the probes that measure a column's widest money, chip or text. Its owner feeds it a plan once - its columns, each { key, word, sort, tip, least, x, inset - »icon« or draft pixels }, its row's maker and layer, the empty words, what a new sort or a new set of rows asks of it, the gap between columns in draft pixels where it is not LibVGA's least - and its items, width and height at each laying; every column is as wide as its head and the least its owner names (draft pixels, »money«, »money_small«, »chip«, a text sample, or a measure of its own), one column the rest. The rows read the columns it laid from table.columns and table.pad. One task: lay a sortable list of items.
+-- Scope: LibVGA's item table, a meta-object (K0860, K0862) as the accepted drafts draw a list of items under sortable column heads (manual/view/vga-auctions.html, vga-npc-windows.html): one group owning LibVGA's list (library.create_list), a sort head over every column that names one, the words shown while it is empty, and the probes that measure a column's widest money, chip or text. Its owner feeds it a plan once - its columns, each { key, word, sort, tip, least, x, inset - »icon« or draft pixels }, its row's maker and layer, the empty words, what a new sort or a new set of rows asks of it, the gap between columns in draft pixels where it is not LibVGA's least - and its items, width and height at each laying; every column is as wide as its head and the least its owner names (draft pixels, »money«, »money_small«, »chip«, a text sample, or a measure of its own), one column the rest. The rows read the columns it laid from table.columns and table.pad. A click on a sort head sorts by that column's reader (column.sort) and lays the list again itself with the items it was last given, unless its owner asks a new sort of the game (plan.on_sort); every column with a head carries its reader (K0909). One task: lay a sortable list of items.
 
--- {K0862} {K0860} {K0631} {K0632}
+-- {K0909} {K0862} {K0860} {K0631} {K0632}
 
 local library = LibVGA
 local colours = library.colours
@@ -11,11 +11,16 @@ local ROW = 40
 local PAD = 12
 local ICON = 26
 
+local function render_sorted(sheet)
+    local laid = sheet.laid
+    if laid then library.update_item_table(sheet, laid[1], laid[2], laid[3]) end
+end
+
 function library.create_item_table(parent, plan)
     local sheet = library.create_group(parent)
     sheet.plan = plan
     sheet.list = library.create_list(sheet, plan.create_row, plan.update_row)
-    sheet.list.on_sort, sheet.list.on_rows, sheet.list.sorters = plan.on_sort, plan.on_rows, {}
+    sheet.list.on_sort, sheet.list.on_rows, sheet.list.sorters = plan.on_sort or function() render_sorted(sheet) end, plan.on_rows, {}
     sheet.heads = {}
     for index, column in ipairs(plan.columns) do
         if column.sort then sheet.list.sorters[column.key] = column.sort end
@@ -84,6 +89,7 @@ end
 
 function library.update_item_table(sheet, items, width, height)
     local plan = sheet.plan
+    sheet.laid = { items, width, height }
     sheet.pad = read_pad(plan)
     for index, column in ipairs(plan.columns) do
         if sheet.heads[index] then library.update_sort_head(sheet.heads[index], column.x == "right") end

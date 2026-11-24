@@ -2,7 +2,7 @@
 -- SPDX-License-Identifier: BSD-3-Clause
 -- Scope: vga.ui's trainer, as the accepted draft draws it (manual/view/vga-npc-windows.html, K0830, K0831): LibVGA's list dialog (library.create_list_dialog, K0871) headed with the trainer's name, a choice of what is shown - Lernbar, Später, Gelernt, what can be learnt now by default -, every skill as LibVGA's item row with its picture, its rank beneath and its cost in our coins; a click chooses a skill; the foot carries »Alles lernen«, which learns every skill that can be learnt now and is paid for, as the adviser proposed and the owner took, and the gold »Lernen« for the chosen one, the chosen skill in the note; above the group the search and the choice, the heads Fähigkeit, Zustand, Kosten, each skill in its cell with rank and level beneath and its state as a chip, the player's gold in the status line (K0836). The game's trainer window is veiled, never hidden, so the visit stays open (K0835). The game's GetTrainerServiceInfo is read in either order - name, rank, kind as the old client answers, or name, kind, picture, level as the new -, its raw answer for the first skill kept once in LibVGASettings.measures.trainer_service_info; the search and the choice are the list dialog's tools, LibVGA's search bar (library.create_search_bar, K0873) fed here, side by side, the search taking the room the choice leaves (K0849).
 
--- {K0873} {K0860} {K0871} {K0849} {K0839} {K0838} {K0836} {K0835} {K0830} {K0831} {K0832}
+-- {K0909} {K0873} {K0860} {K0871} {K0849} {K0839} {K0838} {K0836} {K0835} {K0830} {K0831} {K0832}
 
 local _, vga = ...
 local library = LibVGA
@@ -100,6 +100,20 @@ local function render_closed()
     library.render_game_ended(ClassTrainerFrame, CloseTrainer)
 end
 
+local STATE_ORDER = { available = 1, unavailable = 2, used = 3 }
+
+local function read_name_sort(item)
+    return (item.name or ""):lower()
+end
+
+local function read_state_sort(item)
+    return (STATE_ORDER[item.kind] or 4) * 1000 + (item.level or 0)
+end
+
+local function read_cost_sort(item)
+    return item.cost or 0
+end
+
 local function create_tools(parent, listing)
     local texts = library.texts
     tools = library.create_search_bar(parent, { hint = texts.skills_search, labels = { texts.learnable, texts.later, texts.learnt }, on_search = vga.update_trainer, on_choose = render_kind, gap = listing.tools_grid.plan.gap })
@@ -112,7 +126,7 @@ end
 
 local function create_window()
     local texts = library.texts
-    local columns = { { key = "head_skill", word = texts.head_skill }, { key = "head_state", word = texts.head_state, least = 90, x = "right" }, { key = "head_cost", word = texts.head_cost, least = "money", x = "right" } }
+    local columns = { { key = "head_skill", word = texts.head_skill, sort = read_name_sort }, { key = "head_state", word = texts.head_state, least = 90, x = "right", sort = read_state_sort }, { key = "head_cost", word = texts.head_cost, least = "money", x = "right", sort = read_cost_sort } }
     local buttons = { { texts.learn_all, "plain", render_all_learnt }, { texts.learn, "gold", render_learnt } }
     window = library.create_list_dialog("VGATrainerWindow", { title = texts.trainer, buttons = buttons, width = WIDTH, height = HEIGHT, table = { columns = columns, create_row = create_row, update_row = update_row }, tools = { create = create_tools, update = update_tools } })
     library.update_dialog_closing(window, function() library.update_safely("trainer closed", render_closed) end)

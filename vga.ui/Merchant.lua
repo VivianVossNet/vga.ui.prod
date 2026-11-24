@@ -1,8 +1,8 @@
 -- Copyright 2026 Vivian Voss. Code by Vivian Voss. Licensed under the BSD-3-Clause.
 -- SPDX-License-Identifier: BSD-3-Clause
--- Scope: vga.ui's merchant window, as the accepted draft draws it (manual/view/vga-npc-windows.html, K0830, K0831): LibVGA's window with pages - Kaufen, Verkaufen, Rückkauf in the menu bar with the accepted flat icons -, each page LibVGA's list page (library.create_list_page, K0871) with its tools made and laid here - LibVGA's search bar above Kaufen (library.create_search_bar, K0873), »Plunder verkaufen« above Verkaufen, none above Rückkauf -, every ware, every item of the bags with a price and every item sold back as LibVGA's item row, its tooltip only over picture and name (K0786), its price in our coins in the figure face; a click buys one, a shift-click asks the amount in vga.ui's own dialog (K0757); a click on an item of the bags sells it - an item fixed at the end of the bags shows there the bags' two blue corners, so it is not sold by mistake (item.pinned, K0901) -, »Plunder verkaufen« sells every poor item; a click on an item sold buys it back. The foot carries »Alles reparieren« with its cost where the merchant repairs - repair has no page of its own (K0830) - and the player's gold. The game's merchant window is veiled, never hidden, so the visit stays open as the game keeps it (library.update_game_veiled); closing ours ends the visit (K0832). At every opening it keeps for the account whether this merchant repairs, by the figure's number, so the talk can say so before the window opens (LibVGAAccount.repairers, K0848).
+-- Scope: vga.ui's merchant window, as the accepted draft draws it (manual/view/vga-npc-windows.html, K0830, K0831): LibVGA's window with pages - Kaufen, Verkaufen, Rückkauf in the menu bar with the accepted flat icons -, each page LibVGA's list page (library.create_list_page, K0871), its heads sorting by name, stock or amount, and price (K0909) with its tools made and laid here - LibVGA's search bar above Kaufen (library.create_search_bar, K0873), »Plunder verkaufen« above Verkaufen, none above Rückkauf -, every ware, every item of the bags with a price and every item sold back as LibVGA's item row, its tooltip only over picture and name (K0786), its price in our coins in the figure face; a click buys one, a shift-click asks the amount in vga.ui's own dialog (K0757); a click on an item of the bags sells it - an item fixed at the end of the bags shows there the bags' two blue corners, so it is not sold by mistake (item.pinned, K0901) -, »Plunder verkaufen« sells every poor item; a click on an item sold buys it back. The foot carries »Alles reparieren« with its cost where the merchant repairs - repair has no page of its own (K0830) - and the player's gold. The game's merchant window is veiled, never hidden, so the visit stays open as the game keeps it (library.update_game_veiled); closing ours ends the visit (K0832). At every opening it keeps for the account whether this merchant repairs, by the figure's number, so the talk can say so before the window opens (LibVGAAccount.repairers, K0848).
 
--- {K0901} {K0873} {K0860} {K0871} {K0848} {K0839} {K0838} {K0836} {K0832} {K0830} {K0831} {K0757} {K0786}
+-- {K0909} {K0901} {K0873} {K0860} {K0871} {K0848} {K0839} {K0838} {K0836} {K0832} {K0830} {K0831} {K0757} {K0786}
 
 local _, vga = ...
 local library = LibVGA
@@ -117,6 +117,19 @@ local function create_row_for(page_key)
     end
 end
 
+local function read_name_sort(item)
+    return (item.name or ""):lower()
+end
+
+local function read_amount_sort(item)
+    if item.stock then return item.stock < 0 and math.huge or item.stock end
+    return item.count or 0
+end
+
+local function read_price_sort(item)
+    return item.price or 0
+end
+
 local function update_row(row, item)
     local sheet = row:GetParent():GetParent():GetParent()
     local columns = sheet.columns
@@ -168,7 +181,7 @@ local function create_page(page, key)
     local texts = read_texts()
     page.key = key
     local words = HEADS[key]
-    local columns = { { key = words[1] .. "_" .. key, word = texts[words[1]] }, { key = words[2] .. "_" .. key, word = texts[words[2]], least = 56, x = "right" }, { key = words[3] .. "_" .. key, word = texts[words[3]], least = "money", x = "right" } }
+    local columns = { { key = words[1] .. "_" .. key, word = texts[words[1]], sort = read_name_sort }, { key = words[2] .. "_" .. key, word = texts[words[2]], least = 56, x = "right", sort = read_amount_sort }, { key = words[3] .. "_" .. key, word = texts[words[3]], least = "money", x = "right", sort = read_price_sort } }
     local sheet = { columns = columns, create_row = create_row_for(key), update_row = update_row, empty = key == "buyback" and texts.nothing_sold or "" }
     local grid, made = { columns = { "rest" }, row_gap = 16, y = "top" }, TOOLS[key]
     local tools = made and { grid = { columns = { "rest", "auto" }, gap = TOOLS_GAP, y = "top" }, create = made[1], update = made[2] }
