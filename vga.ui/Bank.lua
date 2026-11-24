@@ -1,43 +1,43 @@
 -- Copyright 2026 Vivian Voss. Code by Vivian Voss. Licensed under the BSD-3-Clause.
 -- SPDX-License-Identifier: BSD-3-Clause
--- Scope: vga.ui's bank, as the accepted draft draws it (manual/view/vga-npc-windows.html, K0830, K0831): LibVGA's window with pages - Bank, Taschenplätze in the menu bar with the accepted flat icons -, the bank's own slots as LibVGA's cells on the grid, each with its item's picture and count, its tooltip over the cell, a right click taking the item to the bags, a left click picking it up as the game does; the bank's bag places as cells too; The game's bank window is veiled, never hidden, so the visit stays open (K0835). Drawn as the draft draws it (K0836): one page, the bank's slots rimmed in their item's quality, beneath them LibVGA's section »Taschenplätze« (library.create_section, K0873) with the bag places, the next place's cost and the gold »Platz kaufen« in one row, the player's gold in the status line. On a client whose character bank has tabs - Enum.BagIndex.CharacterBankTab_1 and on - the slots of every tab stand in one grid and the bag places and their buying, which such a bank has not, are left out; each part is drawn on its own guard, so one the game refuses leaves the others; at every opening the game's bank is measured into LibVGASettings.measures.bank - its bank containers and their slots, the old container's, and C_Bank's functions (K0850).
+-- Scope: vga.ui's bank, as the accepted draft A draws it (manual/view/vga-bank.html, K0894): LibVGA's window with pages (library.create_paged_window), in its sidebar every tab of the character's bank the player has bought, under its own name, and, while another can be bought, »Reiter kaufen«; a tab's page its slots eight to a row and six high, as the game's bank lays a tab of 48, each LibVGA's container slot - the game's own item button in a holder carrying the tab's number, so taking, dropping, moving, splitting, a right click and the tooltip are the game's own (library.create_container_slot, K0893) -, beneath them »Reagenzien einlagern«, which deposits as the game's own button does (C_Bank.AutoDepositItemsIntoBank); the page »Reiter kaufen« names the next tab, »Reiter 2 von 9«, and the game's own words for it, its cost in our coins and the gold »Kaufen«, off while the gold does not reach; »Kaufen« asks first in LibVGA's confirm dialog with the game's own question and amount line (library.render_confirm, K0897), only its »Kaufen« buying (C_Bank.PurchaseBankTab); once bought, the window turns to the new tab and »Reiter kaufen« offers the next or goes; the player's gold in the status line. Only what Forever offers is built, as measured (K0895): the character's bank, its tabs, their buying and the deposit; Forever offers no warband bank and no moving of gold into the character's. On a client without bank tabs the one page shows the old bank and its bag places under »Taschenplätze« (K0850). The game's bank window is veiled, never hidden, so the visit stays open; closing ours ends it through the game's close (K0835, K0890).
 
--- {K0873} {K0860} {K0850} {K0838} {K0836} {K0835} {K0830} {K0831} {K0832}
+-- {K0897} {K0896} {K0895} {K0894} {K0893} {K0891} {K0890} {K0873} {K0860} {K0850} {K0838} {K0836} {K0835} {K0830} {K0831} {K0832}
 
 local _, vga = ...
 local library = LibVGA
 local colours = library.colours
-local WIDTH, HEIGHT = 560, 470
 local CELL = 36
-local COLUMNS = 7
+local COLUMNS = 8
 local GAP = 6
 local BANK = -1
 local BANK_BAGS = 7
-local TABS = 6
+local TABS = 9
 local window
 
-local function read_bank_containers()
-    local first = Enum and Enum.BagIndex and Enum.BagIndex.CharacterBankTab_1
-    if not first then return { BANK }, false end
-    local containers = {}
-    for index = 1, TABS do
-        local id = Enum.BagIndex["CharacterBankTab_" .. index]
-        if id then containers[#containers + 1] = id end
-    end
-    return containers, true
+local function read_kind()
+    return Enum and Enum.BankType and Enum.BankType.Character
 end
 
-local function write_bank_measure()
-    local found = {}
-    for key, id in pairs(Enum and Enum.BagIndex or {}) do
-        if tostring(key):find("Bank") then found[#found + 1] = key .. "=" .. tostring(id) .. ":" .. tostring(C_Container.GetContainerNumSlots(id)) end
+local function check_tabbed()
+    return Enum and Enum.BagIndex and Enum.BagIndex.CharacterBankTab_1 ~= nil and C_Bank ~= nil
+end
+
+local function read_tab_bag(index)
+    return Enum.BagIndex["CharacterBankTab_" .. index]
+end
+
+local function read_bought_tabs()
+    local tabs = C_Bank.FetchPurchasedBankTabData and C_Bank.FetchPurchasedBankTabData(read_kind()) or {}
+    local named = {}
+    for index = 1, TABS do
+        local bag = read_tab_bag(index)
+        for _, tab in ipairs(tabs) do
+            if bag and tab.ID == bag then named[index] = tab.name ~= "" and tab.name or nil end
+        end
+        named[index] = named[index] or (C_Container.GetContainerNumSlots(bag or BANK) or 0) > 0 and string.format(library.texts.bank_tab, index) or nil
     end
-    table.sort(found)
-    local bank = {}
-    for key in pairs(C_Bank or {}) do bank[#bank + 1] = key end
-    table.sort(bank)
-    LibVGASettings.measures = LibVGASettings.measures or {}
-    LibVGASettings.measures.bank = table.concat(found, " ") .. " | old -1:" .. tostring(C_Container.GetContainerNumSlots(BANK)) .. " GetNumBankSlots:" .. type(GetNumBankSlots) .. " | C_Bank: " .. table.concat(bank, " ")
+    return named
 end
 
 local function read_bank_bag(index)
@@ -45,85 +45,59 @@ local function read_bank_bag(index)
     return first + index - 1
 end
 
-local function render_cell_clicked(cell, button)
-    if not cell.bag then return end
-    if button == "RightButton" then return C_Container.UseContainerItem(cell.bag, cell.slot) end
-    C_Container.PickupContainerItem(cell.bag, cell.slot)
+local function read_bag_cell(index, parent)
+    window.bag_cells[index] = window.bag_cells[index] or library.create_cell(parent, { kind = "slot" })
+    return window.bag_cells[index]
 end
 
-local function render_cell_tip(cell)
-    if not cell.bag then return end
-    library.update_item_tip_owner(GameTooltip, cell)
-    GameTooltip:SetBagItem(cell.bag, cell.slot)
-    GameTooltip:Show()
+local function read_slot(bag, slot, parent)
+    window.holders[bag] = window.holders[bag] or library.create_container_holder(parent, bag)
+    local holder = window.holders[bag]
+    holder.slots[slot] = holder.slots[slot] or library.create_container_slot(holder, slot)
+    return holder.slots[slot]
 end
 
-local function render_tip_hidden()
-    GameTooltip:Hide()
+local function read_slots_width()
+    return COLUMNS * library.read_draft_size(CELL + GAP) - library.read_draft_size(GAP)
 end
 
-local function create_bank_cell(parent)
-    local cell = library.create_cell(parent, { kind = "slot" })
-    cell:RegisterForClicks("LeftButtonUp", "RightButtonUp")
-    cell:SetScript("OnClick", render_cell_clicked)
-    cell:SetScript("OnEnter", render_cell_tip)
-    cell:SetScript("OnLeave", render_tip_hidden)
-    cell.count = library.create_text(cell, "figures_small", colours.ink)
-    return cell
-end
-
-local function read_cell(cells, parent, index)
-    cells[index] = cells[index] or create_bank_cell(parent)
-    return cells[index]
-end
-
-local function update_cell(cell, bag, slot)
-    local found = C_Container.GetContainerItemInfo and C_Container.GetContainerItemInfo(bag, slot)
-    cell.bag, cell.slot = bag, slot
-    library.update_cell_size(cell, library.read_draft_size(CELL))
-    library.update_cell(cell, { picture = found and found.iconFileID, quality = found and found.quality })
-    cell.count:SetText(found and found.stackCount and found.stackCount > 1 and found.stackCount or "")
-    library.update_cell_inside(cell, nil, cell.count, 0)
-    cell:Show()
-end
-
-local function read_rows(cells)
+local function read_rows(cells, count)
     local rows = {}
-    for index, cell in ipairs(cells) do
+    for index = 1, count do
         local row = math.floor((index - 1) / COLUMNS) + 1
         rows[row] = rows[row] or {}
-        rows[row][#rows[row] + 1] = cell
+        rows[row][#rows[row] + 1] = cells[index]
     end
     return rows
 end
 
-local function update_slots(page, containers)
-    local count = 0
-    for _, bag in ipairs(containers) do
-        for slot = 1, C_Container.GetContainerNumSlots(bag) or 0 do
-            count = count + 1
-            update_cell(read_cell(window.cells, page.slots, count), bag, slot)
-        end
+local function update_slots(page, bag)
+    local size, cells = library.read_draft_size(CELL), {}
+    for slot = 1, C_Container.GetContainerNumSlots(bag) or 0 do
+        local button = read_slot(bag, slot, page.slots)
+        button:SetSize(size, size)
+        button:Show()
+        library.update_container_slot(button, bag, slot, {})
+        cells[slot] = button
     end
-    for index = count + 1, #window.cells do window.cells[index]:Hide() end
-    local _, height = library.update_grid(page.slots_grid, read_rows({ table.unpack(window.cells, 1, count) }), nil)
-    page.slots:SetSize(COLUMNS * library.read_draft_size(CELL + GAP), height or 0)
+    page.cells = cells
+    local _, height = library.update_grid(page.slots_grid, read_rows(cells, #cells), nil)
+    page.slots:SetSize(read_slots_width(), height or 0)
 end
 
 local function update_bags(page)
     local bought = GetNumBankSlots and GetNumBankSlots() or 0
     local row = {}
     for index = 1, BANK_BAGS do
-        local cell = read_cell(window.bag_cells, page.bags, index)
+        local cell = read_bag_cell(index, page.bags)
         local inventory = C_Container.ContainerIDToInventoryID and C_Container.ContainerIDToInventoryID(read_bank_bag(index))
         library.update_cell_size(cell, library.read_draft_size(CELL))
         library.update_cell(cell, { picture = inventory and GetInventoryItemTexture and GetInventoryItemTexture("player", inventory), unusable = index > bought })
-        cell.bag = nil
         cell:Show()
         row[index] = cell
     end
     local _, height = library.update_grid(page.bags_grid, { row }, nil)
-    page.bags:SetSize(BANK_BAGS * library.read_draft_size(CELL + GAP), height or 0)
+    page.bags:SetSize(BANK_BAGS * library.read_draft_size(CELL + GAP) - library.read_draft_size(GAP), height or 0)
 end
 
 local function update_buying(page, width)
@@ -139,80 +113,196 @@ local function update_buying(page, width)
     page.buying:SetSize(width, height or 0)
 end
 
-local function update_bank_page(page)
+local function update_old_page(page)
     local width = page:GetWidth()
-    local containers, tabbed = read_bank_containers()
-    library.update_safely("bank slots", update_slots, page, containers)
-    local rows = { { page.slots } }
-    page.places:SetShown(not tabbed)
-    if not tabbed then
-        library.update_safely("bank bags", update_bags, page)
-        library.update_safely("bank buying", update_buying, page, width)
-        library.update_section(page.places, library.texts.bank_bags, { { page.bags }, { page.buying } }, width)
-        rows[#rows + 1] = { page.places }
+    library.update_safely("bank slots", update_slots, page, BANK)
+    library.update_safely("bank bags", update_bags, page)
+    library.update_safely("bank buying", update_buying, page, width)
+    library.update_section(page.places, library.texts.bank_bags, { { page.bags }, { page.buying } }, width)
+    local _, height = library.update_grid(page.grid, { { page.slots }, { page.places } }, width)
+    return height
+end
+
+local function update_tab_page(page)
+    library.update_safely("bank slots", update_slots, page, read_tab_bag(page.index))
+    library.update_button(page.deposit)
+    library.update_button_enabled(page.deposit, C_Bank.DoesBankTypeSupportAutoDeposit == nil or C_Bank.DoesBankTypeSupportAutoDeposit(read_kind()))
+    local _, height = library.update_grid(page.grid, { { page.slots }, { page.deposit } }, page:GetWidth())
+    return height
+end
+
+local function read_offer()
+    local kind = read_kind()
+    local offer = C_Bank.FetchNextPurchasableBankTabData and C_Bank.FetchNextPurchasableBankTabData(kind) or {}
+    local most = C_Bank.FetchMaxNumBankTabs and C_Bank.FetchMaxNumBankTabs(kind) or TABS
+    local next_tab = (C_Bank.FetchNumPurchasedBankTabs and C_Bank.FetchNumPurchasedBankTabs(kind) or 0) + 1
+    local body = offer.purchasePromptBody or ""
+    return { offer = offer, name = string.format(library.texts.bank_tab, next_tab), meta = string.format(library.texts.bank_tab_of, next_tab, most), words = body:match("^(.-)|n") or body, question = (body:gsub("|n", " "):gsub("%s+", " ")), ready = offer.canAfford == true and C_Bank.CanPurchaseBankTab(kind) }
+end
+
+local function update_offer_page(page)
+    local read = read_offer()
+    library.update_item_row(page.offer, { icon = library.media .. "TabBank", name = read.meta, sub = read.words, quality = 1, lines = 2 }, 0, page:GetWidth())
+    library.update_money(page.cost, read.offer.tabCost or 0)
+    library.update_button(page.buy)
+    library.update_button_enabled(page.buy, read.ready)
+    library.update_grid(page.grid, { { page.offer }, { page.buying } }, page:GetWidth())
+    library.update_grid(page.buying_grid, { { page.cost, page.buy } }, page:GetWidth())
+end
+
+local function update_sidebar_old()
+    for index = 1, TABS do library.update_sidebar_entry(window.sidebar, "tab" .. index, "", false) end
+    library.update_sidebar_entry(window.sidebar, "buy", library.texts.bank_tab_buy, false)
+    library.update_sidebar_entry(window.sidebar, "bank", library.texts.bank, true)
+    window.chosen = "bank"
+end
+
+local function update_sidebar_tabs()
+    library.update_sidebar_entry(window.sidebar, "bank", library.texts.bank, false)
+    local named = read_bought_tabs()
+    for index = 1, TABS do
+        local key = "tab" .. index
+        window.titles[key] = named[index] or ""
+        library.update_sidebar_entry(window.sidebar, key, named[index], named[index] ~= nil)
     end
-    library.update_grid(page.grid, rows, width)
+    local bought = C_Bank.FetchNumPurchasedBankTabs and C_Bank.FetchNumPurchasedBankTabs(read_kind()) or 0
+    if window.chosen == "buy" and window.bought and bought > window.bought then window.chosen = "tab" .. bought end
+    window.bought = bought
+    local can = C_Bank.CanPurchaseBankTab and C_Bank.CanPurchaseBankTab(read_kind()) or false
+    library.update_sidebar_entry(window.sidebar, "buy", library.texts.bank_tab_buy, can)
+    if window.chosen ~= "buy" and not named[tonumber((window.chosen or ""):match("%d+") or 0) or 0] then window.chosen = "tab1" end
+end
+
+local function update_page(key)
+    local page = window.pages[key]
+    if key == "buy" then return update_offer_page(page) end
+    if key == "bank" then return update_old_page(page) end
+    return update_tab_page(page)
+end
+
+local function update_size()
+    local main = window.tabbed and "tab1" or "bank"
+    local height = update_page(main) or 0
+    local band = math.ceil(window.heading:GetStringHeight()) + 2 * library.read_size(-2)
+    window:SetHeight(library.read_dialog_frame_height(window) + band + height + library.read_size(0))
 end
 
 function vga.update_bank()
     if not (window and window:IsShown()) then return end
-    library.update_paged_window(window, library.read_draft_size(WIDTH), library.read_draft_size(HEIGHT))
+    library.update_safely("bank tabs", window.tabbed and update_sidebar_tabs or update_sidebar_old)
+    library.update_paged_window(window, library.read_paged_window_width(window, read_slots_width()))
     library.update_dialog_status(window, library.texts.gold_label, GetMoney and GetMoney() or 0)
-    update_bank_page(window.pages.bank)
+    window.heading:SetText(window.titles[window.chosen] or "")
+    update_size()
+    update_page(window.chosen)
 end
 
 local function render_slot_bought()
     if PurchaseSlot then PurchaseSlot() end
 end
 
-local function create_page(page)
-    local texts = library.texts
+local function render_tab_purchased()
+    C_Bank.PurchaseBankTab(read_kind())
+end
+
+local function render_tab_bought()
+    local read = read_offer()
+    library.render_confirm({ title = read.offer.purchasePromptTitle or library.texts.bank, icon = library.media .. "TabBank", name = read.name, meta = read.meta, question = read.question, label = read.offer.purchasePromptConfirmation or library.texts.price, copper = read.offer.tabCost or 0, word = library.texts.buy, ready = read.ready, on_confirm = render_tab_purchased })
+end
+
+local function render_deposit()
+    C_Bank.AutoDepositItemsIntoBank(read_kind())
+end
+
+local function read_columns(count)
+    local columns = {}
+    for index = 1, count do columns[index] = CELL end
+    return columns
+end
+
+local function create_slots(page)
     page.slots = CreateFrame("Frame", nil, page)
-    page.slots_grid = library.create_grid(page.slots, { columns = { CELL, CELL, CELL, CELL, CELL, CELL, CELL }, gap = GAP, row = CELL, row_gap = GAP, y = "top" })
+    page.slots_grid = library.create_grid(page.slots, { columns = read_columns(COLUMNS), gap = GAP, row = CELL, row_gap = GAP, y = "top" })
+    page.grid = library.create_grid(page, { columns = { "auto" }, row = 0, row_gap = 10, y = "top", x = "right" })
+end
+
+local function create_old_page(page)
+    local texts = library.texts
+    create_slots(page)
     page.places = library.create_section(page, { kind = "caption", gap = 10 })
     page.bags = CreateFrame("Frame", nil, page.places)
-    page.bags_grid = library.create_grid(page.bags, { columns = { CELL, CELL, CELL, CELL, CELL, CELL, CELL }, gap = GAP, row = CELL, y = "top" })
+    page.bags_grid = library.create_grid(page.bags, { columns = read_columns(BANK_BAGS), gap = GAP, row = CELL, y = "top" })
     page.buying = CreateFrame("Frame", nil, page.places)
     page.next = library.create_text(page.buying, "small", colours.quiet)
     page.cost = library.create_money(page.buying, colours.ink)
     page.cost.kind = "small"
     page.buy = library.create_button(page.buying, texts.buy_slot, "gold", render_slot_bought)
     page.buying_grid = library.create_grid(page.buying, { columns = { "rest", "auto", "auto" }, gap = GAP, row = 0 })
-    page.grid = library.create_grid(page, { columns = { "rest" }, row = 0, row_gap = 10, y = "top" })
+end
+
+local function create_tab_page_maker(index)
+    return function(page)
+        page.index = index
+        create_slots(page)
+        page.deposit = library.create_button(page, library.texts.bank_deposit, "plain", render_deposit)
+    end
+end
+
+local function create_offer_page(page)
+    page.offer = library.create_item_row(page, {})
+    page.buying = CreateFrame("Frame", nil, page)
+    page.cost = library.create_money(page.buying, colours.ink)
+    page.buy = library.create_button(page.buying, library.texts.buy, "gold", render_tab_bought)
+    page.buying_grid = library.create_grid(page.buying, { columns = { "rest", "auto" }, gap = GAP, row = 0, x = { "right", "right" } })
+    page.grid = library.create_grid(page, { columns = { "rest" }, row = 0, row_gap = 14, y = "top" })
+end
+
+local function read_plan(texts)
+    local entries, pages = { { key = "bank", title = texts.bank, icon = "TabBank" } }, { { key = "bank", title = texts.bank, build = create_old_page } }
+    for index = 1, TABS do
+        local title = string.format(texts.bank_tab, index)
+        entries[#entries + 1] = { key = "tab" .. index, title = title, icon = "TabBank" }
+        pages[#pages + 1] = { key = "tab" .. index, title = title, build = create_tab_page_maker(index) }
+    end
+    entries[#entries + 1] = { key = "buy", title = texts.bank_tab_buy, icon = "TabBuy" }
+    pages[#pages + 1] = { key = "buy", title = texts.bank_tab_buy, build = create_offer_page }
+    return entries, pages
 end
 
 local function render_closed()
-    library.update_game_veiled(BankFrame, false)
-    if CloseBankFrame then CloseBankFrame() end
+    library.render_game_ended(BankFrame, C_Bank and C_Bank.CloseBankFrame or CloseBankFrame)
+end
+
+local function render_page_chosen(_, key)
+    window.chosen = key
+    vga.update_bank()
 end
 
 local function create_window()
     local texts = library.texts
-    local entries = { { key = "bank", title = texts.bank, icon = "TabBank" } }
-    local pages = { { key = "bank", title = texts.bank, build = create_page } }
-    window = library.create_paged_window("VGABankWindow", { title = texts.bank, groups = { { title = texts.bank, entries = entries } }, pages = pages, foot = { status = true }, on_page = vga.update_bank })
-    window.cells, window.bag_cells = {}, {}
-    window.buy, window.bags_heading = window.pages.bank.buy, window.pages.bank.places.heading
+    local entries, pages = read_plan(texts)
+    window = library.create_paged_window("VGABankWindow", { title = texts.bank, groups = { { title = texts.bank, entries = entries } }, pages = pages, foot = { status = true }, on_page = render_page_chosen })
+    window.bag_cells, window.holders = {}, {}
     library.update_dialog_closing(window, function() library.update_safely("bank closed", render_closed) end)
 end
 
 local function update_opened()
     if not window then create_window() end
     library.update_game_veiled(BankFrame, true)
-    window.chosen = "bank"
+    window.tabbed = check_tabbed()
+    window.chosen = window.tabbed and "tab1" or "bank"
     library.update_dialog_placed(window)
     window:Show()
-    library.update_safely("bank measure", write_bank_measure)
-    library.update_paged_window_page(window, "bank")
     vga.update_bank()
+    library.update_paged_window_page(window, window.chosen)
 end
 
 local function update_closed()
     if window and window:IsShown() then window:Hide() end
 end
 
-local HEARD = { BANKFRAME_OPENED = update_opened, BANKFRAME_CLOSED = update_closed, PLAYERBANKSLOTS_CHANGED = vga.update_bank, PLAYERBANKBAGSLOTS_CHANGED = vga.update_bank, BAG_UPDATE_DELAYED = vga.update_bank, PLAYER_MONEY = vga.update_bank }
+local HEARD = { BANKFRAME_OPENED = update_opened, BANKFRAME_CLOSED = update_closed, PLAYERBANKSLOTS_CHANGED = vga.update_bank, PLAYERBANKBAGSLOTS_CHANGED = vga.update_bank, BAG_UPDATE_DELAYED = vga.update_bank, PLAYER_MONEY = vga.update_bank, BANK_TABS_CHANGED = vga.update_bank, BANK_TAB_SETTINGS_UPDATED = vga.update_bank }
 
 local events = CreateFrame("Frame")
-library.update_events(events, { "BANKFRAME_OPENED", "BANKFRAME_CLOSED", "PLAYERBANKSLOTS_CHANGED", "PLAYERBANKBAGSLOTS_CHANGED", "BAG_UPDATE_DELAYED", "PLAYER_MONEY" })
+library.update_events(events, { "BANKFRAME_OPENED", "BANKFRAME_CLOSED", "PLAYERBANKSLOTS_CHANGED", "PLAYERBANKBAGSLOTS_CHANGED", "BAG_UPDATE_DELAYED", "PLAYER_MONEY", "BANK_TABS_CHANGED", "BANK_TAB_SETTINGS_UPDATED" })
 events:SetScript("OnEvent", function(_, event) library.update_safely("bank " .. event, HEARD[event]) end)

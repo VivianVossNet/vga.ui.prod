@@ -1,14 +1,15 @@
 -- Copyright 2026 Vivian Voss. Code by Vivian Voss. Licensed under the BSD-3-Clause.
 -- SPDX-License-Identifier: BSD-3-Clause
--- Scope: vga.auctions' line beneath the game's item tooltip as the accepted draft draws it (manual/view/vga-tooltip.html, K0604, K0626, K0633): LibVGA's accordion »AUKTIONEN«, closed, the market value at its right in our coins, in a block of its own at the tooltip's foot, below every line of the game's - the room kept by LibVGA's tooltip block (library.update_tooltip_block, K0780) - so no line of the game's, as the sell price, ever lies under it and no room stays empty (K0744); nothing where the auction house was never read for the item. Beneath it, for a player who knows Enchanting (K0636), LibVGA's accordion »ENTZAUBERN« with the expected value of disenchanting the item (Disenchant.lua, K0752), »–« where a material has no market value, nothing for an item that cannot be disenchanted; each accordion as high as one, the foot as high as all; the tooltip at least as wide as the widest word and its figure need beside each other, so a short item's tooltip never lets them run into each other (K0752). In the plain tooltip neither carries a chevron, since it cannot be opened there (K0752). Opening them - the graph, market value, lowest now, thirty days, basis; the materials with amount, chance and value - belongs to the fixed window of K0604 (Tipwindow.lua, K0753), whose lines this foot leaves alone.
+-- Scope: vga.auctions' line beneath the game's item tooltip as the accepted draft draws it (manual/view/vga-tooltip.html, K0604, K0626, K0633): LibVGA's accordion »AUKTIONEN«, closed, the market value at its right in our coins, in a block of its own at the tooltip's foot, the lowest of its layers (library.update_tooltip_foot, K0900), below every line of the game's - the room kept by LibVGA's tooltip block (library.update_tooltip_block, K0780) - so no line of the game's, as the sell price, ever lies under it and no room stays empty (K0744); nothing where the auction house was never read for the item. Beneath it, for a player who knows Enchanting (K0636), LibVGA's accordion »ENTZAUBERN« with the expected value of disenchanting the item (Disenchant.lua, K0752), »–« where a material has no market value, nothing for an item that cannot be disenchanted; each accordion as high as one, the foot as high as all; the tooltip at least as wide as the widest word and its figure need beside each other, so a short item's tooltip never lets them run into each other (K0752). In the plain tooltip neither carries a chevron, since it cannot be opened there (K0752). Opening them - the graph, market value, lowest now, thirty days, basis; the materials with amount, chance and value - belongs to the fixed window of K0604 (Tipwindow.lua, K0753), whose lines this foot leaves alone.
 
--- {K0780} {K0752} {K0604} {K0626} {K0633} {K0744}
+-- {K0900} {K0780} {K0752} {K0604} {K0626} {K0633} {K0744}
 
 local _, vga = ...
 local library = LibVGA
 local colours = library.colours
 local INSET = 10
 local BOTTOM = 10
+local FOOT_RANK = 2
 local kept = {}
 
 local function update_cleared(tip)
@@ -70,7 +71,7 @@ local function write_accordions(tip, rows)
         library.update_accordion(label, library.read_capitals(row.word), nil, 1, row.copper == nil and "–" or nil, row.copper)
     end
     update_least_width(tip)
-    library.update_tooltip_block(tip, "foot", #rows * library.read_accordion_height(), update_labels_placed)
+    library.update_tooltip_foot(tip, FOOT_RANK, #rows * library.read_accordion_height(), update_labels_placed)
 end
 
 local function read_rounded(copper)

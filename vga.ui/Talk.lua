@@ -55,10 +55,8 @@ function vga.update_talk()
 end
 
 local function render_closed()
-    library.update_game_veiled(GossipFrame, false)
-    library.update_game_veiled(QuestFrame, false)
-    if C_GossipInfo and C_GossipInfo.CloseGossip then C_GossipInfo.CloseGossip() end
-    if CloseQuest then CloseQuest() end
+    library.render_game_ended(GossipFrame, C_GossipInfo and C_GossipInfo.CloseGossip)
+    library.render_game_ended(QuestFrame, CloseQuest)
 end
 
 local function render_plain()

@@ -1,8 +1,8 @@
 -- Copyright 2026 Vivian Voss. Code by Vivian Voss. Licensed under the BSD-3-Clause.
 -- SPDX-License-Identifier: BSD-3-Clause
--- Scope: LibVGA's tooltip block, as the accepted catalogue names it (manual/view/vga-catalogue.html, K0775) after the grid's draft (manual/view/vga-grid.html, K0736): the room our parts take in one of the game's tooltips - a head above the game's lines, a foot below them - kept so that no line of the game's ever lies under ours and no room stays empty. Both are kept through the tooltip's bottom padding, added to whatever the game itself sets and laid again whenever the game reckons its padding anew or the tooltip shows; the head's room is made by moving the game's first line down by the head's height, its other lines following it, never by the top padding, which the game drops (K0780). Cleared with the tooltip, the padding and the first line go back. Its owner names a part's height and, where it lays its own pieces in the foot, what lays them, told the game's own bottom padding each time.
+-- Scope: LibVGA's tooltip block, as the accepted catalogue names it (manual/view/vga-catalogue.html, K0775) after the grid's draft (manual/view/vga-grid.html, K0736): the room our parts take in one of the game's tooltips - a head above the game's lines, a foot below them - kept so that no line of the game's ever lies under ours and no room stays empty. Both are kept through the tooltip's bottom padding, added to whatever the game itself sets and laid again whenever the game reckons its padding anew, the tooltip shows or its size changes - the game sizes a tooltip only after its lines are written, so a foot laid by the tooltip's width is laid again with the final one (K0904); the head's room is made by moving the game's first line down by the head's height, its other lines following it, never by the top padding, which the game drops (K0780). Cleared with the tooltip, the padding and the first line go back. Its owner names a part's height and, where it lays its own pieces in the foot, what lays them, told the game's own bottom padding each time. The foot holds several owners' pieces stacked in a fixed order, each a layer of its own with a rank - the lowest rank highest, nearest the game's lines - and a height; each is told how far above the tooltip's bottom its pieces begin, the game's padding and the layers beneath added, or names a frame of its own that the block lays there across the tooltip, for its owner to fill by LibVGA's grid (library.update_tooltip_foot, K0900): the pinned badge above vga.auctions' accordions.
 
--- {K0780} {K0744} {K0754} {K0775} {K0736}
+-- {K0904} {K0900} {K0780} {K0744} {K0754} {K0775} {K0736}
 
 local library = LibVGA
 local LINE = { "TOPLEFT", nil, "TOPLEFT", 10, -10 }
@@ -49,6 +49,18 @@ local function update_room(block)
     if not check_kept(height, block.padded) then tip:SetPadding(width, block.padded, left or 0, top or 0) end
     update_first_line(block, block.head)
     for _, lay in pairs(block.layers) do lay(tip, block.base) end
+    local rise = block.base
+    for index = #block.feet, 1, -1 do
+        local layer = block.feet[index]
+        if layer.lay then layer.lay(tip, rise) end
+        if layer.frame then
+            layer.frame:ClearAllPoints()
+            layer.frame:SetPoint("BOTTOMLEFT", tip, "BOTTOMLEFT", 0, rise)
+            layer.frame:SetPoint("BOTTOMRIGHT", tip, "BOTTOMRIGHT", 0, rise)
+            layer.frame:SetHeight(layer.height)
+        end
+        rise = rise + layer.height
+    end
 end
 
 local function update_room_safely(tip)
@@ -62,7 +74,7 @@ local function update_cleared(block)
         if check_kept(height, block.padded) then tip:SetPadding(width, block.base or 0, left or 0, top or 0) end
     end
     if block.head > 0 then update_first_line(block, 0) end
-    block.head, block.foot, block.padded, block.base, block.layers = 0, 0, nil, nil, {}
+    block.head, block.foot, block.padded, block.base, block.layers, block.feet = 0, 0, nil, nil, {}, {}
 end
 
 local function update_cleared_safely(tip)
@@ -71,9 +83,10 @@ end
 
 function library.create_tooltip_block(tip)
     if blocks[tip] then return blocks[tip] end
-    blocks[tip] = { tip = tip, head = 0, foot = 0, layers = {} }
+    blocks[tip] = { tip = tip, head = 0, foot = 0, layers = {}, feet = {} }
     tip:HookScript("OnTooltipCleared", update_cleared_safely)
     tip:HookScript("OnShow", update_room_safely)
+    tip:HookScript("OnSizeChanged", update_room_safely)
     return blocks[tip]
 end
 
@@ -81,6 +94,23 @@ function library.update_tooltip_block(tip, part, height, lay)
     local block = library.create_tooltip_block(tip)
     block[part] = height
     block.layers[part] = lay
+    update_room(block)
+end
+
+local function check_rank_before(one, other)
+    return one.rank < other.rank
+end
+
+function library.update_tooltip_foot(tip, rank, height, lay, frame)
+    local block = library.create_tooltip_block(tip)
+    local feet = {}
+    for _, layer in ipairs(block.feet) do
+        if layer.rank ~= rank then feet[#feet + 1] = layer end
+    end
+    feet[#feet + 1] = { rank = rank, height = height, lay = lay, frame = frame }
+    table.sort(feet, check_rank_before)
+    block.feet, block.foot = feet, 0
+    for _, layer in ipairs(feet) do block.foot = block.foot + layer.height end
     update_room(block)
 end
 

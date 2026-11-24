@@ -1,8 +1,8 @@
 -- Copyright 2026 Vivian Voss. Code by Vivian Voss. Licensed under the BSD-3-Clause.
 -- SPDX-License-Identifier: BSD-3-Clause
--- Scope: LibVGA's window with pages, as the accepted catalogue draws it (manual/view/vga-catalogue.html »Fenster mit Seiten«, K0775) after the settings (manual/view/vga-settings-apple.html, K0565): LibVGA's dialog with its head, pin, close and, where named, its foot (K0783); at its left the menu bar, LibVGA's sidebar of groups and entries (K0565); at its right the chosen page under its title; one page shown at a time. Its user names the title, the groups, the pages - each a key, a title and the maker that fills it - and, where it must, what follows a choice, where its pages begin and how far they keep from the edges; it lays the window by library.update_paged_window with its width and, where not the tallest page's, its height; the settings and the auction window are made so (K0790). The page keeps the gap on its right as on its left, so a list's group and the controls above it end short of the window's edge (K0839).
+-- Scope: LibVGA's window with pages, as the accepted catalogue draws it (manual/view/vga-catalogue.html »Fenster mit Seiten«, K0775) after the settings (manual/view/vga-settings-apple.html, K0565): LibVGA's dialog with its head, pin, close and, where named, its foot (K0783); at its left the menu bar, LibVGA's sidebar of groups and entries (K0565); at its right the chosen page under its title; one page shown at a time. Its user names the title, the groups, the pages - each a key, a title and the maker that fills it - and, where it must, what follows a choice, where its pages begin and how far they keep from the edges; it lays the window by library.update_paged_window with its width and, where not the tallest page's, its height; the settings and the auction window are made so (K0790). The page keeps the gap on its right as on its left, so a list's group and the controls above it end short of the window's edge (K0839). A window whose page holds content of a fixed width - a bank tab's slots - takes its width from it, library.read_paged_window_width(window, content), the sidebar, the gaps and the frame added, so the content never runs over the edge at any size (K0896).
 
--- {K0839} {K0790} {K0565} {K0783} {K0775}
+-- {K0896} {K0839} {K0790} {K0565} {K0783} {K0775}
 
 local library = LibVGA
 
@@ -56,6 +56,10 @@ local function read_tallest(window, band, side_height)
     local tallest = 0
     for _, page in pairs(window.pages) do tallest = math.max(tallest, page.wanted and math.max(page.wanted + band, side_height) or 0) end
     return tallest > 0 and library.read_dialog_frame_height(window) + tallest or nil
+end
+
+function library.read_paged_window_width(window, content)
+    return content + library.read_sidebar_width(window.sidebar) + 2 * library.read_size(0) + 2 * library.read_size(-4)
 end
 
 function library.update_paged_window(window, width, height)

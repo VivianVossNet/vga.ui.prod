@@ -1,13 +1,14 @@
 -- Copyright 2026 Vivian Voss. Code by Vivian Voss. Licensed under the BSD-3-Clause.
 -- SPDX-License-Identifier: BSD-3-Clause
--- Scope: LibVGA's chip, every comparison's one look as the accepted drafts draw it (manual/view/vga-tooltip.html, vga-auctions.html, K0605 to K0607): a small rounded ground in its kind's colour, faint, the arrow - up, down, even, a mark, drawn as our own small pictures since the game's faces lack the signs (K0623) - at its left edge and the figure at its right, both in the kind's colour; every chip at least as wide as »8888 %« needs, so a column never changes its width, its height an even number of whole screen pixels so the faint ground's halves meet without a darker line (K0654); the chips of one column made as wide as the widest of them by the caller (library.read_chip_width, library.update_chip_width); its colour and sign picture read out for chips written into a tooltip's text (library.read_chip_colour, library.read_chip_picture, K0626). The widest a chip can be is read from a hidden probe for a list's column (library.read_widest_chip, K0686). Where its owner names a picture of LibVGA's media instead of an arrow, the chip carries that picture in its kind's colour - the talk's anvil beside »Reparatur« (K0848). A chip given no sign is a label - the experience of a quest, »Verfügbar«, »Abgeben«, a trainer's »lernbar« -: it shows its word alone, centred, as wide as the word and its two margins, never a sign it was not given (K0888).
+-- Scope: LibVGA's chip, every comparison's one look as the accepted drafts draw it (manual/view/vga-tooltip.html, vga-auctions.html, K0605 to K0607): a small rounded ground in its kind's colour, faint, the arrow - up, down, even, a mark, drawn as our own small pictures since the game's faces lack the signs (K0623) - at its left edge and the figure at its right, both in the kind's colour; every chip at least as wide as »8888 %« needs, so a column never changes its width, its height an even number of whole screen pixels so the faint ground's halves meet without a darker line (K0654); the chips of one column made as wide as the widest of them by the caller (library.read_chip_width, library.update_chip_width); its colour and sign picture read out for chips written into a tooltip's text (library.read_chip_colour, library.read_chip_picture, K0626). The widest a chip can be is read from a hidden probe for a list's column (library.read_widest_chip, K0686). Where its owner names a picture of LibVGA's media instead of an arrow, the chip carries that picture in its kind's colour - the talk's anvil beside »Reparatur« (K0848). A chip given no sign is a label - the experience of a quest, »Verfügbar«, »Abgeben«, a trainer's »lernbar« -: it shows its word alone, centred, as wide as the word and its two margins, never a sign it was not given (K0888). Its kinds: gold, green, grey, red and blue - the blue of what is fixed in the bags (K0900).
 
--- {K0888} {K0848} {K0789} {K0607} {K0623} {K0626} {K0654} {K0686}
+-- {K0900} {K0888} {K0848} {K0789} {K0607} {K0623} {K0626} {K0654} {K0686}
 
 local library = LibVGA
 local colours = library.colours
 local KINDS = {
     gold = colours.gold,
+    blue = colours.blue,
     green = { 0.247, 0.749, 0.353 },
     grey = colours.quiet,
     red = { 0.886, 0.404, 0.353 },

@@ -1,8 +1,8 @@
 -- Copyright 2026 Vivian Voss. Code by Vivian Voss. Licensed under the BSD-3-Clause.
 -- SPDX-License-Identifier: BSD-3-Clause
--- Scope: vga.ui's bags as the accepted drafts draw them (manual/view/vga-reference.html §3, vga-windows.html A, vga-rewards.html): a dialog of the template, always framed, the backpack and its bags as one grid of ten columns in the game's order, no sorted sections; beneath it every special bag - a profession's bag in one of the four places, the reagent bag in its own - as an area set apart, its name in small capitals above it, a quiver or an ammunition pouch always last; at its head a search field, »Taschen durchsuchen«, and the segmented filters - Alle as a word, then as icons with their word as tooltip: Ausrüstung a breastplate, Verbrauch a bottle, Handwerk a hammer, Quest a question mark, Plunder - the poor, grey items - a teddy -, what does not match darkened whole in its place - icon and edges together, through the frame's own alpha, since the game's item button narrows SetAlpha to its icon and border - so nothing moves; each slot in the template's inset metal, our edge laid over the game's slot, three pixels wide with gently rounded corners - an item's quality from uncommon up in its colour, a new one too, a quest item in gold, an empty slot in the metal's grey -, a quest item with a small gold question mark in its lower left corner, a little in from the icon's edge - an item that starts a quest not yet taken instead with an exclamation mark, in LibVGA's orange so it is seen at once (LibVGA's sign »offer« in orange, Media/Sign/OfferOrange.tga, K0857, made from the gold one by tools/questmark/questmark.py, K0851; K0846 misread the owner and is undone), in the middle of its slot, two thirds as high, vaulted like the leader's crown, a thin black rim and a soft shadow below to the right (Media/Sign/OfferGold.tga, manual/view/vga-queststart.html, K0761) -, a kept corner for our rarity's gem once vga.data brings it; an item new for five minutes - stamped when the game first calls it new, kept over a reload - brighter, without a glow behind it, its edge its quality's, every three seconds a shimmer running once round its rim that ends in a star flashing at its corner, until its five minutes are over; at the foot, in the status line LibVGA's dialog owns, the slots in use of all and the money with the accepted coins (K0784). The game's own bags open and close as ever - B, the bag bar, a merchant, the mailbox -, kept under a hidden parent before they show, so they never appear and never clear their new items, while ours follow them and sound as they did; the bank stays the game's. At the filters' right end a button with the sorting arrows opens the settings on the tab »Taschen«, where the order is chosen (Bagsettings.lua); their size, place and pin are Bagplace.lua's. Using, dragging, selling and the tooltip are the game's own item buttons'. Right of the sorting button the button »Aufräumen« pushes every item together from the top left (vga.ui/Bagtidy.lua, K0644). An item that would be an upgrade carries a small green arrow pointing up in its upper right corner, vaulted like the crown, a thin black rim and a soft shadow (Media/UpgradeArrow.tga, K0762; before a green dot, vga.ui/Bagupgrade.lua, K0723).
+-- Scope: vga.ui's bags as the accepted drafts draw them (manual/view/vga-reference.html §3, vga-windows.html A, vga-rewards.html): a dialog of the template, always framed, the backpack and its bags as one grid of ten columns in the game's order, no sorted sections; beneath it every special bag - a profession's bag in one of the four places, the reagent bag in its own - as an area set apart, its name in small capitals above it, a quiver or an ammunition pouch always last; at its head a search field, »Taschen durchsuchen«, and the segmented filters - Alle as a word, then as icons with their word as tooltip: Ausrüstung a breastplate, Verbrauch a bottle, Handwerk a hammer, Quest a question mark, Plunder - the poor, grey items - a teddy -, what does not match darkened whole in its place - icon and edges together, through the frame's own alpha, since the game's item button narrows SetAlpha to its icon and border - so nothing moves; each slot in the template's inset metal, our edge laid over the game's slot, three pixels wide with gently rounded corners - an item's quality from uncommon up in its colour, a new one too, a quest item in gold, an empty slot in the metal's grey -, a quest item with a small gold question mark in its lower left corner, a little in from the icon's edge - an item that starts a quest not yet taken instead with an exclamation mark, in LibVGA's orange so it is seen at once (LibVGA's sign »offer« in orange, Media/Sign/OfferOrange.tga, K0857, made from the gold one by tools/questmark/questmark.py, K0851; K0846 misread the owner and is undone), in the middle of its slot, two thirds as high, vaulted like the leader's crown, a thin black rim and a soft shadow below to the right (Media/Sign/OfferGold.tga, manual/view/vga-queststart.html, K0761) -, a kept corner for our rarity's gem once vga.data brings it; an item new for five minutes - stamped when the game first calls it new, kept over a reload - brighter, without a glow behind it, its edge its quality's, every three seconds a shimmer running once round its rim that ends in a star flashing at its corner, until its five minutes are over; at the foot, in the status line LibVGA's dialog owns, the slots in use of all and the money with the accepted coins (K0784). The game's own bags open and close as ever - B, the bag bar, a merchant, the mailbox -, kept under a hidden parent before they show, so they never appear and never clear their new items, while ours follow them and sound as they did; the bank stays the game's. At the filters' right end a button with the sorting arrows opens the settings on the tab »Taschen«, where the order is chosen (Bagsettings.lua); their size, place and pin are Bagplace.lua's. Using, dragging, selling and the tooltip are the game's own item buttons'. Right of the sorting button the button »Aufräumen« pushes every item together from the top left (vga.ui/Bagtidy.lua, K0644). Alt and a right click on an item pins it to the end of the bags or loosens it again - the hearthstone and the tools always stand there, each fixed item carrying two small blue rounded corners, at its upper right and its lower left (vga.write_bag_pin, manual/view/vga-bags-pin.html, K0898, K0899). An item that would be an upgrade carries a small green arrow pointing up in its upper right corner, vaulted like the crown, a thin black rim and a soft shadow (Media/UpgradeArrow.tga, K0762; before a green dot, vga.ui/Bagupgrade.lua, K0723).
 
--- {K0857} {K0851} {K0846} {K0802} {K0793} {K0789} {K0784} {K0783} {K0777} {K0762} {K0761} {K0258} {K0259} {K0303} {K0403} {K0405} {K0406} {K0407} {K0409} {K0410} {K0411} {K0412} {K0413} {K0414} {K0644} {K0723}
+-- {K0899} {K0898} {K0857} {K0851} {K0846} {K0802} {K0793} {K0789} {K0784} {K0783} {K0777} {K0762} {K0761} {K0258} {K0259} {K0303} {K0403} {K0405} {K0406} {K0407} {K0409} {K0410} {K0411} {K0412} {K0413} {K0414} {K0644} {K0723}
 
 local _, vga = ...
 local library = LibVGA
@@ -11,24 +11,15 @@ local COLUMNS = 10
 local SLOT = 38
 local GAP = 4
 local PAD = 12
-local RADIUS = 4
-local EDGE_WIDTH = 3
 local FRESH_SECONDS = 300
-local DIM = 0.25
-local SLOT_GROUND = { 0.031, 0.035, 0.043 }
-local SLOT_EDGE = { 0.18, 0.192, 0.22 }
-local UPGRADE_ARROW, UPGRADE_INSET = 14, 2
-local UNCOMMON = 2
 local FILTERS = { false, { [2] = true, [4] = true }, { [0] = true }, { [3] = true, [5] = true, [7] = true, [9] = true }, { [12] = true } }
 local QUEST_FILTER = 5
 local SECTION_TOP = 8
 local AMMO_FAMILIES = 3
 local SECTION_GAP = 6
 local JUNK_FILTER = 6
-local PARTS = { "IconBorder", "IconOverlay", "IconOverlay2", "NewItemTexture", "BattlepayItemTexture", "IconQuestTexture", "flash", "searchOverlay", "ItemContextOverlay", "ExtendedSlot", "UpgradeIcon", "JunkIcon" }
 local bags
 local hidden = CreateFrame("Frame")
-local WHOLE_ALPHA = hidden.SetAlpha
 hidden:Hide()
 local watched = {}
 
@@ -55,110 +46,20 @@ local function read_bag_slots()
     return used, total
 end
 
-local function update_button_parts(button)
-    for _, name in ipairs(PARTS) do
-        if button[name] then button[name]:SetAlpha(0) end
-    end
-    if button.GetNormalTexture and button:GetNormalTexture() then button:GetNormalTexture():SetAlpha(0) end
-    for _, state in ipairs({ button:GetHighlightTexture(), button:GetPushedTexture() }) do
-        state:SetTexture("Interface\\Buttons\\WHITE8X8")
-        state:SetVertexColor(1, 1, 1, 0.15)
-        state:SetAllPoints(button)
-    end
-    if button.icon then
-        button.icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
-        library.update_cell_picture(button.icon, button, EDGE_WIDTH)
-    end
-    if button.Cooldown then library.update_cell_picture(button.Cooldown, button, EDGE_WIDTH) end
-end
-
-local function create_slot(holder, slot)
-    local button = CreateFrame("ItemButton", nil, holder, "ContainerFrameItemButtonTemplate")
-    button:SetID(slot)
-    library.create_cell_dress(button, { ground = -6, edge = 5 })
-    button.vga_gem = button:CreateTexture(nil, "OVERLAY", nil, 6)
-    button.vga_gem:Hide()
-    button.vga_quest = library.create_text(button, "figure", colours.gold)
-    button.vga_quest:SetText("?")
-    button.vga_start = button:CreateTexture(nil, "OVERLAY", nil, 7)
-    button.vga_start:SetTexture(library.media .. library.read_sign_picture("offer", "orange"))
-    button.vga_start:Hide()
-    button.vga_unusable = library.create_unusable(button, button.icon)
-    button.vga_upgrade = CreateFrame("Frame", nil, button)
-    button.vga_upgrade.arrow = button.vga_upgrade:CreateTexture(nil, "OVERLAY")
-    button.vga_upgrade.arrow:SetTexture(library.media .. "UpgradeArrow")
-    button.vga_upgrade.arrow:SetAllPoints()
-    update_button_parts(button)
-    library.create_shimmer(button)
-    return button
-end
-
 local function read_category(item)
     local _, _, _, _, _, class = C_Item.GetItemInfoInstant(item.itemID)
     return class
-end
-
-local function check_quest(bag, slot, item)
-    local quest = C_Container.GetContainerItemQuestInfo and C_Container.GetContainerItemQuestInfo(bag, slot)
-    return read_category(item) == 12 or (quest and (quest.isQuestItem or quest.questID)) and true or false
 end
 
 local function check_match(bag, slot, item)
     local filter, wanted = bags.filter.chosen, bags.wanted
     if filter == 1 and wanted == "" then return true end
     if not item then return false end
-    if filter == QUEST_FILTER and not check_quest(bag, slot, item) then return false end
+    if filter == QUEST_FILTER and not library.check_container_quest(bag, slot, item) then return false end
     if filter == JUNK_FILTER and item.quality ~= 0 then return false end
     if filter > 1 and filter < QUEST_FILTER and not FILTERS[filter][read_category(item) or -1] then return false end
     local name = item.itemName or C_Item.GetItemNameByID(item.itemID) or ""
     return wanted == "" or string.find(name:lower(), wanted, 1, true) ~= nil
-end
-
-local function check_starter(bag, slot)
-    local quest = C_Container.GetContainerItemQuestInfo and C_Container.GetContainerItemQuestInfo(bag, slot)
-    return quest ~= nil and quest.questID ~= nil and not quest.isActive
-end
-
-local function update_quest_mark(button, quest)
-    button.vga_quest:SetShown(quest)
-    if not quest then return end
-    button.vga_quest:SetFontObject(library.read_font("figure"))
-    button.vga_quest:SetTextColor(colours.gold[1], colours.gold[2], colours.gold[3])
-    button.vga_quest:ClearAllPoints()
-    button.vga_quest:SetPoint("BOTTOMLEFT", button, "BOTTOMLEFT", read_draft(3), read_draft(2))
-end
-
-local function update_start_mark(button, mark, shown)
-    mark:SetShown(shown)
-    if not shown then return end
-    local size = math.floor(button:GetWidth() * 2 / 3 + 0.5)
-    mark:SetSize(size, size)
-    mark:ClearAllPoints()
-    mark:SetPoint("CENTER", button, "CENTER", 0, 0)
-end
-
-local function update_upgrade_mark(button, item)
-    local dot = button.vga_upgrade
-    dot:SetShown(item ~= nil and vga.check_item_upgrade(item.hyperlink))
-    if not dot:IsShown() then return end
-    local size = read_draft(UPGRADE_ARROW)
-    dot:SetSize(size, size)
-    dot:ClearAllPoints()
-    dot:SetPoint("TOPRIGHT", button, "TOPRIGHT", -read_draft(UPGRADE_INSET), -read_draft(UPGRADE_INSET))
-end
-
-local function read_edge(item, quest)
-    if quest then return colours.gold, 1 end
-    if item and (item.quality or 0) >= UNCOMMON then return { C_Item.GetItemQualityColor(item.quality) }, 1 end
-    return SLOT_EDGE, 1
-end
-
-local function update_slot_look(button, item, new, quest)
-    local radius = 2 * EDGE_WIDTH
-    local edge, share = read_edge(item, quest)
-    library.update_surface(button.vga_ground, 0, radius, SLOT_GROUND, SLOT_GROUND)
-    library.update_ring(button.vga_edge, EDGE_WIDTH, edge, share)
-    if not new then library.delete_shimmer(button) end
 end
 
 local function check_fresh(bag, slot, item)
@@ -176,26 +77,9 @@ local function check_fresh(bag, slot, item)
 end
 
 local function update_slot(button, bag, slot)
-    local item = C_Container.GetContainerItemInfo(bag, slot)
-    local new = check_fresh(bag, slot, item)
-    SetItemButtonTexture(button, item and item.iconFileID)
-    library.update_unusable(button.vga_unusable, item and item.itemID)
-    SetItemButtonCount(button, item and item.stackCount or 0)
-    SetItemButtonDesaturated(button, item and item.isLocked)
-    if button.Count then
-        button.Count:SetFontObject(library.read_font("figures_caption"))
-        button.Count:SetTextColor(1, 1, 1)
-        button.Count:ClearAllPoints()
-        button.Count:SetPoint("BOTTOMRIGHT", button, "BOTTOMRIGHT", -read_draft(3), read_draft(1))
-    end
-    if button.UpdateCooldown then button:UpdateCooldown(item ~= nil) end
-    local quest = item ~= nil and check_quest(bag, slot, item)
-    update_slot_look(button, item, new, quest)
-    local starter = item ~= nil and check_starter(bag, slot)
-    update_quest_mark(button, quest and not starter)
-    update_start_mark(button, button.vga_start, starter)
-    update_upgrade_mark(button, item)
-    WHOLE_ALPHA(button, check_match(bag, slot, item) and 1 or DIM)
+    local found = C_Container.GetContainerItemInfo(bag, slot)
+    local new = check_fresh(bag, slot, found)
+    local item = library.update_container_slot(button, bag, slot, { new = new, dim = not check_match(bag, slot, found), upgrade = found ~= nil and vga.check_item_upgrade(found.hyperlink), pinned = vga.check_bag_pinned(found) })
     button.vga_new = new
     button.vga_at = new and LibVGASettings.bag_fresh[bag .. ":" .. slot].at or nil
     return item ~= nil
@@ -252,6 +136,20 @@ local function update_label(holder)
     holder.label:SetFontObject(library.read_font("small"))
     holder.label:SetText(library.read_capitals(C_Container.GetBagName(holder:GetID()) or ""))
     holder.label:Show()
+end
+
+local function render_pin(button, mouse)
+    if mouse ~= "RightButton" or not IsAltKeyDown() then return end
+    local item = C_Container.GetContainerItemInfo(button:GetParent():GetID(), button:GetID())
+    if not item then return end
+    vga.write_bag_pin(item.itemID)
+    library.update_element("bags")
+end
+
+local function create_slot(holder, slot)
+    local button = library.create_container_slot(holder, slot)
+    button:HookScript("OnClick", function(self, mouse) library.update_safely("bag pin", render_pin, self, mouse) end)
+    return button
 end
 
 local function read_entries(group)
@@ -457,10 +355,7 @@ local function create_bags()
     bags.grid = CreateFrame("Frame", nil, bags.body)
     bags.slot_grid = create_slot_grid()
     for bag = 0, read_final_bag() do
-        local holder = CreateFrame("Frame", nil, bags.grid)
-        holder:SetID(bag)
-        holder:SetAllPoints()
-        holder.slots = {}
+        local holder = library.create_container_holder(bags.grid, bag)
         holder.label = library.create_text(holder, "small", colours.quiet)
         holder.label_grid = library.create_grid(bags.grid, { columns = { "auto" }, row = 0, padding = { SECTION_TOP, 0, SECTION_GAP, 0 }, y = "top" })
         holder.slot_grid = create_slot_grid()
@@ -490,4 +385,3 @@ end)
 vga.read_bag_slots = read_bag_slots
 vga.read_final_bag = read_final_bag
 
-vga.read_bag_edge = read_edge

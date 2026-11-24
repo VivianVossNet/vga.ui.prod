@@ -97,8 +97,7 @@ local function render_kind(index)
 end
 
 local function render_closed()
-    library.update_game_veiled(ClassTrainerFrame, false)
-    if CloseTrainer then CloseTrainer() end
+    library.render_game_ended(ClassTrainerFrame, CloseTrainer)
 end
 
 local function create_tools(parent, listing)

@@ -1,8 +1,8 @@
 -- Copyright 2026 Vivian Voss. Code by Vivian Voss. Licensed under the BSD-3-Clause.
 -- SPDX-License-Identifier: BSD-3-Clause
--- Scope: vga.ui's merchant window, as the accepted draft draws it (manual/view/vga-npc-windows.html, K0830, K0831): LibVGA's window with pages - Kaufen, Verkaufen, Rückkauf in the menu bar with the accepted flat icons -, each page LibVGA's list page (library.create_list_page, K0871) with its tools made and laid here - LibVGA's search bar above Kaufen (library.create_search_bar, K0873), »Plunder verkaufen« above Verkaufen, none above Rückkauf -, every ware, every item of the bags with a price and every item sold back as LibVGA's item row, its tooltip only over picture and name (K0786), its price in our coins in the figure face; a click buys one, a shift-click asks the amount in vga.ui's own dialog (K0757); a click on an item of the bags sells it, »Plunder verkaufen« sells every poor item; a click on an item sold buys it back. The foot carries »Alles reparieren« with its cost where the merchant repairs - repair has no page of its own (K0830) - and the player's gold. The game's merchant window is veiled, never hidden, so the visit stays open as the game keeps it (library.update_game_veiled); closing ours ends the visit (K0832). At every opening it keeps for the account whether this merchant repairs, by the figure's number, so the talk can say so before the window opens (LibVGAAccount.repairers, K0848).
+-- Scope: vga.ui's merchant window, as the accepted draft draws it (manual/view/vga-npc-windows.html, K0830, K0831): LibVGA's window with pages - Kaufen, Verkaufen, Rückkauf in the menu bar with the accepted flat icons -, each page LibVGA's list page (library.create_list_page, K0871) with its tools made and laid here - LibVGA's search bar above Kaufen (library.create_search_bar, K0873), »Plunder verkaufen« above Verkaufen, none above Rückkauf -, every ware, every item of the bags with a price and every item sold back as LibVGA's item row, its tooltip only over picture and name (K0786), its price in our coins in the figure face; a click buys one, a shift-click asks the amount in vga.ui's own dialog (K0757); a click on an item of the bags sells it - an item fixed at the end of the bags shows there the bags' two blue corners, so it is not sold by mistake (item.pinned, K0901) -, »Plunder verkaufen« sells every poor item; a click on an item sold buys it back. The foot carries »Alles reparieren« with its cost where the merchant repairs - repair has no page of its own (K0830) - and the player's gold. The game's merchant window is veiled, never hidden, so the visit stays open as the game keeps it (library.update_game_veiled); closing ours ends the visit (K0832). At every opening it keeps for the account whether this merchant repairs, by the figure's number, so the talk can say so before the window opens (LibVGAAccount.repairers, K0848).
 
--- {K0873} {K0860} {K0871} {K0848} {K0839} {K0838} {K0836} {K0832} {K0830} {K0831} {K0757} {K0786}
+-- {K0901} {K0873} {K0860} {K0871} {K0848} {K0839} {K0838} {K0836} {K0832} {K0830} {K0831} {K0757} {K0786}
 
 local _, vga = ...
 local library = LibVGA
@@ -60,7 +60,7 @@ local function read_bag_sales()
         for slot = 1, C_Container.GetContainerNumSlots(bag) do
             local found = C_Container.GetContainerItemInfo(bag, slot)
             local price = found and found.hyperlink and select(11, C_Item.GetItemInfo(found.hyperlink))
-            if price and price > 0 and not found.hasNoValue then sales[#sales + 1] = { bag = bag, slot = slot, name = C_Item.GetItemInfo(found.hyperlink) or "", icon = found.iconFileID, price = price * found.stackCount, count = found.stackCount, quality = found.quality, link = found.hyperlink, sub = read_kind(found.hyperlink) or "" } end
+            if price and price > 0 and not found.hasNoValue then sales[#sales + 1] = { bag = bag, slot = slot, name = C_Item.GetItemInfo(found.hyperlink) or "", icon = found.iconFileID, price = price * found.stackCount, count = found.stackCount, quality = found.quality, link = found.hyperlink, sub = read_kind(found.hyperlink) or "", pinned = vga.check_bag_pinned(found) } end
         end
     end
     return sales
@@ -122,7 +122,7 @@ local function update_row(row, item)
     local columns = sheet.columns
     row.item = item
     row:SetID(item.index or 0)
-    library.update_item_row(row, { icon = item.icon, id = item.link, name = item.name, quality = item.quality, sub = item.sub, count = item.bundle or item.count }, sheet.pad, sheet.pad + columns.rights[1])
+    library.update_item_row(row, { icon = item.icon, id = item.link, name = item.name, quality = item.quality, sub = item.sub, count = item.bundle or item.count, pinned = item.pinned }, sheet.pad, sheet.pad + columns.rights[1])
     library.update_item_row_chosen(row, false)
     row.stock:SetText(read_stock(item))
     library.update_money(row.money, item.price or 0)
@@ -207,8 +207,7 @@ local function render_repair()
 end
 
 local function render_closed()
-    library.update_game_veiled(MerchantFrame, false)
-    if CloseMerchant then CloseMerchant() end
+    library.render_game_ended(MerchantFrame, CloseMerchant)
 end
 
 local function create_page_maker(key)
