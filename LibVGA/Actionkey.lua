@@ -1,8 +1,8 @@
 -- Copyright 2026 Vivian Voss. Code by Vivian Voss. Licensed under the BSD-3-Clause.
 -- SPDX-License-Identifier: BSD-3-Clause
--- Scope: LibVGA's action key, the meta-object of every action bar (K0883, K0860): the owner on 24 November 2026 judged the key, which vga.ui/Actionbars.lua had put together by hand from the cell dress, the shimmer and the swing run, »Metaobjekt« in the register of K0863. library.create_action_key makes one protected key on the game's ActionBarButtonTemplate, on its bar's page, and owns all of it: the template's frame, slot art, slot ground and mask laid away, the icon cropped and set in by the rim, the cooldown likewise, the cell dress - a black line and the bags' bold edge -, the shimmer of a newly learned spell (K0482), the hover, press and checked fills in white at 0.15 over the icon, the hotkey in the caption face or, for the game's range dot, in Arial Narrow, since our faces lack the glyph (K0419); library.update_action_key lays it at its size and place, the line, the three-pixel edge in the slot's grey and the hotkey in its corner, as manual/view/vga-mainbar.html draws the key. The key holding the auto attack - melee's attack or a repeating shot, known by the game's IsAttackAction and IsAutoRepeatAction for its action - shows its picture as every key does (K0881): the template's red Flash is laid at alpha 0, so its blinking shows nothing, and the checked fill, which the template's additive blend lit the whole time the attack ran, is laid clear on such a key each time the template lays its flash; every other key keeps its checked look. While the attack runs, the key's swing run lays a white frame round its rim at the weapon's speed. Melee's swings cannot be heard - Forever gives addons no combat log, and registering for it blocks the addon (K0119) -, so, the owner on 24 November 2026: »er läuft einfch bis zum ende des kampfes immer gleich schnell herum. das blinken der original ui ist auch nicht tiefgründiger« (read: einfach) (K0883): from PLAYER_ENTER_COMBAT the frame runs round again and again, each round as long as the main hand's UnitAttackSpeed, read anew at each round, until PLAYER_LEAVE_COMBAT. A repeating shot's frame begins with START_AUTOREPEAT_SPELL at UnitRangedDamage's speed, begins anew at each shot the player's UNIT_SPELLCAST_SUCCEEDED names for the key's spell, and goes with STOP_AUTOREPEAT_SPELL. Nothing protected is touched in a fight.
+-- Scope: LibVGA's action key, the meta-object of every action bar (K0883, K0860): the owner on 24 November 2026 judged the key, which vga.ui/Actionbars.lua had put together by hand from the cell dress, the shimmer and the swing run, »Metaobjekt« in the register of K0863. library.create_action_key makes one protected key on the game's ActionBarButtonTemplate, on its bar's page, and owns all of it: the template's frame, slot art, slot ground and mask laid away, the icon cropped and set in by the rim, the cooldown likewise, the cell dress - a black line and the bags' bold edge -, the shimmer of a newly learned spell (K0482), the hover, press and checked fills in white at 0.15 over the icon, the hotkey in the caption face or, for the game's range dot, in Arial Narrow, since our faces lack the glyph (K0419); library.update_action_key lays it at its size and place, the line, the three-pixel edge in the slot's grey and the hotkey in its corner, as manual/view/vga-mainbar.html draws the key. The key holding the auto attack - melee's attack or a repeating shot, known by the game's IsAttackAction and IsAutoRepeatAction for its action - shows its picture as every key does (K0881): the template's red Flash is laid at alpha 0, so its blinking shows nothing, and the checked fill, which the template's additive blend lit the whole time the attack ran, is laid clear on such a key each time the template lays its flash; every other key keeps its checked look. While the attack runs, the key's swing run lays a white frame round its rim at the weapon's speed. Melee's swings cannot be heard - Forever gives addons no combat log, and registering for it blocks the addon (K0119) -, so, the owner on 24 November 2026: »er läuft einfch bis zum ende des kampfes immer gleich schnell herum. das blinken der original ui ist auch nicht tiefgründiger« (read: einfach) (K0883): from PLAYER_ENTER_COMBAT the frame runs round again and again, each round as long as the main hand's UnitAttackSpeed, read anew at each round, until PLAYER_LEAVE_COMBAT. A repeating shot's frame begins with START_AUTOREPEAT_SPELL at UnitRangedDamage's speed, begins anew at each shot the player's UNIT_SPELLCAST_SUCCEEDED names for the key's spell, and goes with STOP_AUTOREPEAT_SPELL. Nothing protected is touched in a fight. The game may keep the weapon's speed secret in a fight; the key then runs on the speed it read last while it was plain - at entering the world, a change of equipment or target -, two seconds before any, and each swing event leaves a measure of what it met in LibVGASettings.measures.swing (K0886).
 
--- {K0883} {K0881} {K0860} {K0482} {K0419}
+-- {K0886} {K0883} {K0881} {K0860} {K0482} {K0419}
 
 local library = LibVGA
 local EDGE_WIDTH = 3
@@ -53,12 +53,19 @@ local function update_checked_look(key)
     key:GetCheckedTexture():SetVertexColor(1, 1, 1, hidden and 0 or STATE_ALPHA)
 end
 
+local kept_seconds = { melee = 2, ranged = 2 }
+
+local function read_kept(kind, seconds)
+    if type(seconds) == "number" and not (issecretvalue and issecretvalue(seconds)) and seconds > 0 then kept_seconds[kind] = seconds end
+    return kept_seconds[kind]
+end
+
 local function read_melee_seconds()
-    return UnitAttackSpeed and (UnitAttackSpeed("player"))
+    return read_kept("melee", UnitAttackSpeed and (UnitAttackSpeed("player")))
 end
 
 local function read_ranged_seconds()
-    return UnitRangedDamage and (UnitRangedDamage("player"))
+    return read_kept("ranged", UnitRangedDamage and (UnitRangedDamage("player")))
 end
 
 local function update_template_parts(key)
@@ -123,18 +130,33 @@ local SWING_EVENTS = {
     UNIT_SPELLCAST_SUCCEEDED = { check_shot_key, "render_swing_run", read_ranged_seconds },
 }
 
+local function write_swing_measure(event, matched, seconds)
+    LibVGASettings.measures = LibVGASettings.measures or {}
+    LibVGASettings.measures.swing = event .. " · " .. matched .. " keys · " .. tostring(seconds) .. " s"
+end
+
 local function update_swing_runs(event, spell)
     local plan = SWING_EVENTS[event]
-    local layer, seconds = library[plan[2]], plan[3] and plan[3]()
+    local layer, seconds, matched = library[plan[2]], plan[3] and plan[3](), 0
     for _, key in ipairs(keys) do
-        if plan[1](key, spell) then layer(key.vga_swing_run, seconds, plan[4]) end
+        if plan[1](key, spell) then
+            matched = matched + 1
+            layer(key.vga_swing_run, seconds, plan[4])
+        end
     end
+    write_swing_measure(event, matched, seconds)
+end
+
+local function update_seconds_kept()
+    read_melee_seconds()
+    read_ranged_seconds()
 end
 
 local events = CreateFrame("Frame")
-library.update_events(events, { "PLAYER_ENTER_COMBAT", "PLAYER_LEAVE_COMBAT", "START_AUTOREPEAT_SPELL", "STOP_AUTOREPEAT_SPELL" })
+library.update_events(events, { "PLAYER_ENTER_COMBAT", "PLAYER_LEAVE_COMBAT", "START_AUTOREPEAT_SPELL", "STOP_AUTOREPEAT_SPELL", "PLAYER_ENTERING_WORLD", "PLAYER_EQUIPMENT_CHANGED", "PLAYER_TARGET_CHANGED" })
 pcall(events.RegisterUnitEvent, events, "UNIT_SPELLCAST_SUCCEEDED", "player")
 events:SetScript("OnEvent", function(_, event, _, _, third)
     if event == "UNIT_SPELLCAST_SUCCEEDED" then return library.update_safely("swing runs", update_swing_runs, event, third) end
+    if not SWING_EVENTS[event] then return library.update_safely("swing seconds", update_seconds_kept) end
     library.update_safely("swing runs", update_swing_runs, event)
 end)
