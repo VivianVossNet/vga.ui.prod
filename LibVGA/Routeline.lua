@@ -1,13 +1,13 @@
 -- Copyright 2026 Vivian Voss. Code by Vivian Voss. Licensed under the BSD-3-Clause.
 -- SPDX-License-Identifier: BSD-3-Clause
--- Scope: LibVGA's route line: a flight's way drawn over a map from point to point, each point at its own exact place on that map - the game's place of a flight point, its centre rounded to a whole pixel, never an approximate one (K0830) -; white while it is only shown, gold while it is the chosen one (K0806). Its owner names the map frame, the places as shares of the map's width and height, and whether the route is chosen (K0835). It draws on the map it is handed when the map was not yet there at its making (K0838).
+-- Scope: LibVGA's route line: a flight's way drawn over a map from point to point, each point at its own exact place on that map - the game's place of a flight point, its centre rounded to a whole pixel, never an approximate one (K0830) -; a thin black line, shown or chosen alike (K0968; white and gold before, K0806). Its owner names the map frame, the places as shares of the map's width and height, and whether the route is chosen (K0835). It draws on the map it is handed when the map was not yet there at its making (K0838).
 
--- {K0838} {K0835} {K0830} {K0806}
+-- {K0968} {K0838} {K0835} {K0830} {K0806}
 
 local library = LibVGA
 local colours = library.colours
-local THICKNESS = 3
-local WHITE = { 1, 1, 1 }
+local THICKNESS = 1.5
+local BLACK = { 0, 0, 0 }
 
 function library.create_route_line(parent)
     return { parent = parent, segments = {}, points = {} }
@@ -30,7 +30,7 @@ end
 function library.update_route_line(route, map, places, chosen)
     route.parent = route.parent or map
     route.points = map and read_pixel_places(map, places or {}) or {}
-    local colour = chosen and colours.gold or WHITE
+    local colour = BLACK
     for index = 1, #route.points - 1 do
         local segment, from, to = read_segment(route, index), route.points[index], route.points[index + 1]
         segment:SetThickness(THICKNESS)

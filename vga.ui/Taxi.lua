@@ -1,13 +1,15 @@
 -- Copyright 2026 Vivian Voss. Code by Vivian Voss. Licensed under the BSD-3-Clause.
 -- SPDX-License-Identifier: BSD-3-Clause
--- Scope: vga.ui's flight master list, as the accepted draft draws it (manual/view/vga-npc-windows.html, K0830, K0831): the game's own flight map stays as the game shows it, and beside it LibVGA's list dialog (library.create_list_dialog, K0871) lists every destination the player can fly to now, its name and its cost in our coins, the place where the player stands named first and quiet; hovering a destination draws its route on the game's map, white, from flight point to flight point at each one's exact place - the game's place, its centre rounded to a whole pixel, never an approximate one -, the chosen one gold; a click takes the flight (K0835). Drawn as the draft draws it (K0836): the title names the flight master, the heads Ziel, Dauer, Preis stand over the list in its group, each destination in its cell with its zone beneath, the duration in the figure face - »–« until flight times are measured -; a click chooses the destination into the foot, »Fliegen« takes it, »Schließen« closes, and the player's gold stands in the status line.
+-- Scope: vga.ui's flight master list, as the accepted draft draws it (manual/view/vga-npc-windows.html, K0830, K0831): the game's own flight map stays as the game shows it, and beside it LibVGA's list dialog (library.create_list_dialog, K0871) lists every destination the player can fly to now, its name and its cost in our coins, the place where the player stands named first and quiet; hovering a destination draws its route on the game's map, white, from flight point to flight point at each one's exact place - the game's place, its centre rounded to a whole pixel, never an approximate one -, the chosen one gold; a click takes the flight (K0835). Drawn as the draft draws it (K0836): the title names the flight master, the heads Ziel, Dauer, Preis stand over the list in its group, each destination in its cell with its zone beneath, the duration in the figure face - »–« until flight times are measured -; a click chooses the destination into the foot, »Fliegen« takes it, »Schließen« closes, and the player's gold stands in the status line. The window is at least 300 draft pixels wide and grows with its longest destination or zone, so every name can be read whole (K0968); its destination column at least as wide as »Steinkrallengipfel« needs, at the owner's word; its price column is only as wide as its dearest flight, so duration and price stand close at the right and the destination takes the room (K0969).
 
--- {K0909} {K0871} {K0839} {K0838} {K0836} {K0835} {K0830} {K0831}
+-- {K0969} {K0968} {K0909} {K0871} {K0839} {K0838} {K0836} {K0835} {K0830} {K0831}
 
 local _, vga = ...
 local library = LibVGA
 local colours = library.colours
 local WIDTH, HEIGHT = 300, 470
+local ICON = 26
+local FIT_SAMPLE = "Steinkrallengipfel"
 local NO_TIME = "–"
 local GAP = 8
 local window
@@ -78,8 +80,31 @@ local function update_row(row, item)
     library.update_grid_columns(row, sheet.columns, sheet.pad, { { row.duration, 2, "right" }, { row.money, 3, "right" } })
 end
 
+local function read_price_room(sheet)
+    local dearest = 0
+    for _, item in ipairs(window.items or {}) do dearest = math.max(dearest, item.cost or 0) end
+    return library.read_widest_money(sheet.probe_small, dearest)
+end
+
+local function read_wanted_width()
+    local sheet = window.listing.table
+    local room = (sheet.columns and sheet.columns.rights[1] or 0) - library.read_draft_size(ICON) - library.read_size(-4)
+    local widest = library.read_sample_width(library.read_font("bold"), FIT_SAMPLE)
+    for _, item in ipairs(window.items or {}) do
+        widest = math.max(widest, library.read_sample_width(library.read_font("bold"), item.name or ""), library.read_sample_width(library.read_font("small"), item.zone or ""))
+    end
+    local short = math.ceil(widest - room)
+    if short <= 0 then return window.plan.width end
+    return window.plan.width + math.ceil(short / (library.read_draft_size(100) / 100))
+end
+
 local function update_window()
     window.items = read_destinations()
+    window.plan.width = WIDTH
+    library.update_list_dialog(window, window.items, window.chosen and window.chosen.name or "")
+    local wanted = read_wanted_width()
+    if wanted == window.plan.width then return end
+    window.plan.width = wanted
     library.update_list_dialog(window, window.items, window.chosen and window.chosen.name or "")
 end
 
@@ -108,7 +133,7 @@ end
 
 local function create_window()
     local texts = library.texts
-    local columns = { { key = "head_destination_taxi", word = texts.head_destination, sort = read_name_sort }, { key = "head_duration_taxi", word = texts.head_duration, least = 44, x = "right", sort = read_duration_sort }, { key = "price_taxi", word = texts.price, least = "money", x = "right", sort = read_cost_sort } }
+    local columns = { { key = "head_destination_taxi", word = texts.head_destination, sort = read_name_sort }, { key = "head_duration_taxi", word = texts.head_duration, least = 44, x = "right", sort = read_duration_sort }, { key = "price_taxi", word = texts.price, least = read_price_room, x = "right", sort = read_cost_sort } }
     local buttons = { { texts.close, "plain", render_closing }, { texts.fly, "gold", render_taken } }
     window = library.create_list_dialog("VGATaxiWindow", { title = texts.flight_master, buttons = buttons, width = WIDTH, height = HEIGHT, table = { columns = columns, create_row = create_row, update_row = update_row } })
     window.route = library.create_route_line(read_map())

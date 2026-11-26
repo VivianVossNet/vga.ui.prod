@@ -1,8 +1,8 @@
 -- Copyright 2026 Vivian Voss. Code by Vivian Voss. Licensed under the BSD-3-Clause.
 -- SPDX-License-Identifier: BSD-3-Clause
--- Scope: the minimap's filters, as the accepted draft draws them (manual/view/vga-minimap-filters.html B, K0952): the magnifier opens our list - LibVGA's list of switches on the widgets' frame and head, »Verfolgen« (K0954), its ground at three quarters (K0956), each row with its sign - instead of the game's menu, holding what the game's menu holds, each tracking known by its picture's number, not its name (K0951): the searches of a race or a class - every tracking of the kind »spell« the player has - first, under »Suchen«, in a round cell with the game's own picture; then »Reisen«, »Dienste«, »Lehrer und Quests«. What vga.ui draws itself - flight masters, inns, auction, repair, trainers, the low quests - is switched in our own state (LibVGASettings.map_filters, its first value the game's) and kept off in the game; bank, mailbox, stable and battle masters are ours too, from Questie (K0957); the searches switch the game's own tracking, and while one of them is on the game's signs are shown on the minimap, so the finds of a search appear as the game's yellow points, the game's arrow beneath ours. vga.check_minimap_kind_shown answers the minimap's signs; vga.read_game_signs_shown the scale of the game's signs.
+-- Scope: the minimap's filters, as the accepted draft draws them (manual/view/vga-minimap-filters.html B, K0952): the magnifier opens our list - LibVGA's list of switches on the widgets' frame and head, »Verfolgen« (K0954), its ground at three quarters (K0956), each row with its sign - instead of the game's menu, holding what the game's menu holds, each tracking known by its picture's number, not its name (K0951): the searches of a race or a class - every tracking of the kind »spell« the player has - first, under »Suchen«, in a round cell with the game's own picture; then »Reisen«, »Dienste«, »Lehrer und Quests«. What vga.ui draws itself - flight masters, inns, auction, repair, trainers, the low quests - is switched in our own state (LibVGASettings.map_filters, its first value the game's) and kept off in the game; bank, mailbox, stable and battle masters are ours too, from Questie (K0957); the searches switch the game's own tracking, and while one of them is on the game's signs are shown on the minimap, so the finds of a search appear as the game's yellow points, the game's arrow beneath ours. vga.check_minimap_kind_shown answers the minimap's signs - never a quest under way, whose »?« the game sets in the middle of its area and would read as a place to hand it in; a quest's »?« stands only where it is handed in (K0967) -; vga.read_game_signs_shown the scale of the game's signs.
 
--- {K0957} {K0956} {K0954} {K0952} {K0951}
+-- {K0967} {K0957} {K0956} {K0954} {K0952} {K0951}
 
 local _, vga = ...
 local library = LibVGA
@@ -19,6 +19,7 @@ local GROUPS = {
     { key = "map_filter_teachers", rows = { { 136455, "ClassTrainer" }, { 136463, "ProfessionTrainer" }, { 237607, "QuestTakeLow" } } },
 }
 local GROUND = 0.75
+local NEVER = { QuestOpen = true }
 local list
 
 local function read_trackings()
@@ -49,6 +50,7 @@ local function write_game_ours_off(trackings)
 end
 
 function vga.check_minimap_kind_shown(kind)
+    if NEVER[kind] then return false end
     for texture, kinds in pairs(OURS) do
         for _, named in ipairs(kinds) do
             if named == kind then return LibVGASettings.map_filters == nil or LibVGASettings.map_filters[texture] ~= false end

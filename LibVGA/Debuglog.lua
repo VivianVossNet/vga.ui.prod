@@ -1,13 +1,14 @@
 -- Copyright 2026 Vivian Voss. Code by Vivian Voss. Licensed under the BSD-3-Clause.
 -- SPDX-License-Identifier: BSD-3-Clause
--- Scope: LibVGA's debug log, what the debug console shows (K0919): it gathers, always and for the session, the Lua errors of every addon and of the game - by an error handler of its own laid before the one it found, which is still called, so Tinkerbox's and the game's own go on -, the actions the game blocked or forbade, the faults LibVGA catches itself (library.update_safely) and the messages of tests (library.render_debug); entries alike in kind, source and text - memory addresses reckoned out - are one entry with a counter, its first and last time and its detail; each knows its source - the addon named by its path, the game for Blizzard's own, LibVGA, a test. It tells its listeners whenever an entry is written, and counts the errors and blocked actions not yet seen - messages never - until the console is opened, and keeps every entry new until it is closed again. One task: gather what the console shows.
+-- Scope: LibVGA's debug log, what the debug console shows (K0919): it gathers, always and for the session, the Lua errors of every addon and of the game - by an error handler of its own laid before the one it found, which is still called, so Tinkerbox's and the game's own go on -, the actions the game blocked or forbade, the faults LibVGA catches itself (library.update_safely) and the messages of tests (library.render_debug); entries alike in kind, source and text - memory addresses reckoned out - are one entry with a counter, its first and last time and its detail; each knows its source - the first addon in its path or its stack that is neither the game's own nor this log's handler, so an error the game raises for an addon's code names that addon; the game where there is none; LibVGA; a test (K0970). It tells its listeners whenever an entry is written, and counts the errors and blocked actions not yet seen - messages never - until the console is opened, and keeps every entry new until it is closed again. One task: gather what the console shows.
 
--- {K0919}
+-- {K0970} {K0919}
 
 local library = LibVGA
 local entries, keyed, listeners = {}, {}, {}
 local unseen = 0
 local GAME = "Blizzard_"
+local OWN_ADDON, OWN_FILE = "LibVGA", "Debuglog.lua"
 
 local function read_source(text)
     local addon = tostring(text):match("AddOns[/\\]([^/\\]+)[/\\]")
@@ -79,10 +80,19 @@ function library.create_debug_listener(listener)
     listeners[#listeners + 1] = listener
 end
 
+local function read_stack_source(stack)
+    for addon, file in tostring(stack):gmatch("AddOns[/\\]([^/\\]+)[/\\]([^%]:]+)") do
+        local own = addon == OWN_ADDON and file == OWN_FILE
+        if not own and addon:sub(1, #GAME) ~= GAME then return addon end
+    end
+    return nil
+end
+
 local function write_error(message)
     local text = tostring(message)
     local stack = debugstack and debugstack(3) or ""
-    library.write_debug("error", read_source(text) or read_source(stack) or library.texts.debug_game, text, text .. "\n" .. stack)
+    local source = read_stack_source(text) or read_stack_source(stack) or read_source(text) or library.texts.debug_game
+    library.write_debug("error", source, text, text .. "\n" .. stack)
 end
 
 local function create_handler()

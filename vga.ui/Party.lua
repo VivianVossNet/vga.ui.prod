@@ -1,8 +1,8 @@
 -- Copyright 2026 Vivian Voss. Code by Vivian Voss. Licensed under the BSD-3-Clause.
 -- SPDX-License-Identifier: BSD-3-Clause
--- Scope: vga.ui's party frame as the accepted draft draws .party and .pm (manual/view/vga-probe.html): one widget with one gold corner for the whole group, a row per member divided by hairlines, each row LibVGA's unit frame in its tertiary tier, left-aligned, with its pet (library.create_unit_frame, K0864) - the level in gold, the class's dot, the name with the leader's crown after it (K0614, K0724), a thin health bar, the row grey with an OFFLINE beneath while the member is offline, the pet's shorter bar inside its owner's row, every row and pet bar a secure button that targets on click. What is the place's stays here: the rows stacked upward from the first, ours left-aligned 120 pixels above the player frame, as tall as the group, the hairlines between the rows, Blizzard's own party frame hidden, the events that fill the rows, and the secure state driver that shows and sizes the frame on how many party units exist, so a group formed in a fight appears at once, not after it (K0630).
+-- Scope: vga.ui's party frame as the accepted draft draws .party and .pm (manual/view/vga-probe.html): one widget with one gold corner for the whole group, a row per member divided by hairlines, each row LibVGA's unit frame in its tertiary tier, left-aligned, with its pet (library.create_unit_frame, K0864) - the level in gold, the class's dot, the name with the leader's crown after it (K0614, K0724), a thin health bar, the row grey with an OFFLINE beneath while the member is offline, the pet's shorter bar inside its owner's row, every row and pet bar a secure button that targets on click. What is the place's stays here: the rows stacked upward from the first, ours left-aligned 120 pixels above the player frame, as tall as the group, the hairlines between the rows, Blizzard's own party frame hidden, the events that fill the rows, and the secure state driver that shows and sizes the frame on how many party units exist, so a group formed in a fight appears at once, not after it (K0630). The secure driver's pad and row are set before it is registered and read as nought where missing, since the game runs its snippet at once at registration, before the layout sets them - in a group at login it had done arithmetic on nothing (K0970).
 
--- {K0864} {K0789} {K0783} {K0755} {K0277} {K0278} {K0279} {K0354} {K0379} {K0614} {K0724} {K0630} {K0698} {K0717}
+-- {K0970} {K0864} {K0789} {K0783} {K0755} {K0277} {K0278} {K0279} {K0354} {K0379} {K0614} {K0724} {K0630} {K0698} {K0717}
 
 local library = LibVGA
 local MEMBERS = 4
@@ -15,7 +15,7 @@ local RESIZE_PARTY = [[
         party:Hide()
         return
     end
-    party:SetHeight(2 * self:GetAttribute("pad") + count * self:GetAttribute("row"))
+    party:SetHeight(2 * (self:GetAttribute("pad") or 0) + count * (self:GetAttribute("row") or 0))
     party:Show()
 ]]
 local party
@@ -70,6 +70,8 @@ end
 local function create_party_driver()
     local driver = CreateFrame("Frame", nil, UIParent, "SecureHandlerStateTemplate")
     driver:SetFrameRef("party", party)
+    driver:SetAttribute("pad", 0)
+    driver:SetAttribute("row", 0)
     driver:SetAttribute("_onstate-members", RESIZE_PARTY)
     RegisterStateDriver(driver, "members", MEMBERS_SHOWN)
     return driver
