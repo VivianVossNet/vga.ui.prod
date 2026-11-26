@@ -1,8 +1,8 @@
 -- Copyright 2026 Vivian Voss. Code by Vivian Voss. Licensed under the BSD-3-Clause.
 -- SPDX-License-Identifier: BSD-3-Clause
--- Scope: the world map's layers fed by what the game gives (K0805), drawn as LibVGA's map marks in the owner's signs (K0813, K0815), on the world map or, for the minimap, on the plane of the continent the player stands on (K0925); a figure's place kept as its zone and position there, turned into the plane's only when read (K0925); a quest giver from Questie marked only for a quest Questie still holds available and the figure did not refuse - its list by figure keeps quests it has let go -, its sign by its best quest: »QuestTake« in range, »QuestTakeLow« one the game shows grey, »QuestTakeHigh« one above the player's level (K0946): the player's sign turned by the facing; the party in their class colours; the quests of the zone in view - to hand in, in progress, to take where the game names a start -; the flight masters of the continent, learnt or not, the hostile ones left out, the faction in the card; own pins in orange, set by Ctrl and a click, taken off by a right click, the game's own waypoint beside them; townsfolk - vendors, repairers, barbers, the auction house, class and profession trainers - learnt by vga.ui itself whenever the player speaks with one, kept with the player's place in the account's saved variables (K0814). Each layer obeys its switch; the hatching covers everything outside the zone in view (K0812). Where Questie is installed and ready, its quest givers - the quests it holds available, by their figures' places in the zone in view - and its townsfolk - repairers, auctioneers, barbers, innkeepers, the player's class trainers, profession trainers and its vendors - are read at runtime, guarded, nothing copied, kept five seconds per map (K0814, K0822); every place at half the size of the quests in the quest view (library.read_map_mark_scale, K0822). VGA's own database comes once it is released.
+-- Scope: the world map's layers fed by what the game gives (K0805), drawn as LibVGA's map marks in the owner's signs (K0813, K0815), on the world map or, for the minimap, on the plane of the continent the player stands on (K0925); a figure's place kept as its zone and position there, turned into the plane's only when read (K0925); a quest giver from Questie marked only for a quest Questie still holds available and the figure did not refuse - its list by figure keeps quests it has let go -, its sign by its best quest; Questie's bankers, battle masters, stable masters - a hunter's too - and its mailboxes, objects not figures, by the player's faction, as our own signs (K0957): »QuestTake« in range, »QuestTakeLow« one the game shows grey, »QuestTakeHigh« one above the player's level (K0946): the player's sign turned by the facing; the party in their class colours; the quests of the zone in view - to hand in, in progress, to take where the game names a start -; the flight masters of the continent, learnt or not, the hostile ones left out, the faction in the card; own pins in orange, set by Ctrl and a click, taken off by a right click, the game's own waypoint beside them; townsfolk - vendors, repairers, barbers, the auction house, class and profession trainers - learnt by vga.ui itself whenever the player speaks with one, kept with the player's place in the account's saved variables (K0814). Each layer obeys its switch; the hatching covers everything outside the zone in view (K0812). Where Questie is installed and ready, its quest givers - the quests it holds available, by their figures' places in the zone in view - and its townsfolk - repairers, auctioneers, barbers, innkeepers, the player's class trainers, profession trainers and its vendors - are read at runtime, guarded, nothing copied, kept five seconds per map (K0814, K0822); every place at half the size of the quests in the quest view (library.read_map_mark_scale, K0822). VGA's own database comes once it is released.
 
--- {K0946} {K0925} {K0822} {K0815} {K0814} {K0813} {K0812} {K0805}
+-- {K0957} {K0946} {K0925} {K0822} {K0815} {K0814} {K0813} {K0812} {K0805}
 
 local _, vga = ...
 local library = LibVGA
@@ -11,8 +11,8 @@ local HOSTILE = { Alliance = 1, Horde = 2 }
 local TOWNSFOLK = { vendor = "Vendor", repair = "Repair", barber = "Barber", auction = "Auction", class = "ClassTrainer", profession = "ProfessionTrainer" }
 local TOWNSFOLK_WORDS = { vendor = "map_vendor", repair = "map_repair", barber = "map_barber", auction = "map_auction", class = "map_class_trainer", profession = "map_profession_trainer" }
 local PARTY = 4
-local QUESTIE_KINDS = { Repair = "Repair", Auctioneer = "Auction", Barber = "Barber", Innkeeper = "Inn" }
-local QUESTIE_WORDS = { Repair = "map_repair", Auction = "map_auction", Barber = "map_barber", Inn = "map_inn", Vendor = "map_vendor", ClassTrainer = "map_class_trainer", ProfessionTrainer = "map_profession_trainer", QuestTake = "map_quest_take" }
+local QUESTIE_KINDS = { Repair = "Repair", Auctioneer = "Auction", Barber = "Barber", Innkeeper = "Inn", Banker = "Bank", Battlemaster = "Battle", ["Stable Master"] = "Stable" }
+local QUESTIE_WORDS = { Bank = "map_bank", Battle = "map_battle", Stable = "map_stable", Mail = "map_mail", Repair = "map_repair", Auction = "map_auction", Barber = "map_barber", Inn = "map_inn", Vendor = "map_vendor", ClassTrainer = "map_class_trainer", ProfessionTrainer = "map_profession_trainer", QuestTake = "map_quest_take" }
 local QUESTIE_KEEP = 5
 local questie_kept = {}
 local plane
@@ -123,8 +123,8 @@ local function read_questie_modules()
     return { db = loader:ImportModule("QuestieDB"), zones = loader:ImportModule("ZoneDB"), available = loader:ImportModule("AvailableQuests"), folk = loader:ImportModule("Townsfolk"), lib = loader:ImportModule("QuestieLib") }
 end
 
-local function write_questie_npc(found, modules, npc_id, kind)
-    local npc = modules.db:GetNPC(npc_id)
+local function write_questie_npc(found, modules, npc_id, kind, object)
+    local npc = object and modules.db:GetObject(npc_id) or modules.db:GetNPC(npc_id)
     if not (npc and npc.friendly ~= false and npc.spawns) then return end
     for area, spots in pairs(npc.spawns) do
         if modules.zones:GetUiMapIdByAreaId(area) == found.map then
@@ -136,8 +136,8 @@ local function write_questie_npc(found, modules, npc_id, kind)
     end
 end
 
-local function write_questie_list(found, modules, list, kind)
-    for _, npc_id in pairs(list or {}) do write_questie_npc(found, modules, npc_id, kind) end
+local function write_questie_list(found, modules, list, kind, object)
+    for _, npc_id in pairs(list or {}) do write_questie_npc(found, modules, npc_id, kind, object) end
 end
 
 local function write_questie_folk(found, modules)
@@ -146,6 +146,9 @@ local function write_questie_folk(found, modules)
     local _, class = UnitClass("player")
     local trainers = folk.classSpecificTownsfolk and folk.classSpecificTownsfolk[class]
     write_questie_list(found, modules, trainers and trainers["Class Trainer"], "ClassTrainer")
+    write_questie_list(found, modules, trainers and trainers["Stable Master"], "Stable")
+    local faction = folk.factionSpecificTownsfolk and folk.factionSpecificTownsfolk[UnitFactionGroup("player") or ""]
+    write_questie_list(found, modules, faction and faction.Mailbox, "Mail", true)
     for _, list in pairs(folk.professionTrainers or {}) do write_questie_list(found, modules, list, "ProfessionTrainer") end
     for _, list in pairs(Questie.db and Questie.db.char and Questie.db.char.vendorList or {}) do write_questie_list(found, modules, list, "Vendor") end
 end

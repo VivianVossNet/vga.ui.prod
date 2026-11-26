@@ -1,8 +1,8 @@
 -- Copyright 2026 Vivian Voss. Code by Vivian Voss. Licensed under the BSD-3-Clause.
 -- SPDX-License-Identifier: BSD-3-Clause
--- Scope: The minimap frame's two rims, as the owner set them, equally high and every sign and word in each set at its vertical middle: above the map a small magnifier left-aligned at the map's left edge, then a little apart the zone's name, the coordinates right-aligned at its right edge; beneath the map a calendar, a little larger, left-aligned under its left edge, a button of its own that opens the game's calendar, the time and the day's sign - a sun by day, a moon by night - right-aligned at its right edge, resting on either showing a tooltip: »Tag« or »Nacht« in gold, beneath it the realm time and the local time (K0750), the time's digits lowered half a pixel so their middle meets the sign's. The magnifier opens the game's tracking menu, the game's own button lying invisible over it so the menu opens where the sign is. Beside the calendar, a little apart, a letter in the same ink and at its size, shown only while mail waits, the bags' new-item shimmer running round it three draft pixels outside, so the letter keeps its whole size, without their brightening, its tooltip the game's latest senders. The game's zone bar, clock, addon compartment, day sun, coordinates and mail sign are put away.
+-- Scope: The minimap frame's two rims, as the owner set them, equally high and every sign and word in each set at its vertical middle: above the map a small magnifier left-aligned at the map's left edge, then a little apart the zone's name, the coordinates right-aligned at its right edge; beneath the map a calendar, a little larger, left-aligned under its left edge, a button of its own that opens the game's calendar, the time and the day's sign - a sun by day, a moon by night - right-aligned at its right edge, resting on either showing a tooltip: »Tag« or »Nacht« in gold, beneath it the realm time and the local time (K0750), the time's digits lowered half a pixel so their middle meets the sign's. The magnifier opens our filter list (vga.render_map_filters, K0952), a button of ours lying invisible over it; the game's own tracking button is hidden. Beside the calendar, a little apart, a letter in the same ink and at its size, shown only while mail waits, the bags' new-item shimmer running round it three draft pixels outside, so the letter keeps its whole size, without their brightening, its tooltip the game's latest senders. The game's zone bar, clock, addon compartment, day sun, coordinates and mail sign are put away.
 
--- {K0802} {K0792} {K0789} {K0750} {K0424} {K0429} {K0430} {K0439} {K0446} {K0509}
+-- {K0952} {K0802} {K0792} {K0789} {K0750} {K0424} {K0429} {K0430} {K0439} {K0446} {K0509}
 
 local _, vga = ...
 local library = LibVGA
@@ -139,7 +139,7 @@ function vga.update_map_rim(view, band)
     rim.hover:SetPoint("RIGHT", rim.day, "RIGHT")
     rim.hover:SetPoint("LEFT", rim.time, "LEFT")
     update_game_parts()
-    update_over(MinimapCluster and MinimapCluster.Tracking, rim.glass)
+    update_over(rim.filters, rim.glass)
     update_texts()
 end
 
@@ -202,10 +202,10 @@ function vga.create_map_rim(widget)
     rim.coords = library.create_text(widget, "figures_small", colours.ink)
     rim.time = library.create_text(widget, "figures_small", colours.ink)
     local tracking = MinimapCluster and MinimapCluster.Tracking
-    if tracking then
-        tracking:SetParent(widget)
-        tracking:SetFrameLevel(widget:GetFrameLevel() + 6)
-    end
+    if tracking then tracking:Hide() end
+    rim.filters = CreateFrame("Button", nil, widget)
+    rim.filters:SetFrameLevel(widget:GetFrameLevel() + 6)
+    rim.filters:SetScript("OnClick", function() library.update_safely("map filters", vga.render_map_filters, rim.glass) end)
     local ticker = CreateFrame("Frame", nil, widget)
     ticker:SetScript("OnUpdate", update_texts_safely)
 end
