@@ -2,7 +2,7 @@
 -- SPDX-License-Identifier: BSD-3-Clause
 -- Scope: the loot as a dialog in the bags' look, as the accepted draft draws variant B (manual/view/vga-loot.html, K0700): LibVGA's dialog with the bags' head - the mark, the title naming what is looted, else »Beute« - and a foot with the bag slots still free; beneath the head every loot slot as one row of LibVGA's list - the item's picture in a slot with the bags' edge in its quality's colour, a quest item's in gold, its count in the slot, beside it the name in its quality's colour, rare and epic in the brighter colours vga.auctions uses so they read on the dark ground, and below it what it is - its kind and sort, »Geld«, or »Questgegenstand« in gold -; the whole row the click that takes it, a modified click linking it as everywhere, the game's tooltip of the slot on hover, the row lit as the template's rows are; a slot taken keeps its place, greyed, so nothing moves under the pointer; the dialog one size for six rows, more scrolling, compact since K0704 - each row one line, the picture small, the name beside it and its kind at the right, both in the bags' small face, the title in the bold face of the body, not the large one of a full dialog, a long name ending in »…« before the close button (K0707) - and as large as the bags' tab chooses for it, Klein, Mittel or Groß; opened with its first row under the pointer and closed with the loot - after a quick loot (the game's autoloot) it stays a moment longer, every taken row greyed, so what was looted can be seen: one second by default, 0, 1 or 2 on the bags' settings page (LibVGASettings.loot_linger, library.loot_linger_default, K0906). The game's own loot frame hears nothing.
 
--- {K0906} {K0802} {K0793} {K0789} {K0786} {K0785} {K0784} {K0783} {K0700} {K0704} {K0707}
+-- {K0911} {K0906} {K0802} {K0793} {K0789} {K0786} {K0785} {K0784} {K0783} {K0700} {K0704} {K0707}
 
 local _, vga = ...
 local library = LibVGA
@@ -54,15 +54,10 @@ local function update_loot_row(row, entry)
     library.update_item_row(row, read_item(entry), library.read_draft_size(PAD), library.read_draft_size(WIDTH - PAD))
 end
 
-local function render_loot_tip(row)
-    if not (row.entry and not row.entry.taken) then return end
-    library.update_item_tip_owner(GameTooltip, row)
-    GameTooltip:SetLootItem(row.entry.slot)
-    GameTooltip:Show()
-end
-
-local function update_loot_tip_hidden()
-    GameTooltip:Hide()
+local function update_loot_tip(row, tip)
+    if not (row.entry and not row.entry.taken) then return false end
+    tip:SetLootItem(row.entry.slot)
+    return true
 end
 
 local function render_taken(row)
@@ -73,7 +68,7 @@ local function render_taken(row)
 end
 
 local function create_loot_row(parent)
-    local row = library.create_item_row(parent, { cell = true, lit = true, on_click = render_taken, on_enter = render_loot_tip, on_leave = update_loot_tip_hidden })
+    local row = library.create_item_row(parent, { cell = true, lit = true, on_click = render_taken, tip = update_loot_tip })
     row:RegisterForClicks("LeftButtonUp", "RightButtonUp")
     return row
 end

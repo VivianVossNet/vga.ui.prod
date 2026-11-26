@@ -1,8 +1,8 @@
 -- Copyright 2026 Vivian Voss. Code by Vivian Voss. Licensed under the BSD-3-Clause.
 -- SPDX-License-Identifier: BSD-3-Clause
--- Scope: vga.ui's trainer, as the accepted draft draws it (manual/view/vga-npc-windows.html, K0830, K0831): LibVGA's list dialog (library.create_list_dialog, K0871) headed with the trainer's name, a choice of what is shown - Lernbar, Später, Gelernt, what can be learnt now by default -, every skill as LibVGA's item row with its picture, its rank beneath and its cost in our coins; a click chooses a skill; the foot carries »Alles lernen«, which learns every skill that can be learnt now and is paid for, as the adviser proposed and the owner took, and the gold »Lernen« for the chosen one, the chosen skill in the note; above the group the search and the choice, the heads Fähigkeit, Zustand, Kosten, each skill in its cell with rank and level beneath and its state as a chip, the player's gold in the status line (K0836). The game's trainer window is veiled, never hidden, so the visit stays open (K0835). The game's GetTrainerServiceInfo is read in either order - name, rank, kind as the old client answers, or name, kind, picture, level as the new -, its raw answer for the first skill kept once in LibVGASettings.measures.trainer_service_info; the search and the choice are the list dialog's tools, LibVGA's search bar (library.create_search_bar, K0873) fed here, side by side, the search taking the room the choice leaves (K0849).
+-- Scope: vga.ui's trainer, as the accepted draft draws it (manual/view/vga-npc-windows.html, K0830, K0831): LibVGA's list dialog (library.create_list_dialog, K0871) headed with the trainer's name, each service's tooltip, as the game gives it, over its picture and name (K0911), the picture of a service to be learnt only later veiled red as everywhere (K0933), a profession's recipe - its level 0, its skill named by the game - with no second line and, while later, a red chip with the rank it needs, »ab 75«, which GetTrainerServiceSkillReq gives as its second answer (K0939), the player's own rank in the skill, »Kochkunst 12/75«, as a green badge at the foot's left, the chosen skill in the grey note after it (K0938), since Forever gives no rank a recipe needs (K0935, K0936, K0937), a choice of what is shown - Lernbar, Später, Gelernt, what can be learnt now by default -, every skill as LibVGA's item row with its picture, its rank beneath and its cost in our coins; a click chooses a skill; the foot carries »Alles lernen«, which learns every skill that can be learnt now and is paid for, as the adviser proposed and the owner took, and the gold »Lernen« for the chosen one, the chosen skill in the note; above the group the search and the choice, the heads Fähigkeit, Lernbar - »Zustand« until the owner found it unfitting (K0940) -, Kosten, each skill in its cell with rank and level beneath and its state as a chip, the player's gold in the status line (K0836). The game's trainer window is veiled, never hidden, so the visit stays open (K0835). The game's GetTrainerServiceInfo is read in either order - name, rank, kind as the old client answers, or name, kind, picture, level as the new -, its raw answer for the first skill kept once in LibVGASettings.measures.trainer_service_info; the search and the choice are the list dialog's tools, LibVGA's search bar (library.create_search_bar, K0873) fed here, side by side, the search taking the room the choice leaves (K0849).
 
--- {K0909} {K0873} {K0860} {K0871} {K0849} {K0839} {K0838} {K0836} {K0835} {K0830} {K0831} {K0832}
+-- {K0940} {K0939} {K0938} {K0937} {K0936} {K0933} {K0911} {K0909} {K0873} {K0860} {K0871} {K0849} {K0839} {K0838} {K0836} {K0835} {K0830} {K0831} {K0832}
 
 local _, vga = ...
 local library = LibVGA
@@ -28,15 +28,37 @@ local function write_service_measure()
     LibVGASettings.measures.trainer_service_info = table.concat(kinds, " | ")
 end
 
+local function read_skill_rank(name)
+    local found = GetProfessions and { GetProfessions() } or {}
+    for slot = 1, 6 do
+        local rank_name, rank, most
+        if found[slot] then rank_name, _, rank, most = GetProfessionInfo(found[slot]) end
+        if rank_name == name then return rank, most end
+    end
+    for index = 1, (GetNumSkillLines and GetNumSkillLines() or 0) do
+        local line_name, header, _, rank, _, _, most = GetSkillLineInfo(index)
+        if line_name == name and not header then return rank, most end
+    end
+end
+
+local function read_skill(index)
+    if not GetTrainerServiceSkillReq then return nil end
+    local name, needed = GetTrainerServiceSkillReq(index)
+    if type(name) ~= "string" or name == "" then return nil end
+    return name, needed
+end
+
 local function read_services()
     local services, wanted = {}, KINDS[tools.choice.chosen or 1]
     local search = (tools.input:GetText() or ""):lower()
     for index = 1, (GetNumTrainerServices and GetNumTrainerServices() or 0) do
-        local name, rank, kind, picture, needed = read_service(index)
+        local name, rank, kind, picture, needed_level = read_service(index)
         if name and kind == wanted and (search == "" or name:lower():find(search, 1, true)) then
             local icon = picture or (GetTrainerServiceIcon and GetTrainerServiceIcon(index))
-            local level = needed or (GetTrainerServiceLevelReq and GetTrainerServiceLevelReq(index)) or 0
-            services[#services + 1] = { index = index, name = name, rank = rank or "", level = level, kind = kind, icon = icon, cost = GetTrainerServiceCost and GetTrainerServiceCost(index) or 0 }
+            local skill, needed
+            local level = needed_level or (GetTrainerServiceLevelReq and GetTrainerServiceLevelReq(index)) or 0
+            if level == 0 then skill, needed = read_skill(index) end
+            services[#services + 1] = { index = index, name = name, rank = rank or "", level = level, kind = kind, icon = icon, cost = GetTrainerServiceCost and GetTrainerServiceCost(index) or 0, skill = skill, needed = needed }
         end
     end
     return services
@@ -48,12 +70,30 @@ local function render_chosen(row)
     vga.update_trainer()
 end
 
+local function update_service_tip(row, tip)
+    if not (row.item and tip.SetTrainerService) then return false end
+    tip:SetTrainerService(row.item.index)
+    return true
+end
+
 local function create_row(parent)
-    local row = library.create_item_row(parent, { chosen = true, cell = true, on_click = render_chosen })
+    local row = library.create_item_row(parent, { chosen = true, cell = true, on_click = render_chosen, tip = update_service_tip })
     row.state = library.create_chip(row)
     row.money = library.create_money(row, colours.ink)
     row.money.kind = "small"
     return row
+end
+
+local function read_sub(item, texts)
+    if item.skill then return nil end
+    if item.rank ~= "" then return string.format(texts.rank_level, item.rank, item.level) end
+    return string.format(texts.from_level, item.level)
+end
+
+local function read_later_word(item, texts)
+    if item.needed then return string.format(texts.trainer_needs, item.needed) end
+    if item.skill then return texts.trainer_higher end
+    return string.format(texts.from_level, item.level)
 end
 
 local function update_row(row, item)
@@ -61,11 +101,12 @@ local function update_row(row, item)
     local columns = sheet.columns
     row.item = item
     local texts = library.texts
-    local sub = item.rank ~= "" and string.format(texts.rank_level, item.rank, item.level) or string.format(texts.from_level, item.level)
-    library.update_item_row(row, { icon = item.icon, name = item.name, quality = 1, sub = sub }, sheet.pad, sheet.pad + columns.rights[1])
+    local sub = read_sub(item, texts)
+    library.update_item_row(row, { icon = item.icon, name = item.name, quality = 1, sub = sub, unusable = item.kind == "unavailable" }, sheet.pad, sheet.pad + columns.rights[1])
     library.update_item_row_chosen(row, window.chosen_index == item.index)
-    local words = { available = texts.learnable, unavailable = string.format(texts.from_level, item.level), used = texts.learnt }
-    library.update_chip(row.state, STATES[item.kind] or "grey", nil, words[item.kind] or "")
+    local words = { available = texts.learnable, unavailable = read_later_word(item, texts), used = texts.learnt }
+    local later_red = item.kind == "unavailable" and item.needed ~= nil
+    library.update_chip(row.state, later_red and "red" or STATES[item.kind] or "grey", nil, words[item.kind] or "")
     library.update_money(row.money, item.cost)
     library.update_grid_columns(row, columns, sheet.pad, { { row.state, 2, "right" }, { row.money, 3, "right" } })
 end
@@ -84,10 +125,21 @@ local function render_all_learnt()
     end
 end
 
+local function read_own_skill()
+    for index = 1, (GetNumTrainerServices and GetNumTrainerServices() or 0) do
+        local skill = read_skill(index)
+        if skill then
+            local rank, most = read_skill_rank(skill)
+            return rank and string.format(library.texts.trainer_skill, skill, rank, most or rank) or skill
+        end
+    end
+end
+
 function vga.update_trainer()
     if not (window and window:IsShown()) then return end
     window.items = read_services()
-    library.update_list_dialog(window, window.items, window.chosen_name)
+    local skill = read_own_skill()
+    library.update_list_dialog(window, window.items, window.chosen_name, skill and { kind = "green", word = skill } or nil)
 end
 
 local function render_kind(index)

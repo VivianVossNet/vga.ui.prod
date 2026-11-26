@@ -19,12 +19,12 @@ function library.create_list_dialog(name, plan)
     return dialog
 end
 
-function library.update_list_dialog(dialog, items, note)
+function library.update_list_dialog(dialog, items, note, badge)
     local plan = dialog.plan
     local width, height = library.read_draft_size(plan.width), library.read_draft_size(plan.height)
     library.update_dialog(dialog)
     library.update_list_page(dialog.listing, items, width - 2 * library.read_size(-4), height - library.read_dialog_frame_height(dialog))
-    library.update_dialog_foot(dialog, note or "")
+    library.update_dialog_foot(dialog, note or "", nil, badge)
     library.update_dialog_status(dialog, library.texts.gold_label, GetMoney and GetMoney() or 0)
     dialog:SetSize(width, height)
 end

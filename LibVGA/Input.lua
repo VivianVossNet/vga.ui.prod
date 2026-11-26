@@ -1,8 +1,8 @@
 -- Copyright 2026 Vivian Voss. Code by Vivian Voss. Licensed under the BSD-3-Clause.
 -- SPDX-License-Identifier: BSD-3-Clause
--- Scope: LibVGA's one input, as the accepted catalogue draws it (manual/view/vga-catalogue.html, K0775) after the auctions' search bar and field (manual/view/vga-auctions.html .sbar, .input; K0740): a dark ground rounded 7 draft pixels inside a fine line of the same width at rest and while typed into, gold then (rule 29), 22 draft pixels high like every box of a row (K0774); its text in the body face, set in from the edges; a gold caret blinking where the game's own cursor stands, as the game tells it on every move, so with a long entry, which the game scrolls, it stays inside (K0739); a quiet hint while empty, a picture at its left where one is named, a clear button at its right where one is asked for, once there is text; at most so many letters, digits only where asked, centred where asked; Escape ends the typing, Enter hands the text to its owner and ends it, and the owner hears when the typing ends. The owner fills it - hint, picture, what a change or Enter does - and lays it by library.update_input with its width. An input the game makes itself, the chat's, wears the same skin and caret (library.create_input_skin).
+-- Scope: LibVGA's one input, as the accepted catalogue draws it (manual/view/vga-catalogue.html, K0775) after the auctions' search bar and field (manual/view/vga-auctions.html .sbar, .input; K0740): a dark ground rounded 7 draft pixels inside a fine line of the same width at rest and while typed into, gold then (rule 29), 22 draft pixels high like every box of a row (K0774); its text in the body face, set in from the edges; a gold caret blinking where the game's own cursor stands, as the game tells it on every move, so with a long entry, which the game scrolls, it stays inside (K0739); a quiet hint while empty, a picture at its left where one is named, a clear button at its right where one is asked for, once there is text; at most so many letters, digits only where asked, centred where asked; Escape ends the typing, Enter hands the text to its owner and ends it, and the owner hears when the typing ends. The owner fills it - hint, picture, what a change or Enter does - and lays it by library.update_input with its width; a field of so many letters takes, where its owner asks, the width its widest entry needs - as many eights as it holds letters, in the body face, its insets and the caret's room beside them - from library.read_input_width, never a constant (K0911). An input the game makes itself, the chat's, wears the same skin and caret (library.create_input_skin).
 
--- {K0777} {K0740} {K0739} {K0774} {K0775}
+-- {K0911} {K0777} {K0740} {K0739} {K0774} {K0775}
 
 local library = LibVGA
 local colours = library.colours
@@ -13,6 +13,7 @@ local PAD = 10
 local PICTURE = 14
 local GAP = 6
 local BLINK = 0.5
+local CARET_ROOM = 2
 
 local function update_look(input)
     local skin, typing = input.skin, input:HasFocus()
@@ -170,4 +171,11 @@ function library.update_input(input, width)
     update_parts(input, pad, picture, left, right)
     update_look(input)
     update_shown(input)
+end
+
+function library.read_input_width(input)
+    local draft = library.read_draft_size
+    local left, right = read_insets(input, draft(PAD), draft(PICTURE), draft(GAP))
+    local sample = string.rep("8", input.plan.most or 1)
+    return math.ceil(library.read_sample_width(library.read_font("body"), sample)) + left + right + draft(CARET_ROOM)
 end

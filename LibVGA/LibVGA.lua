@@ -1,8 +1,8 @@
 -- Copyright 2026 Vivian Voss. Code by Vivian Voss. Licensed under the BSD-3-Clause.
 -- SPDX-License-Identifier: BSD-3-Clause
--- Scope: LibVGA's ground: the scale on one curve with one dial, the sizes, the fonts - five faces to choose, Geologica by default, Blizzard's Friz Quadrata from the game itself, in its Cyrillic file, which every client carries and which holds the Latin letters too, Exo 2, Philosopher and Fira Sans - and the colours, the register of elements and the guard that keeps a fault with its place. Every size grows and shrinks with the screen like a rem: the base is the chosen size times the screen's height over 1200 interface units, the height the owner's own screen gives, so his look stays and every other screen keeps the same proportions; a change of the game's scale or the screen lays everything anew. Every kind is kept a second time in the face's figure copy, its digits all one width - the face's own tabular digits made its default ones, since the game cannot switch a font's features (tools/figures/figures.py) -, named »figures_« and the kind, for every field of figures; Philosopher and Friz Quadrata, which have none, take Geologica's (K0789). Every frame face is kept also two pixels smaller and two larger, so an element may offer its own text size - library.read_frame_font(kind, shift) with a shift of -2 or 2 (K0710). An element may name the size it starts at where none was chosen, library.size_defaults[key] - the damage meter starts small (K0732). A text's width and height are read plainly where the game gives them, and where it gives a secret value - on regions laid in an item tooltip - measured again on a hidden FontString on UIParent with the same font and words (library.read_string_width, library.read_string_height, K0758); events heard one by one, an event the game does not know kept as a fault and never stopping the others (library.update_events, K0823); a sample's height or width in a given font on the same hidden FontString (library.read_sample_height, K0781; library.read_sample_width, K0817); where even the hidden one gives a secret value - words the game keeps secret, a damage meter's amounts in a fight -, the measure is 0, never a secret value, so no layout adding it up breaks (K0817). A height the game keeps secret even on the hidden FontString is read as one line of the text's font size, never 0 and never secret, so a chip, a bubble or a row keeps its room - as a quest started by an item showed, whose words' measures were secret (K0845).
+-- Scope: LibVGA's ground: the scale on one curve with one dial, the sizes, the fonts - five faces to choose, Geologica by default, Blizzard's Friz Quadrata from the game itself, in its Cyrillic file, which every client carries and which holds the Latin letters too, Exo 2, Philosopher and Fira Sans - and the colours, the register of elements and the guard that keeps a fault with its place. Every size grows and shrinks with the screen like a rem: the base is the chosen size times the screen's height over 1200 interface units, the height the owner's own screen gives, so his look stays and every other screen keeps the same proportions; a change of the game's scale or the screen lays everything anew. Every kind is kept a second time in the face's figure copy, its digits all one width - the face's own tabular digits made its default ones, since the game cannot switch a font's features (tools/figures/figures.py) -, named »figures_« and the kind, for every field of figures; Philosopher and Friz Quadrata, which have none, take Geologica's (K0789). Every frame face is kept also two pixels smaller and two larger, so an element may offer its own text size - library.read_frame_font(kind, shift) with a shift of -2 or 2 (K0710). An element may name the size it starts at where none was chosen, library.size_defaults[key] - the damage meter starts small (K0732). A text's width and height are read plainly where the game gives them, and where it gives a secret value - on regions laid in an item tooltip - measured again on a hidden FontString on UIParent with the same font and words (library.read_string_width, library.read_string_height, K0758); events heard one by one, an event the game does not know kept as a fault and never stopping the others (library.update_events, K0823); a sample's height or width in a given font on the same hidden FontString (library.read_sample_height, K0781; library.read_sample_width, K0817); where even the hidden one gives a secret value - words the game keeps secret, a damage meter's amounts in a fight -, the measure is 0, never a secret value, so no layout adding it up breaks (K0817). A height the game keeps secret even on the hidden FontString is read as one line of the text's font size, never 0 and never secret, so a chip, a bubble or a row keeps its room - as a quest started by an item showed, whose words' measures were secret (K0845). Events are registered only where the game knows them (C_EventUtils.IsEventValid), so one another version of the game lacks is neither registered nor written as a fault (K0913).
 
--- {K0874} {K0845} {K0823} {K0817} {K0789} {K0758} {K0710} {K0732} {K0294} {K0295} {K0296} {K0297} {K0311} {K0325} {K0384} {K0448}
+-- {K0913} {K0874} {K0845} {K0823} {K0817} {K0789} {K0758} {K0710} {K0732} {K0294} {K0295} {K0296} {K0297} {K0311} {K0325} {K0384} {K0448}
 
 local NAME = ...
 local MEDIA = "Interface\\AddOns\\" .. NAME .. "\\Media\\"
@@ -198,6 +198,7 @@ function library.update_safely(name, work, ...)
         local held = LibVGASettings.faults[name] or { count = 0 }
         held.count = held.count + 1
         held.message = message:sub(1, 600)
+        if library.write_debug then library.write_debug("error", message:match("AddOns[/\\]([^/\\]+)") or "LibVGA", name .. ": " .. message:match("^[^|]*"), message) end
         held.last = time()
         LibVGASettings.faults[name] = held
     end
@@ -208,9 +209,14 @@ local function write_unknown_event(frame, event)
     frame:RegisterEvent(event)
 end
 
+local function check_event_known(event)
+    local check = C_EventUtils and C_EventUtils.IsEventValid
+    return check == nil or check(event)
+end
+
 function library.update_events(frame, events)
     for _, event in ipairs(events) do
-        library.update_safely("unknown event " .. event, write_unknown_event, frame, event)
+        if check_event_known(event) then library.update_safely("unknown event " .. event, write_unknown_event, frame, event) end
     end
 end
 

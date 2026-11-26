@@ -1,8 +1,8 @@
 -- Copyright 2026 Vivian Voss. Code by Vivian Voss. Licensed under the BSD-3-Clause.
 -- SPDX-License-Identifier: BSD-3-Clause
--- Scope: Blizzard's chat in the accepted draft's look (manual/view/vga-probe.html .chat, .tabs2, .msgs, .in): Blizzard's background, border, tab and input art cleared; vga.ui's widget laid beneath tabs, lines and input, its ground the frames' setting, the small gold corner; the tabs quiet, the chosen one gold with a gold line beneath, always at full strength - the game's fading of the tabs while the mouse is away set to none (K0558) -; the lines in Geologica at the player's own size, spaced by three tenths of it; the lines at 12 pixels by default, set once, the player's own size kept after (K0510); the widget's left edge the chat's own, never a docked tab's, so a docked window - the combat log with its quick buttons too - lies wholly inside it; the input let into the ground, as wide as the lines above it, in the skin of LibVGA's one input - dark, a fine line turning gold while it is typed into, a gold caret where the game's own cursor stands, so with a long entry it stays inside (library.create_input_skin, K0739, K0777); once, a default size after the draft (420 by 150 at a 13-pixel base), the player's own resizing kept after. Blizzard's chat itself - channels, links, history, input - is untouched.
+-- Scope: Blizzard's chat in the accepted draft's look (manual/view/vga-probe.html .chat, .tabs2, .msgs, .in): Blizzard's background, border, tab and input art cleared; vga.ui's widget laid beneath tabs, lines and input, its ground the frames' setting, the small gold corner; the tabs quiet, the chosen one gold with a gold line beneath, always at full strength - the game's fading of the tabs while the mouse is away set to none (K0558) -; the lines in Geologica at the player's own size, spaced by three tenths of it; the lines at 12 pixels by default, set once, the player's own size kept after (K0510); the widget's left edge the chat's own, never a docked tab's, so a docked window - the combat log with its quick buttons too - lies wholly inside it; the input let into the ground, as wide as the lines above it, in the skin of LibVGA's one input - dark, a fine line turning gold while it is typed into, a gold caret where the game's own cursor stands, so with a long entry it stays inside (library.create_input_skin, K0739, K0777); once, a default size after the draft (420 by 150 at a 13-pixel base), the player's own resizing kept after. Every chat window wears it, the ones the game opens later too - a whisper's, a new window, one docked or undocked -: the windows are read from the game's own list of them (CHAT_FRAMES), never only the first ten, and laid again whenever the game opens, docks or undocks one (K0912). Blizzard's chat itself - channels, links, history, input - is untouched.
 
--- {K0777} {K0264} {K0266} {K0358} {K0359} {K0362} {K0363} {K0510} {K0558} {K0739}
+-- {K0912} {K0777} {K0264} {K0266} {K0358} {K0359} {K0362} {K0363} {K0510} {K0558} {K0739}
 
 local library = LibVGA
 local colours = library.colours
@@ -101,10 +101,17 @@ local function update_tabs_kept()
     for _, name in ipairs(TAB_FADES) do _G[name] = 1 end
 end
 
+local function read_chat_names()
+    if CHAT_FRAMES then return CHAT_FRAMES end
+    local names = {}
+    for index = 1, NUM_CHAT_WINDOWS or 0 do names[index] = "ChatFrame" .. index end
+    return names
+end
+
 local function update_chats()
-    for index = 1, NUM_CHAT_WINDOWS or 0 do
-        local chat = _G["ChatFrame" .. index]
-        if chat then library.update_safely("chat " .. index, update_chat, chat) end
+    for _, name in ipairs(read_chat_names()) do
+        local chat = _G[name]
+        if chat then library.update_safely("chat " .. name, update_chat, chat) end
     end
 end
 
@@ -139,7 +146,7 @@ events:SetScript("OnEvent", function(_, event)
         library.create_element("chat", { update = update_chats })
         library.update_safely("chat size", update_default_size)
         library.update_safely("chat font", update_default_font)
-        for _, hook in ipairs({ "FCF_Tab_OnClick", "FCFDock_SelectWindow", "FCF_OpenTemporaryWindow", "ChatEdit_ActivateChat", "ChatEdit_DeactivateChat" }) do
+        for _, hook in ipairs({ "FCF_Tab_OnClick", "FCFDock_SelectWindow", "FCF_OpenTemporaryWindow", "FCF_OpenNewWindow", "FCF_DockFrame", "FCF_UnDockFrame", "ChatEdit_ActivateChat", "ChatEdit_DeactivateChat" }) do
             if _G[hook] then hooksecurefunc(hook, update_chats_safely) end
         end
     end

@@ -1,8 +1,8 @@
 -- Copyright 2026 Vivian Voss. Code by Vivian Voss. Licensed under the BSD-3-Clause.
 -- SPDX-License-Identifier: BSD-3-Clause
--- Scope: LibVGA's item row, as the accepted catalogue draws it (manual/view/vga-catalogue.html »Liste mit Kopf und Gegenstandszeile«, K0775) after the auction house's rows (manual/view/vga-auctions.html .results .r; K0632): a row of LibVGA's list showing one item - its picture 26 draft pixels square at the row's left, veiled where the player cannot use it (library.create_unusable), its name beside it in LibVGA's one quality colour - rare and epic a shade brighter so they read on the dark ground (K0700) -, held to its column and ended in »…«; a row that can be chosen is a button and, chosen, lies on a faint gold ground in a fine gold ring. The item's tooltip opens only over its picture and its name, following the pointer sixteen pixels to its right and thirty-two above it (library.update_item_tip_owner, K0787), never over the rest of the row, so the row's other parts stay usable (library.create_item_hover, K0786). A row may show its picture in a cell - the ground, the edge in the item's quality colour from uncommon up, else the slot's grey, the count at its lower right (plan.cell) - and a second, quiet line under the name (item.sub), the name then bold, as the windows of the game's figures draw them (K0836). Its user fills the columns after the name and says what hovering and clicking do (K0785). library.read_quality_colour is every item name's colour. The comparison tooltips the game hangs beside an item row's tooltip - »Ausgerüstet«, at a merchant shown at once - end with it at its bottom, on the side the game chose, so they too stay above the pointer and the rows beneath stay readable (K0842). A row may carry a tag after its name - a chip with a picture and a word (item.tag, K0848), or LibVGA's sign (library.create_sign, K0857), its word as its tooltip and a click on it the row's, as the merchant's answer in the talk carries the gold anvil for »Reparatur« (item.tag.sign, K0855) -, the name giving way to it. A row asked for more lines (item.lines) breaks its name over up to that many, ending only the last in »…«, and library.read_item_row_height gives the height that holds it, six draft pixels above and below, never less than the row's own (K0866). A row given a click is a button, and a row asked to (plan.lit) lies on a faint gold ground while the mouse is over it, its tooltip's part too; its cell rims a quest item in gold with a small gold question mark at its lower left (item.quest, library.create_cell_quest), a fixed item with the two blue rounded corners of the bags (item.pinned, library.create_cell_pinned, K0901), its second line may take a colour of its own (item.sub_colour), money stands in its name's place in LibVGA's money, bold (item.money, in copper), and a row taken is greyed - the cell's picture, edge, count and mark without colour and darkened, the name, its second line and the money in LibVGA's grey - in its place, as the loot's rows show it (item.taken, manual/view/vga-loot.html C, K0874).
+-- Scope: LibVGA's item row, as the accepted catalogue draws it (manual/view/vga-catalogue.html »Liste mit Kopf und Gegenstandszeile«, K0775) after the auction house's rows (manual/view/vga-auctions.html .results .r; K0632): a row of LibVGA's list showing one item - its picture 26 draft pixels square at the row's left, veiled where the player cannot use it (library.create_unusable), its name beside it in LibVGA's one quality colour - rare and epic a shade brighter so they read on the dark ground (K0700) -, held to its column and ended in »…«; a row that can be chosen is a button and, chosen, lies on a faint gold ground in a fine gold ring. The item's tooltip opens only over its picture and its name, following the pointer sixteen pixels to its right and thirty-two above it (library.update_item_tip_owner, K0787), never over the rest of the row, so the row's other parts stay usable (library.create_item_hover, K0786). A row may show its picture in a cell - the ground, the edge in the item's quality colour from uncommon up, else the slot's grey, the count at its lower right (plan.cell) - and a second, quiet line under the name (item.sub), the name then bold, as the windows of the game's figures draw them (K0836). Its user fills the columns after the name and says what hovering and clicking do (K0785). library.read_quality_colour is every item name's colour. The comparison tooltips the game hangs beside an item row's tooltip - »Ausgerüstet«, at a merchant shown at once - end with it at its bottom, on the side the game chose, so they too stay above the pointer and the rows beneath stay readable (K0842). A row may carry a tag after its name - a chip with a picture and a word (item.tag, K0848), or LibVGA's sign (library.create_sign, K0857), its word as its tooltip and a click on it the row's, as the merchant's answer in the talk carries the gold anvil for »Reparatur« (item.tag.sign, K0855) -, the name giving way to it. A row asked for more lines (item.lines) breaks its name over up to that many, ending only the last in »…«, and library.read_item_row_height gives the height that holds it, six draft pixels above and below, never less than the row's own (K0866). A row given a click is a button, and a row asked to (plan.lit) lies on a faint gold ground while the mouse is over it, its tooltip's part too; its cell rims a quest item in gold with a small gold question mark at its lower left (item.quest, library.create_cell_quest), a fixed item with the two blue rounded corners of the bags (item.pinned, library.create_cell_pinned, K0901), its second line may take a colour of its own (item.sub_colour), money stands in its name's place in LibVGA's money, bold (item.money, in copper), and a row taken is greyed - the cell's picture, edge, count and mark without colour and darkened, the name, its second line and the money in LibVGA's grey - in its place, as the loot's rows show it (item.taken, manual/view/vga-loot.html C, K0874). The row owns its item's tooltip (K0911): its user only names how the game fills it (plan.tip(line, tip), true where it filled it - SetMerchantItem, SetQuestItem, SetTrainerService and their kin), and the row sets its owner, shows it over picture and name and hides it on leaving, alike in every list; a row whose picture is to be veiled red though the game has no item to ask is told so (item.unusable, K0933); the veil lies on the frame that holds the picture - the cell where there is one -, never beneath it (K0934); a row of a list that is only shown, not chosen from, is told so (item.choosable = false) and then takes no click and shows no choice, its tooltip kept, as the rewards of a quest offered.
 
--- {K0901} {K0874} {K0866} {K0857} {K0855} {K0848} {K0842} {K0836} {K0787} {K0786} {K0785} {K0700} {K0632} {K0775}
+-- {K0934} {K0933} {K0911} {K0901} {K0874} {K0866} {K0857} {K0855} {K0848} {K0842} {K0836} {K0787} {K0786} {K0785} {K0700} {K0632} {K0775}
 
 local library = LibVGA
 local WRAP_ROOM = 6
@@ -130,6 +130,16 @@ local function create_lit_look(line)
     line:SetScript("OnLeave", update_line_unlit)
 end
 
+local function render_tip_shown(line)
+    library.update_item_tip_owner(GameTooltip, line)
+    if line.tip(line, GameTooltip) then return GameTooltip:Show() end
+    GameTooltip:Hide()
+end
+
+local function render_tip_hidden()
+    GameTooltip:Hide()
+end
+
 function library.create_item_row(parent, plan)
     local line = CreateFrame((plan.chosen or plan.on_click) and "Button" or "Frame", nil, parent)
     line:EnableMouse(true)
@@ -140,12 +150,13 @@ function library.create_item_row(parent, plan)
         line.count = library.create_text(line.cell, "figures_small", colours.ink)
     end
     line.icon = (line.cell or line):CreateTexture(nil, "ARTWORK")
-    line.unusable = library.create_unusable(line, line.icon)
+    line.unusable = library.create_unusable(line.cell or line, line.icon)
     line.name = library.create_text(line, "body", colours.ink)
     line.name:SetJustifyH("LEFT")
     line.name:SetWordWrap(false)
     if plan.on_click then line:SetScript("OnClick", plan.on_click) end
-    library.create_item_hover(line, plan.on_enter, plan.on_leave)
+    line.tip = plan.tip
+    if plan.tip then library.create_item_hover(line, render_tip_shown, render_tip_hidden) else library.create_item_hover(line, plan.on_enter, plan.on_leave) end
     return line
 end
 
@@ -261,7 +272,8 @@ function library.update_item_row(line, item, left, right)
     local size, gap = library.read_draft_size(ICON), library.read_size(-4)
     line.icon:SetTexture(item.icon)
     update_picture_taken(line.icon, item.taken)
-    library.update_unusable(line.unusable, item.id)
+    library.update_unusable(line.unusable, item.id, item.unusable)
+    if line.SetEnabled then line:SetEnabled(item.choosable ~= false) end
     local holder = line.cell or line.icon
     holder:SetSize(size, size)
     holder:ClearAllPoints()

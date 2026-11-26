@@ -369,6 +369,7 @@ local function create_map()
     library.create_place(frame.widget, "map", "TOPRIGHT", UIParent, -read_draft(MARGIN), -read_draft(MARGIN))
     vga.create_map_rim(frame.widget)
     vga.create_map_pins(frame.view)
+    vga.create_minimap_signs(frame.view)
     vga.create_map_rose(frame.view)
     library.read_minimap_anchor = vga.read_map_anchor
     if MinimapCluster and MinimapCluster.UpdateMinimapConfig then hooksecurefunc(MinimapCluster, "UpdateMinimapConfig", update_all) end

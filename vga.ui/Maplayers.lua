@@ -1,8 +1,8 @@
 -- Copyright 2026 Vivian Voss. Code by Vivian Voss. Licensed under the BSD-3-Clause.
 -- SPDX-License-Identifier: BSD-3-Clause
--- Scope: the world map's layers fed by what the game gives (K0805), drawn as LibVGA's map marks in the owner's signs (K0813, K0815): the player's sign turned by the facing; the party in their class colours; the quests of the zone in view - to hand in, in progress, to take where the game names a start -; the flight masters of the continent, learnt or not, the hostile ones left out, the faction in the card; own pins in orange, set by Ctrl and a click, taken off by a right click, the game's own waypoint beside them; townsfolk - vendors, repairers, barbers, the auction house, class and profession trainers - learnt by vga.ui itself whenever the player speaks with one, kept with the player's place in the account's saved variables (K0814). Each layer obeys its switch; the hatching covers everything outside the zone in view (K0812). Where Questie is installed and ready, its quest givers - the quests it holds available, by their figures' places in the zone in view - and its townsfolk - repairers, auctioneers, barbers, innkeepers, the player's class trainers, profession trainers and its vendors - are read at runtime, guarded, nothing copied, kept five seconds per map (K0814, K0822); every place at half the size of the quests in the quest view (library.read_map_mark_scale, K0822). VGA's own database comes once it is released.
+-- Scope: the world map's layers fed by what the game gives (K0805), drawn as LibVGA's map marks in the owner's signs (K0813, K0815), on the world map or, for the minimap, on the plane of the continent the player stands on (K0925); a figure's place kept as its zone and position there, turned into the plane's only when read (K0925): the player's sign turned by the facing; the party in their class colours; the quests of the zone in view - to hand in, in progress, to take where the game names a start -; the flight masters of the continent, learnt or not, the hostile ones left out, the faction in the card; own pins in orange, set by Ctrl and a click, taken off by a right click, the game's own waypoint beside them; townsfolk - vendors, repairers, barbers, the auction house, class and profession trainers - learnt by vga.ui itself whenever the player speaks with one, kept with the player's place in the account's saved variables (K0814). Each layer obeys its switch; the hatching covers everything outside the zone in view (K0812). Where Questie is installed and ready, its quest givers - the quests it holds available, by their figures' places in the zone in view - and its townsfolk - repairers, auctioneers, barbers, innkeepers, the player's class trainers, profession trainers and its vendors - are read at runtime, guarded, nothing copied, kept five seconds per map (K0814, K0822); every place at half the size of the quests in the quest view (library.read_map_mark_scale, K0822). VGA's own database comes once it is released.
 
--- {K0822} {K0815} {K0814} {K0813} {K0812} {K0805}
+-- {K0925} {K0822} {K0815} {K0814} {K0813} {K0812} {K0805}
 
 local _, vga = ...
 local library = LibVGA
@@ -15,6 +15,7 @@ local QUESTIE_KINDS = { Repair = "Repair", Auctioneer = "Auction", Barber = "Bar
 local QUESTIE_WORDS = { Repair = "map_repair", Auction = "map_auction", Barber = "map_barber", Inn = "map_inn", Vendor = "map_vendor", ClassTrainer = "map_class_trainer", ProfessionTrainer = "map_profession_trainer", QuestTake = "map_quest_take" }
 local QUESTIE_KEEP = 5
 local questie_kept = {}
+local plane
 
 local function check_layer(key)
     return (LibVGASettings.map_layers or {})[key] ~= false
@@ -30,7 +31,7 @@ local function read_unit_item(unit, kind, facing)
     local map = C_Map.GetBestMapForUnit(unit)
     local spot = map and C_Map.GetPlayerMapPosition(map, unit)
     if not spot then return nil end
-    local across, down = vga.read_map_world_point(map, spot.x, spot.y)
+    local across, down = vga.read_map_world_point(map, spot.x, spot.y, plane)
     return across and { kind = kind, across = across, down = down, facing = facing, card = { UnitName(unit) } }
 end
 
@@ -60,7 +61,7 @@ local function read_quests(map)
     local items = {}
     if not (map and check_layer("quests") and C_QuestLog.GetQuestsOnMap) then return items end
     for _, found in ipairs(C_QuestLog.GetQuestsOnMap(map) or {}) do
-        local across, down = vga.read_map_world_point(map, found.x, found.y)
+        local across, down = vga.read_map_world_point(map, found.x, found.y, plane)
         local kind, word = read_quest_kind(found)
         local title = C_QuestLog.GetTitleForQuestID and C_QuestLog.GetTitleForQuestID(found.questID)
         if across then items[#items + 1] = { kind = kind, across = across, down = down, card = { title or word, word } } end
@@ -77,7 +78,7 @@ local function read_flight(continent)
     if not (continent and check_layer("flight") and C_TaxiMap and C_TaxiMap.GetTaxiNodesForMap) then return items end
     for _, node in ipairs(C_TaxiMap.GetTaxiNodesForMap(continent) or {}) do
         local spot = node.position
-        local across, down = spot and vga.read_map_world_point(continent, spot.x, spot.y)
+        local across, down = spot and vga.read_map_world_point(continent, spot.x, spot.y, plane)
         if across and not check_hostile(node) then
             local kind = node.isUndiscovered and "FlightUnknown" or "Flight"
             items[#items + 1] = { kind = kind, across = across, down = down, card = { node.name, node.isUndiscovered and texts.map_unknown or texts.map_learnt } }
@@ -95,7 +96,7 @@ end
 local function read_waypoint()
     local point = C_Map.GetUserWaypoint and C_Map.GetUserWaypoint()
     local spot = point and point.position
-    local across, down = spot and vga.read_map_world_point(point.uiMapID, spot.x, spot.y)
+    local across, down = spot and vga.read_map_world_point(point.uiMapID, spot.x, spot.y, plane)
     return across and { kind = "Pin", across = across, down = down, card = { texts.map_waypoint } }
 end
 
@@ -127,7 +128,7 @@ local function write_questie_npc(found, modules, npc_id, kind)
     for area, spots in pairs(npc.spawns) do
         if modules.zones:GetUiMapIdByAreaId(area) == found.map then
             for _, spot in ipairs(spots) do
-                local across, down = vga.read_map_world_point(found.map, spot[1] / 100, spot[2] / 100)
+                local across, down = vga.read_map_world_point(found.map, spot[1] / 100, spot[2] / 100, plane)
                 if across then found.items[#found.items + 1] = { kind = kind, across = across, down = down, card = { npc.name, texts[QUESTIE_WORDS[kind]] } } end
             end
         end
@@ -156,11 +157,12 @@ local function write_questie_places(found)
 end
 
 local function read_questie_places(map)
-    local kept = questie_kept[map]
+    local key = map .. ":" .. tostring(plane and plane.id)
+    local kept = questie_kept[key]
     if kept and GetTime() - kept.at < QUESTIE_KEEP then return kept.items end
     local found = { map = map, items = {}, at = GetTime() }
     local ok = pcall(write_questie_places, found)
-    questie_kept[map] = found
+    questie_kept[key] = found
     return ok and found.items or {}
 end
 
@@ -168,7 +170,9 @@ local function read_townsfolk()
     local items = {}
     if not check_layer("townsfolk") then return items end
     for _, figure in pairs(LibVGAAccount.townsfolk or {}) do
-        items[#items + 1] = { kind = TOWNSFOLK[figure.kind], across = figure.across, down = figure.down, card = { figure.name, texts[TOWNSFOLK_WORDS[figure.kind]] } }
+        local across, down = figure.across, figure.down
+        if figure.x then across, down = vga.read_map_world_point(figure.map, figure.x, figure.y, plane) end
+        if across then items[#items + 1] = { kind = TOWNSFOLK[figure.kind], across = across, down = down, card = { figure.name, texts[TOWNSFOLK_WORDS[figure.kind]] } } end
     end
     return items
 end
@@ -176,11 +180,10 @@ end
 local function write_townsfolk(kind)
     local map = C_Map.GetBestMapForUnit("player")
     local spot = map and C_Map.GetPlayerMapPosition(map, "player")
-    local across, down = spot and vga.read_map_world_point(map, spot.x, spot.y)
     local name = UnitName("npc")
-    if not (across and name) then return end
+    if not (spot and name) then return end
     LibVGAAccount.townsfolk = LibVGAAccount.townsfolk or {}
-    LibVGAAccount.townsfolk[name .. ":" .. map] = { kind = kind, name = name, across = across, down = down }
+    LibVGAAccount.townsfolk[name .. ":" .. map] = { kind = kind, name = name, map = map, x = spot.x, y = spot.y }
 end
 
 local function read_merchant_kind()
@@ -201,7 +204,8 @@ end
 
 local HEARD = { MERCHANT_SHOW = read_merchant_kind, BARBER_SHOP_OPEN = read_barber_kind, AUCTION_HOUSE_SHOW = read_auction_kind, TRAINER_SHOW = read_trainer_kind }
 
-function vga.update_map_layers(canvas, tier, zone)
+function vga.update_map_layers(canvas, tier, zone, given)
+    plane = given
     local size = library.read_map_mark_size(tier)
     local map = zone and zone.id or C_Map.GetBestMapForUnit("player")
     local continent = zone and zone.parent

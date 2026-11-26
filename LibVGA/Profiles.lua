@@ -6,7 +6,7 @@
 
 local library = LibVGA
 local colours = library.colours
-local NOT_IN_PROFILE = { faults = true, measures = true, friendly = true, reach = true, quest_pins = true, history = true, bag_fresh = true, key_fresh = true, chat_font_set = true, chat_sized = true, plates_simple = true }
+local NOT_IN_PROFILE = { faults = true, measures = true, friendly = true, reach = true, quest_pins = true, history = true, bag_fresh = true, bag_held = true, key_fresh = true, chat_font_set = true, chat_sized = true, plates_simple = true }
 
 local function read_copy(source)
     if type(source) ~= "table" then return source end

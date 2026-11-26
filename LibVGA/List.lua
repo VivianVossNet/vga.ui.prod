@@ -1,8 +1,8 @@
 -- Copyright 2026 Vivian Voss. Code by Vivian Voss. Licensed under the BSD-3-Clause.
 -- SPDX-License-Identifier: BSD-3-Clause
--- Scope: LibVGA's list (K0631): rows of one height over any number of items, the scrolling body of LibVGA/Scroll.lua its frame and its bar; only as many rows are made as the room shows and one more, their height and the gap between them on whole screen pixels so every gap is even (K0829), and they are laid anew on the items in view whenever the list scrolls or its items change, so no window makes rows or a scroll bar of its own; a hairline between the rows as the draft's lists draw them (K0632). Heads made by library.create_sort_head sort the list by a click - ascending, a second click descending - after the reader the user gives for each key (list.sorters), a small arrow beside the chosen head, the list then laid anew (list.on_sort): every listing sorts by its column titles (K0655). The user gives a maker of one row and a filler that sets a row to an item, and may hear when the rows in view were laid (list.on_rows), to make a column of chips one width (library.read_list_rows_shown). A column title whose value needs explaining shows its explanation as a tooltip once the mouse has rested on it for a second - the text given, else the texts' head_tip_ and the column's key - and hides it when the mouse leaves (K0685). A list's columns are laid by library.read_columns: every column as wide as the widest it can hold - a title, the largest money of 9 999 gold, a figure - and one, the name's, taking what is left, at least four draft pixels between any two, so no column runs into the next whatever it shows (library.read_widest_money, library.read_widest_text, K0686). A list standing in a group beneath its column heads lies below the heads' band, its word for an empty list one row further down (library.update_list_in_group, K0798).
+-- Scope: LibVGA's list (K0631): rows of one height over any number of items, the scrolling body of LibVGA/Scroll.lua its frame and its bar; only as many rows are made as the room shows and one more, their height and the gap between them on whole screen pixels so every gap is even (K0829), and they are laid anew on the items in view whenever the list scrolls or its items change, so no window makes rows or a scroll bar of its own; a hairline between the rows as the draft's lists draw them (K0632). Heads made by library.create_sort_head sort the list by a click - ascending, a second click descending - after the reader the user gives for each key (list.sorters), a small arrow beside the chosen head, the list then laid anew (list.on_sort): every listing sorts by its column titles (K0655). The user gives a maker of one row and a filler that sets a row to an item, and may hear when the rows in view were laid (list.on_rows), to make a column of chips one width (library.read_list_rows_shown). A column title whose value needs explaining shows its explanation as a tooltip once the mouse has rested on it for a second - the text given, else the texts' head_tip_ and the column's key - and hides it when the mouse leaves (K0685). A list's columns are laid by library.read_columns: every column as wide as the widest it can hold - a title, the largest money of 9 999 gold, a figure - and one, the name's, taking what is left, at least four draft pixels between any two, so no column runs into the next whatever it shows (library.read_widest_money, library.read_widest_text, K0686). Items its user names to stand last (list.read_last) stay after the others, whatever the list is sorted by, each part in its order - the bags' fixed items at the merchant's sell page (K0943). A list standing in a group beneath its column heads lies below the heads' band, its word for an empty list one row further down (library.update_list_in_group, K0798).
 
--- {K0829} {K0798} {K0631} {K0632} {K0655} {K0685} {K0686}
+-- {K0943} {K0829} {K0798} {K0631} {K0632} {K0655} {K0685} {K0686}
 
 local library = LibVGA
 local TIP_SECONDS = 1
@@ -55,6 +55,16 @@ local function read_sorted(list, items)
         return first < second
     end)
     return sorted
+end
+
+local function read_parted(list, items)
+    if not list.read_last then return items end
+    local first, last = {}, {}
+    for _, item in ipairs(items) do
+        if list.read_last(item) then last[#last + 1] = item else first[#first + 1] = item end
+    end
+    for _, item in ipairs(last) do first[#first + 1] = item end
+    return first
 end
 
 local function update_head_looks(list)
@@ -137,7 +147,7 @@ function library.update_sort_head(head, right)
 end
 
 function library.update_list(list, items, width, room, row_height)
-    items = read_sorted(list, items)
+    items = read_parted(list, read_sorted(list, items))
     list.items, list.width, list.row_height = items, width, library.read_whole_pixels(row_height, list)
     list.gap = library.read_whole_pixels(list.gap or 0, list)
     list.on_scroll = nil

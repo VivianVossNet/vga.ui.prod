@@ -21,6 +21,7 @@ function library.create_item_table(parent, plan)
     sheet.plan = plan
     sheet.list = library.create_list(sheet, plan.create_row, plan.update_row)
     sheet.list.on_sort, sheet.list.on_rows, sheet.list.sorters = plan.on_sort or function() render_sorted(sheet) end, plan.on_rows, {}
+    sheet.list.read_last = plan.read_last
     sheet.heads = {}
     for index, column in ipairs(plan.columns) do
         if column.sort then sheet.list.sorters[column.key] = column.sort end

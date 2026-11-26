@@ -94,13 +94,9 @@ function library.update_map_pictures(canvas, pictures)
     canvas.pictures = pictures
 end
 
-function library.update_map_mark(canvas, mark, across, down)
-    local left, top, right, bottom = library.read_map_view(canvas)
-    local inside = across and down and across >= left and across <= right and down >= top and down <= bottom
-    mark:SetShown(inside and true or false)
-    if not inside then return end
-    mark:ClearAllPoints()
-    mark:SetPoint("CENTER", canvas, "TOPLEFT", (across - left) * read_across(canvas), -(down - top) * canvas.zoom)
+function library.read_map_mark_point(canvas, across, down)
+    local left, top = library.read_map_view(canvas)
+    return (across - left) * read_across(canvas), (down - top) * canvas.zoom
 end
 
 local function read_held(centre, half, low, high)

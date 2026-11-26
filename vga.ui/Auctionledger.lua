@@ -1,8 +1,8 @@
 -- Copyright 2026 Vivian Voss. Code by Vivian Voss. Licensed under the BSD-3-Clause.
 -- SPDX-License-Identifier: BSD-3-Clause
--- Scope: vga.auctions' ledger, the second step (K0608, K0611): what each item the player holds has cost, per realm - loot at nothing, marked as found; a merchant's piece at his price over his stack; an auction bought outright at its bid; a bulk purchase at the total the game named for it -; the cost the weighted average of the bought pieces still held; a sale read from the mail's invoice, its proceeds after deposit and cut, its gain against that average, kept by day for thirty days; pieces gone otherwise - used, sold to a merchant, destroyed - taken out when bags and bank hold fewer than at the last look, bought pieces before found ones; pieces posted to the auction house are not counted as gone, and a rise - a purchase fetched from the mail - changes nothing. Every purchase, sale and expired auction is kept besides as one event of thirty days - when, the item, the way, how many, the money, and for a sale the cost of its bought pieces and how many were found -, the expired ones read from the mail whose subject is the game's AUCTION_EXPIRED_MAIL_SUBJECT, its item from the mail's first attachment (vga.read_ledger_events, K0684).
+-- Scope: vga.auctions' ledger, the second step (K0608, K0611): what each item the player holds has cost, per realm - loot at nothing, marked as found; a merchant's piece at his price over his stack; an auction bought outright at its bid; a bulk purchase at the total the game named for it -; the cost the weighted average of the bought pieces still held; a sale read from the mail's invoice, its proceeds after deposit and cut, its gain against that average, kept by day for thirty days; pieces gone otherwise - used, sold to a merchant, destroyed - taken out when bags and bank hold fewer than at the last look, bought pieces before found ones; pieces posted to the auction house are not counted as gone, and a rise - a purchase fetched from the mail - changes nothing. Every purchase, sale and expired auction is kept besides as one event of thirty days - when, the item, the way, how many, the money, and for a sale the cost of its bought pieces and how many were found -, the expired ones read from the mail whose subject is the game's AUCTION_EXPIRED_MAIL_SUBJECT, its item from the mail's first attachment (vga.read_ledger_events, K0684). The holdings are counted by the game's C_Item.GetItemCount, the global GetItemCount only where it is missing, as Forever has no global one (K0913).
 
--- {K0758} {K0608} {K0611} {K0684}
+-- {K0913} {K0758} {K0608} {K0611} {K0684}
 
 local _, vga = ...
 local library = LibVGA
@@ -112,9 +112,9 @@ local function update_invoices()
 end
 
 local function update_reconciled()
-    local holdings = read_ledger().holdings
+    local holdings, count = read_ledger().holdings, C_Item and C_Item.GetItemCount or GetItemCount
     for item_id, holding in pairs(holdings) do
-        local held = GetItemCount(item_id, true)
+        local held = count(item_id, true)
         if holding.seen and held < holding.seen then update_taken(holding, holding.seen - held) end
         holding.seen = held
         if holding.bought + holding.found <= 0 then holdings[item_id] = nil end

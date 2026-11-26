@@ -61,8 +61,8 @@ local function read_world()
     return world
 end
 
-local function read_plane_rect(map)
-    local plane = window and window.continent
+local function read_plane_rect(map, given)
+    local plane = given or (window and window.continent)
     if not plane or map.id == plane.id then return { 0, 1, 0, 1 } end
     map.plane_rects = map.plane_rects or {}
     if map.plane_rects[plane.id] == nil then
@@ -251,9 +251,9 @@ local function read_path(canvas)
     return words, maps
 end
 
-function vga.read_map_world_point(map, across, down)
+function vga.read_map_world_point(map, across, down, plane)
     local entry = map and across and (read_world().by_id[map] or { id = map })
-    local rect = entry and read_plane_rect(entry)
+    local rect = entry and read_plane_rect(entry, plane)
     if not rect then return end
     return rect[1] + across * (rect[2] - rect[1]), rect[3] + down * (rect[4] - rect[3])
 end
