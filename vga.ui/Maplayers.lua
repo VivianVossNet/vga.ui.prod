@@ -1,8 +1,8 @@
 -- Copyright 2026 Vivian Voss. Code by Vivian Voss. Licensed under the BSD-3-Clause.
 -- SPDX-License-Identifier: BSD-3-Clause
--- Scope: the world map's layers fed by what the game gives (K0805), drawn as LibVGA's map marks in the owner's signs (K0813, K0815), on the world map or, for the minimap, on the plane of the continent the player stands on (K0925); a figure's place kept as its zone and position there, turned into the plane's only when read (K0925): the player's sign turned by the facing; the party in their class colours; the quests of the zone in view - to hand in, in progress, to take where the game names a start -; the flight masters of the continent, learnt or not, the hostile ones left out, the faction in the card; own pins in orange, set by Ctrl and a click, taken off by a right click, the game's own waypoint beside them; townsfolk - vendors, repairers, barbers, the auction house, class and profession trainers - learnt by vga.ui itself whenever the player speaks with one, kept with the player's place in the account's saved variables (K0814). Each layer obeys its switch; the hatching covers everything outside the zone in view (K0812). Where Questie is installed and ready, its quest givers - the quests it holds available, by their figures' places in the zone in view - and its townsfolk - repairers, auctioneers, barbers, innkeepers, the player's class trainers, profession trainers and its vendors - are read at runtime, guarded, nothing copied, kept five seconds per map (K0814, K0822); every place at half the size of the quests in the quest view (library.read_map_mark_scale, K0822). VGA's own database comes once it is released.
+-- Scope: the world map's layers fed by what the game gives (K0805), drawn as LibVGA's map marks in the owner's signs (K0813, K0815), on the world map or, for the minimap, on the plane of the continent the player stands on (K0925); a figure's place kept as its zone and position there, turned into the plane's only when read (K0925); a quest giver from Questie marked only for a quest Questie still holds available and the figure did not refuse - its list by figure keeps quests it has let go -, its sign by its best quest: »QuestTake« in range, »QuestTakeLow« one the game shows grey, »QuestTakeHigh« one above the player's level (K0946): the player's sign turned by the facing; the party in their class colours; the quests of the zone in view - to hand in, in progress, to take where the game names a start -; the flight masters of the continent, learnt or not, the hostile ones left out, the faction in the card; own pins in orange, set by Ctrl and a click, taken off by a right click, the game's own waypoint beside them; townsfolk - vendors, repairers, barbers, the auction house, class and profession trainers - learnt by vga.ui itself whenever the player speaks with one, kept with the player's place in the account's saved variables (K0814). Each layer obeys its switch; the hatching covers everything outside the zone in view (K0812). Where Questie is installed and ready, its quest givers - the quests it holds available, by their figures' places in the zone in view - and its townsfolk - repairers, auctioneers, barbers, innkeepers, the player's class trainers, profession trainers and its vendors - are read at runtime, guarded, nothing copied, kept five seconds per map (K0814, K0822); every place at half the size of the quests in the quest view (library.read_map_mark_scale, K0822). VGA's own database comes once it is released.
 
--- {K0925} {K0822} {K0815} {K0814} {K0813} {K0812} {K0805}
+-- {K0946} {K0925} {K0822} {K0815} {K0814} {K0813} {K0812} {K0805}
 
 local _, vga = ...
 local library = LibVGA
@@ -16,6 +16,7 @@ local QUESTIE_WORDS = { Repair = "map_repair", Auction = "map_auction", Barber =
 local QUESTIE_KEEP = 5
 local questie_kept = {}
 local plane
+local GREEN = 5
 
 local function check_layer(key)
     return (LibVGASettings.map_layers or {})[key] ~= false
@@ -119,7 +120,7 @@ end
 local function read_questie_modules()
     local loader = QuestieLoader
     if not (loader and Questie and Questie.API and Questie.API.isReady) then return nil end
-    return { db = loader:ImportModule("QuestieDB"), zones = loader:ImportModule("ZoneDB"), available = loader:ImportModule("AvailableQuests"), folk = loader:ImportModule("Townsfolk") }
+    return { db = loader:ImportModule("QuestieDB"), zones = loader:ImportModule("ZoneDB"), available = loader:ImportModule("AvailableQuests"), folk = loader:ImportModule("Townsfolk"), lib = loader:ImportModule("QuestieLib") }
 end
 
 local function write_questie_npc(found, modules, npc_id, kind)
@@ -149,10 +150,33 @@ local function write_questie_folk(found, modules)
     for _, list in pairs(Questie.db and Questie.db.char and Questie.db.char.vendorList or {}) do write_questie_list(found, modules, list, "Vendor") end
 end
 
+local function read_quest_rank(modules, quest_id, player)
+    local level, needed = modules.lib.GetEffectiveQuestLevel(quest_id, player)
+    if needed and needed > player then return 3, "QuestTakeHigh" end
+    local green = GetQuestGreenRange and GetQuestGreenRange("player") or GREEN
+    if level and level > 0 and level < player - green then return 2, "QuestTakeLow" end
+    return 1, "QuestTake"
+end
+
+local function read_npc_quest_kind(modules, quests)
+    local available, refused = modules.available.__availableQuests or {}, modules.available.__unavailableQuestsDeterminedByTalking or {}
+    local player, best, kind = UnitLevel("player") or 1, nil, nil
+    for quest_id in pairs(quests) do
+        if available[quest_id] and not refused[quest_id] then
+            local rank, named = read_quest_rank(modules, quest_id, player)
+            if not best or rank < best then best, kind = rank, named end
+        end
+    end
+    return kind
+end
+
 local function write_questie_places(found)
     local modules = read_questie_modules()
     if not modules then return end
-    for npc_id in pairs(modules.available.__availableQuestsByNpc or {}) do write_questie_npc(found, modules, npc_id, "QuestTake") end
+    for npc_id, quests in pairs(modules.available.__availableQuestsByNpc or {}) do
+        local kind = read_npc_quest_kind(modules, quests)
+        if kind then write_questie_npc(found, modules, npc_id, kind) end
+    end
     if check_layer("townsfolk") then write_questie_folk(found, modules) end
 end
 
