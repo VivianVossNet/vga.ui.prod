@@ -33,7 +33,7 @@ local function read_unit_item(unit, kind, facing)
     local spot = map and C_Map.GetPlayerMapPosition(map, unit)
     if not spot then return nil end
     local across, down = vga.read_map_world_point(map, spot.x, spot.y, plane)
-    return across and { kind = kind, across = across, down = down, facing = facing, card = { UnitName(unit) } }
+    return across and { kind = kind, unit = unit, across = across, down = down, facing = facing, card = { UnitName(unit) } }
 end
 
 local function read_me()

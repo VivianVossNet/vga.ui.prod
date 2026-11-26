@@ -1,13 +1,13 @@
 -- Copyright 2026 Vivian Voss. Code by Vivian Voss. Licensed under the BSD-3-Clause.
 -- SPDX-License-Identifier: BSD-3-Clause
--- Scope: the minimap's signs, all our own (K0922), as the accepted draft draws them (manual/view/vga-minimap-signs.html B, K0923, K0924): the game's own signs put away by Minimap:SetIconScale(0), which takes the player's arrow too (K0921); over the visible map LibVGA's layer of map signs (library.create_map_sign_surface, K0925) fed with the world map's layers (vga.update_map_layers) on the plane of the continent the player stands on, read twice a second, every sign placed anew at every frame so it sits fast on the map and moves with it, never jerking behind it (K0929); each sign placed by its offset from the player in yards - its plane position less the player's, times the plane's size by C_Map.GetMapWorldSize - against C_Minimap.GetViewRadius, which the minimap's half side stands for (K0926), and shown only while it lies wholly inside the visible map (K0915); the player's arrow, the orange sign, 30 draft pixels - a third smaller than the draft's 40 at the owner's word (K0927), then a little larger so it hides the game's arrow beneath it while a search shows the game's signs (K0957) -, held in the minimap's middle and turned with the facing at every frame, lying exactly over the game's own beneath it - the setting »Positionspfeil« of K0945 is gone, having no effect left (K0958, K0959, K0960); the party 16.5 - a quarter smaller than 22 (K0962) -, the quests' »!« and »?« 22.5 - a quarter larger at the owner's word (K0931) -, every other sign 18. Our filters (vga.ui/Mapfilters.lua) govern which of our signs are shown, and whether the game's own signs are shown too - while a search or a tracking we do not draw is on (K0951, K0952). Indoors is not measured yet.
+-- Scope: the minimap's signs, all our own (K0922), as the accepted draft draws them (manual/view/vga-minimap-signs.html B, K0923, K0924): the game's own signs put away by Minimap:SetIconScale(0), which takes the player's arrow too (K0921); over the visible map LibVGA's layer of map signs (library.create_map_sign_surface, K0925) fed with the world map's layers (vga.update_map_layers) on the plane of the continent the player stands on, read twice a second, every sign placed anew at every frame so it sits fast on the map and moves with it, never jerking behind it (K0929); each sign placed by its offset from the player in yards - its plane position less the player's, times the plane's size by C_Map.GetMapWorldSize - against C_Minimap.GetViewRadius, which the minimap's half side stands for (K0926), and shown only while it lies wholly inside the visible map (K0915); the player's arrow, the orange sign, 30 draft pixels - a third smaller than the draft's 40 at the owner's word (K0927), then a little larger so it hides the game's arrow beneath it while a search shows the game's signs (K0957) -, held in the minimap's middle and turned with the facing at every frame, lying exactly over the game's own beneath it - the setting »Positionspfeil« of K0945 is gone, having no effect left (K0958, K0959, K0960); the party 19 - a quarter smaller than 22, then a little larger again (K0962, K0964) -, each member's place read anew at every frame so it never trails (K0965), the quests' »!« and »?« 22.5 - a quarter larger at the owner's word (K0931) -, every other sign 18. Our filters (vga.ui/Mapfilters.lua) govern which of our signs are shown, and whether the game's own signs are shown too - while a search or a tracking we do not draw is on (K0951, K0952). Indoors is not measured yet.
 
--- {K0962} {K0960} {K0959} {K0958} {K0957} {K0951} {K0949} {K0945} {K0931} {K0929} {K0927} {K0926} {K0925} {K0924} {K0923} {K0922}
+-- {K0965} {K0964} {K0962} {K0960} {K0959} {K0958} {K0957} {K0951} {K0949} {K0945} {K0931} {K0929} {K0927} {K0926} {K0925} {K0924} {K0923} {K0922}
 
 local _, vga = ...
 local library = LibVGA
 local EVERY = 0.5
-local SIZES = { me = 30, party = 16.5 }
+local SIZES = { me = 30, party = 19 }
 local QUESTS = { QuestTake = true, QuestTakeLow = true, QuestTurn = true, QuestOpen = true }
 local QUEST = 22.5
 local REST = 18
@@ -54,6 +54,18 @@ local function update_arrow(player)
     arrow.picture:SetRotation(GetPlayerFacing and GetPlayerFacing() or 0)
 end
 
+local function update_party(player)
+    for _, mark in ipairs((surface.mark_layers or {}).party or {}) do
+        local unit = mark.item and mark.item.unit
+        local map = unit and C_Map.GetBestMapForUnit(unit)
+        local spot = map and C_Map.GetPlayerMapPosition(map, unit)
+        if spot then
+            local across, down = vga.read_map_world_point(map, spot.x, spot.y, player.plane)
+            if across then mark.item.across, mark.item.down = across, down end
+        end
+    end
+end
+
 local function update_signs(read_layers)
     if Minimap.SetIconScale then Minimap:SetIconScale(vga.read_game_signs_shown() and 1 or 0) end
     local player = read_player()
@@ -63,6 +75,7 @@ local function update_signs(read_layers)
     if read_layers then vga.update_map_filters_kept() end
     if read_layers then return vga.update_map_layers(surface, "zone", { id = player.map, parent = player.plane.id }, player.plane) end
     update_arrow(player)
+    update_party(player)
     library.update_map_marks_placed(surface)
 end
 
