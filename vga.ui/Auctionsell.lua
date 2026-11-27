@@ -1,14 +1,15 @@
 -- Copyright 2026 Vivian Voss. Code by Vivian Voss. Licensed under the BSD-3-Clause.
 -- SPDX-License-Identifier: BSD-3-Clause
--- Scope: vga.auctions' page Verkaufen as the accepted draft draws it (manual/view/vga-auctions.html »Seite Verkaufen«, K0603, K0617, K0619, K0632), every part in LibVGA's groups: at the left the bags' items the auction house takes in LibVGA's list (K0631) - picture, name in its quality's colour with the count and the required level beneath it (K0647), the market value at the right -, the chosen one ringed in gold on a faint gold ground; at the right the figures in LibVGA's figure strip (library.create_figure_strip, K0869) - market value, lowest now, the seven days as a chip, the quantity on offer -, the graph in its group with its legend - median, seven-day mean, lowest to median, on offer - and the range 7, 30 or 90 days, the item's current offers in LibVGA's list under their heads, each sorting them (K0655) - the rating against the market as a chip, the quantity, the price each, the player's own marked -, the posting row - the price each in LibVGA's money field, the quantity in its stepper, 12, 24 or 48 hours, the gold »Einstellen« -, the player's average cost and the result after the cut as a chip, and the note how the price is proposed and what the deposit is: one copper under the cheapest offer neither the player's own nor a bargain. Offers asked for as the game's own window asks (K0629), anew on every visit (K0625). The bags read for it are every bag the player carries, the reagent bag too, and the profession bags in the bag slots (K0738). The offers' list is LibVGA's item table (K0862); the bags' list stays LibVGA's plain list, having no sortable heads.
+-- Scope: vga.auctions' page Verkaufen as the accepted draft draws it (manual/view/vga-auctions.html »Seite Verkaufen«, K0603, K0617, K0619, K0632), every part in LibVGA's groups: at the left the bags' items the auction house takes in LibVGA's list (K0631) - picture, name in its quality's colour with the count and the required level beneath it (K0647), the market value at the right -, the chosen one ringed in gold on a faint gold ground; at the right the figures in LibVGA's figure strip (library.create_figure_strip, K0869) - market value, lowest now, the seven days as a chip, the quantity on offer -, the graph in its group with its legend - median, seven-day mean, lowest to median, on offer - and the range 7, 30 or 90 days, the item's current offers in LibVGA's list under their heads, each sorting them (K0655) - the rating against the market as a chip, the quantity, the price each, the player's own marked -, the posting row - the price each in LibVGA's money field, the quantity in its stepper, the game's three durations in the hours its own texts name - 12, 24 or 48 only where it names none (K0973) -, the gold »Einstellen« -, the player's average cost and the result after the cut as a chip, and the note how the price is proposed and what the deposit is: one copper under the cheapest offer neither the player's own nor a bargain. Offers asked for as the game's own window asks (K0629), anew on every visit (K0625). The bags read for it are every bag the player carries, the reagent bag too, and the profession bags in the bag slots (K0738). Each bag item stands as LibVGA's item row in the bags' cell, a fixed item of the bags with their two blue corners and at the end of the list, never chosen first, as at the merchant (item.pinned, K0975). The offers' list is LibVGA's item table (K0862); the bags' list stays LibVGA's plain list, having no sortable heads.
 
--- {K0869} {K0862} {K0802} {K0800} {K0798} {K0789} {K0785} {K0617} {K0619} {K0625} {K0628} {K0693} {K0629} {K0631} {K0632} {K0647} {K0648} {K0655} {K0738}
+-- {K0975} {K0973} {K0869} {K0862} {K0802} {K0800} {K0798} {K0789} {K0785} {K0617} {K0619} {K0625} {K0628} {K0693} {K0629} {K0631} {K0632} {K0647} {K0648} {K0655} {K0738}
 
 local _, vga = ...
 local library = LibVGA
 local colours = library.colours
 local CUT = 0.05
 local DURATIONS = { 12, 24, 48 }
+local DURATION_NAMES = { "AUCTION_DURATION_ONE", "AUCTION_DURATION_TWO", "AUCTION_DURATION_THREE" }
 local RANGES = { 7, 30, 90 }
 local BAND = { 0.894, 0.718, 0.314, 0.16 }
 local BARS = { 0.227, 0.243, 0.275, 1 }
@@ -22,6 +23,11 @@ local sell_page
 local update_offers
 local render_search
 
+local function check_before(one, other)
+    if one.pinned ~= other.pinned then return other.pinned end
+    return one.place < other.place
+end
+
 local function read_bag_items()
     local found, order = {}, {}
     for bag = 0, vga.read_final_bag() do
@@ -31,13 +37,14 @@ local function read_bag_items()
             if location and C_AuctionHouse.IsSellItemValid(location, false) then
                 local entry = found[content.itemID]
                 if not entry then
-                    entry = { item = content.itemID, count = 0, location = location, icon = content.iconFileID, quality = content.quality, bag = bag, slot = slot }
+                    entry = { item = content.itemID, count = 0, location = location, icon = content.iconFileID, quality = content.quality, bag = bag, slot = slot, pinned = vga.check_bag_pinned(content), place = #order + 1 }
                     found[content.itemID], order[#order + 1] = entry, entry
                 end
                 entry.count = entry.count + (content.stackCount or 1)
             end
         end
     end
+    table.sort(order, check_before)
     return order
 end
 
@@ -158,22 +165,13 @@ end
 
 local function update_entry_line(line, entry)
     local page = sell_page
-    local size = library.read_draft_size(26)
-    local chosen = page.chosen == entry
-    line.icon:SetTexture(entry.icon)
-    library.update_unusable(line.unusable, entry.item)
-    line.icon:SetSize(size, size)
-    line.name:SetFontObject(library.read_font("body"))
-    line.name:SetText(read_name(entry.item))
-    local quality = library.read_quality_colour(entry.quality)
-    line.name:SetTextColor(quality[1], quality[2], quality[3], 1)
-    line.name:SetWidth(page.list_width * 0.55)
-    line.count:SetFontObject(library.read_font("figures_small"))
+    local chosen, pad = page.chosen == entry, library.read_draft_size(12)
     local level = vga.read_item_level(entry.item)
-    line.count:SetText(string.format(library.texts.pieces, entry.count) .. ((level and level > 1) and (" · " .. library.texts.level .. " " .. vga.read_level_text(level)) or ""))
+    local sub = string.format(library.texts.pieces, entry.count) .. ((level and level > 1) and (" · " .. library.texts.level .. " " .. vga.read_level_text(level)) or "")
     library.update_money(line.money, math.floor((vga.read_market(entry.item) or 0) + 0.5))
-    library.update_grid(line.grid, { { line.icon, { stack = { line.name, line.count } }, nil, line.money } }, page.list_width)
-    library.update_item_hover(line, line.icon, line.name, size)
+    line.money:ClearAllPoints()
+    line.money:SetPoint("RIGHT", line, "RIGHT", -pad, 0)
+    library.update_item_row(line, { icon = entry.icon, id = entry.item, name = read_name(entry.item), quality = entry.quality, sub = sub, pinned = entry.pinned }, 0, page.list_width * 0.55 + library.read_draft_size(36))
     library.update_item_row_chosen(line, chosen)
     line.rule:SetShown(line.index > 1 and not chosen)
 end
@@ -205,11 +203,9 @@ local function render_entry_tip(line)
 end
 
 local function create_entry_line(parent, index)
-    local line = library.create_item_row(parent, { chosen = true, on_click = render_chosen, on_enter = render_entry_tip, on_leave = vga.update_item_tip_hidden })
+    local line = library.create_item_row(parent, { chosen = true, cell = true, on_click = render_chosen, on_enter = render_entry_tip, on_leave = vga.update_item_tip_hidden })
     line.index = index
-    line.count = library.create_text(line, "figures_small", colours.quiet)
     line.money = library.create_money(line, colours.ink)
-    line.grid = library.create_grid(line, { columns = { 26, "auto", "rest", "auto" }, gaps = { 10, 0, 0 }, padding = { 0, 12, 0, 12 }, row = 40, x = { "left", "left", "left", "right" } })
     return line
 end
 
@@ -377,6 +373,11 @@ local function create_offers(page, texts)
     page.offers, page.offer_heads, page.offers_none = page.offers_group.list, page.offers_group.heads, page.offers_group.empty
 end
 
+local function read_duration_hours(index)
+    local named = _G[DURATION_NAMES[index]]
+    return tonumber(type(named) == "string" and named:match("%d+") or nil) or DURATIONS[index]
+end
+
 local function create_post_row(page, texts)
     page.post_group = library.create_group(page.detail)
     page.price_label = library.create_text(page.post_group, "small", colours.quiet)
@@ -384,7 +385,7 @@ local function create_post_row(page, texts)
     page.price = library.create_money_field(page.post_group, function() if page.chosen then update_result(page, page.chosen) end end)
     page.stepper = library.create_stepper(page.post_group, render_step)
     local labels = {}
-    for index, hours in ipairs(DURATIONS) do labels[index] = string.format(texts.hours_count, hours) end
+    for index in ipairs(DURATIONS) do labels[index] = string.format(texts.hours_count, read_duration_hours(index)) end
     page.duration = 2
     page.durations = library.create_choice(page.post_group, labels, 2, function(index) page.duration = index if page.chosen then update_note(page, page.chosen) end end)
     page.post = library.create_button(page.post_group, texts.post, "gold", render_post)
