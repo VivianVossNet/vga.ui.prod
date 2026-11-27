@@ -1,8 +1,8 @@
 -- Copyright 2026 Vivian Voss. Code by Vivian Voss. Licensed under the BSD-3-Clause.
 -- SPDX-License-Identifier: BSD-3-Clause
--- Scope: vga.ui's quests, written into the talk with the figure (vga.ui/Talk.lua, K0840), for the three moments of a quest - taking it, its progress and handing it in (K0834): the quest's words in the figure's bubbles; the quest's card on a group beneath the talk's line, where the answers stand, as wide as they, headed »Neue Quest«, »Questfortschritt« or »Questabgabe« (K0859) - its title with the quest's vaulted sign as the talk's answers carry it, the gold »!« and after the title the green chip »Verfügbar« for a quest offered, the gold chip »Abgeben« after the title of one that can be handed in (K0880), the gold »?« for one to hand in, the silver »?« for one still under way (K0854), its objectives and its rewards each under LibVGA's section, its small heading in capitals (library.create_section, K0873), the rewards as item rows with their picture, quality, kind or count, their tooltip only over picture and name (K0786), where there is a choice each choice an item row, the chosen one marked only by LibVGA's active row (K0830) - chosen only when the quest is handed in; offered, the rewards are only shown, headed »Angebotene Belohnungen« where one is to be chosen (K0913), taking no click, their tooltips kept, each veiled red where the player cannot use it (K0911) -, the experience as a gold chip flush right, the money left of it with a gap (K0836, K0855) -; a quest handed in without items shows no card, only its money and experience, bare, flush right beneath the line (K0843, K0855, K0859); the foot carries Ablehnen and the gold Annehmen, Schließen and Weiter (only once it can be handed in), Zurück and Abschließen, Abschließen off until a reward is chosen where the game offers a choice (K0876); the gold answer stands in the course as the player's bubble before the game answers it.
+-- Scope: vga.ui's quests, written into the talk with the figure (vga.ui/Talk.lua, K0840), for the three moments of a quest - taking it, its progress and handing it in (K0834): the quest's words in the figure's bubbles; the quest's card on a group beneath the talk's line, where the answers stand, as wide as they, headed »Neue Quest«, »Questfortschritt« or »Questabgabe« (K0859) - its title with the quest's vaulted sign as the talk's answers carry it, the gold »!« and after the title the green chip »Verfügbar« for a quest offered, the gold chip »Abgeben« after the title of one that can be handed in (K0880), the gold »?« for one to hand in, the silver »?« for one still under way (K0854), its objectives and its rewards each under LibVGA's section, its small heading in capitals (library.create_section, K0873), the rewards as item rows with their picture, quality, kind or count, their tooltip only over picture and name (K0786), where there is a choice each choice an item row, the chosen one marked only by LibVGA's active row (K0830) - chosen only when the quest is handed in; offered, the rewards are only shown, headed »Angebotene Belohnungen« where one is to be chosen (K0913), taking no click, their tooltips kept, each veiled red where the player cannot use it (K0911) -, the experience as a gold chip flush right, the money left of it with a gap (K0836, K0855) -; a quest handed in without items shows no card, only its money and experience, bare, flush right beneath the line (K0843, K0855, K0859); the foot carries Ablehnen and the gold Annehmen, Schließen and Weiter (only once it can be handed in), Zurück and Abschließen, Abschließen off until a reward is chosen where the game offers a choice (K0876); the gold answer stands in the course as the player's bubble before the game answers it. With quests without dialogue on, each moment asks vga.ui/Questauto.lua first and is drawn only where a choice is the player's (K0981).
 
--- {K0913} {K0911} {K0880} {K0876} {K0873} {K0860} {K0859} {K0857} {K0855} {K0854} {K0843} {K0840} {K0836} {K0834} {K0830} {K0786}
+-- {K0981} {K0913} {K0911} {K0880} {K0876} {K0873} {K0860} {K0859} {K0857} {K0855} {K0854} {K0843} {K0840} {K0836} {K0834} {K0830} {K0786}
 
 local _, vga = ...
 local library = LibVGA
@@ -217,14 +217,17 @@ local function render_mode(mode)
 end
 
 local function render_detail()
+    if vga.update_quest_auto("detail") then return end
     render_mode("detail")
 end
 
 local function render_progress()
+    if vga.update_quest_auto("progress") then return end
     render_mode("progress")
 end
 
 local function render_complete()
+    if vga.update_quest_auto("complete") then return end
     render_mode("complete")
 end
 

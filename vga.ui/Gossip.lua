@@ -1,8 +1,8 @@
 -- Copyright 2026 Vivian Voss. Code by Vivian Voss. Licensed under the BSD-3-Clause.
 -- SPDX-License-Identifier: BSD-3-Clause
--- Scope: vga.ui's gossip, written into the talk with the figure (vga.ui/Talk.lua, K0840): the figure's words in its bubbles; its offers as the answers beneath - the quests first, to take with the vaulted gold »!«, to hand in with a vaulted gold »?«, still under way with the same »?« in silver, as the game shows it grey (K0852); every sign LibVGA's (library.read_sign_picture, K0857); then the services (K0833), each with its vaulted sign (K0853) - the merchant a stack of coins, the trainer an open book, the flight master a gryphon, the inn a hearthstone with its blue swirl, the bank a temple, in gold, since gold is what can be used now (K0854) -, every sign made by tools/questmark/talksigns.py from the owner's pictures by Grok, any other answer a speech bubble (K0855); a merchant who repairs with the vaulted gold anvil after its words, »Reparatur« its tooltip (K0855) - known from the merchant's own window at an earlier visit, else from Questie's repairers where it is installed (K0848) -; a chosen answer stands in the course as the player's gold bubble before the game answers it, a quest as »Sprechen wir über „…“.« in the player's language (K0877); every answer reaches the game after the talk's reading time (vga.ui/Talk.lua, K0847, K0841); »Auf Wiedersehen« in the foot. The figure's portrait is drawn again whenever the game has it ready (K0839). A figure that offers only quests greets through the game's quest window instead of its gossip - an apothecary, say -: its greeting is heard as well and written into the same talk, its words in the figure's bubble, its quests as the answers with the same signs, the offered first (QUEST_GREETING, K0879).
+-- Scope: vga.ui's gossip, written into the talk with the figure (vga.ui/Talk.lua, K0840): the figure's words in its bubbles; its offers as the answers beneath - the quests first, to take with the vaulted gold »!«, to hand in with a vaulted gold »?«, still under way with the same »?« in silver, as the game shows it grey (K0852); every sign LibVGA's (library.read_sign_picture, K0857); then the services (K0833), each with its vaulted sign (K0853) - the merchant a stack of coins, the trainer an open book, the flight master a gryphon, the inn a hearthstone with its blue swirl, the bank a temple, in gold, since gold is what can be used now (K0854) -, every sign made by tools/questmark/talksigns.py from the owner's pictures by Grok, any other answer a speech bubble (K0855); a merchant who repairs with the vaulted gold anvil after its words, »Reparatur« its tooltip (K0855) - known from the merchant's own window at an earlier visit, else from Questie's repairers where it is installed (K0848) -; a chosen answer stands in the course as the player's gold bubble before the game answers it, a quest as »Sprechen wir über „…“.« in the player's language (K0877); every answer reaches the game after the talk's reading time (vga.ui/Talk.lua, K0847, K0841); »Auf Wiedersehen« in the foot. The figure's portrait is drawn again whenever the game has it ready (K0839). A figure that offers only quests greets through the game's quest window instead of its gossip - an apothecary, say -: its greeting is heard as well and written into the same talk, its words in the figure's bubble, its quests as the answers with the same signs, the offered first (QUEST_GREETING, K0879). With quests without dialogue on, both ask vga.ui/Questauto.lua first and draw the talk only where it leaves a choice to the player (K0981).
 
--- {K0879} {K0877} {K0857} {K0855} {K0854} {K0853} {K0852} {K0848} {K0847} {K0841} {K0840} {K0839} {K0833}
+-- {K0981} {K0879} {K0877} {K0857} {K0855} {K0854} {K0853} {K0852} {K0848} {K0847} {K0841} {K0840} {K0839} {K0833}
 
 local _, vga = ...
 local library = LibVGA
@@ -85,12 +85,14 @@ local function read_greeting_answers()
 end
 
 local function update_greeting()
+    if vga.update_quest_auto_greeting() then return end
     vga.render_talk_opened({ answers = read_greeting_answers() })
     vga.write_talk_figure(GetGreetingText and GetGreetingText() or "")
     vga.update_talk()
 end
 
 local function update_opened()
+    if vga.update_quest_auto_gossip() then return end
     vga.render_talk_opened({ answers = read_answers() })
     vga.write_talk_figure(C_GossipInfo.GetText and C_GossipInfo.GetText() or "")
     vga.update_talk()

@@ -1,8 +1,8 @@
 -- Copyright 2026 Vivian Voss. Code by Vivian Voss. Licensed under the BSD-3-Clause.
 -- SPDX-License-Identifier: BSD-3-Clause
--- Scope: A compass rose in the minimap, simply white with thin lines: only north, east, south and west, each a very short tick at the visible map's edge and its letter just inside it, in the reader's language; turning with the player when the game turns the minimap.
+-- Scope: A compass rose in the minimap, simply white with thin lines: only north, east, south and west, each a very short tick at the visible map's edge and its letter just inside it, in the reader's language; turning with the player when the game turns the minimap. Its turn and its reach to the map's edge are lent to the rim triangle, so it follows the compass (vga.read_compass_turn, vga.read_compass_reach, K0982).
 
--- {K0439} {K0441}
+-- {K0982} {K0439} {K0441}
 
 local _, vga = ...
 local library = LibVGA
@@ -53,6 +53,9 @@ local function update_rose_safely(_, elapsed)
     rose.since = 0
     library.update_safely("map rose", update_rose)
 end
+
+vga.read_compass_turn = read_turn
+vga.read_compass_reach = read_reach
 
 function vga.create_map_rose(view)
     rose = CreateFrame("Frame", nil, view)
