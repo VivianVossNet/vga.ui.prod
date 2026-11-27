@@ -1,8 +1,8 @@
 -- Copyright 2026 Vivian Voss. Code by Vivian Voss. Licensed under the BSD-3-Clause.
 -- SPDX-License-Identifier: BSD-3-Clause
--- Scope: The navigation arrow centred between the player frame and the target frame: three gold chevrons, the foremost strongest and each behind it fainter, laid on the ground as if they lay on the way, each tilted back on its own, with room between them, the farther a little smaller - turned towards the nearest open quest's target as the player sees it - the quest set as the game's tracked one, so the game's own navigation tells where its target stands on the screen, and the arrow points from the screen's middle there, turning with the camera however it is turned, behind the camera pointing back; the addon never sets a map marker of its own, markers are the player's alone (K0749) - one an earlier version left, remembered in LibVGASettings.navigation_waypoint, is cleared on entering the world -; the game's report is read only half a second after the target changes, when it has caught up (K0746); while a marker the player set stands, it is the arrow's target instead of any quest, tracked by the game, every quest's arrow in the tracker grey, until a click on one of them takes it off the map and makes that quest the target (K0748); only where the game gives no place on the screen, by the character's facing - and tilted back (K0545) -, its distance beneath it; shown whenever the tracker has such a target, in a fight too, gone without one.
+-- Scope: The navigation arrow centred between the player frame and the target frame: three gold chevrons, the foremost strongest and each behind it fainter, laid on the ground as if they lay on the way, each tilted back on its own, with room between them, the farther a little smaller - turned towards the nearest open quest's target as the player sees it - the quest set as the game's tracked one, so the game's own navigation tells where its target stands on the screen, and the arrow points from the screen's middle there, turning with the camera however it is turned, behind the camera pointing back; the addon never sets a map marker of its own, markers are the player's alone (K0749) - one an earlier version left, remembered in LibVGASettings.navigation_waypoint, is cleared on entering the world -; the game's report is read only half a second after the target changes, when it has caught up (K0746); while a marker the player set stands, it is the arrow's target instead of any quest, tracked by the game, every quest's arrow in the tracker grey, until a click on one of them takes it off the map and makes that quest the target (K0748); only where the game gives no place on the screen, by the character's facing - and tilted back (K0545) -, its distance beneath it; shown whenever the tracker has such a target, in a fight too, gone without one. While the player is dead or a ghost and the game names the corpse's place on the zone, the arrow points to the corpse instead, by the character's facing, its distance beneath it, every quest and marker waiting until the player lives again (K0978).
 
--- {K0789} {K0370} {K0372} {K0398} {K0399} {K0545} {K0728} {K0746} {K0748} {K0749}
+-- {K0978} {K0789} {K0370} {K0372} {K0398} {K0399} {K0545} {K0728} {K0746} {K0748} {K0749}
 
 local _, vga = ...
 local library = LibVGA
@@ -183,10 +183,28 @@ function vga.read_screen_heading(aim)
     return atan2(middle_x - marker_x, marker_y - middle_y)
 end
 
+local function read_corpse_aim()
+    if not (UnitIsDeadOrGhost and UnitIsDeadOrGhost("player")) then return nil end
+    local map = C_Map.GetBestMapForUnit("player")
+    local spot = map and C_DeathInfo and C_DeathInfo.GetCorpseMapPosition and C_DeathInfo.GetCorpseMapPosition(map)
+    if not spot then return nil end
+    local point = { spot.x, spot.y }
+    return { corpse = true, point = point, distance = read_marker_distance(map, point) }
+end
+
+function vga.read_navigation_aim()
+    return read_corpse_aim() or vga.quest_aim
+end
+
+local function read_navigation_heading(aim)
+    if aim.corpse then return vga.read_heading(aim.point) end
+    return vga.read_screen_heading(aim) or vga.read_heading(aim.point)
+end
+
 local function update_navigation()
-    local aim = vga.quest_aim
-    if not (aim and aim.point) then update_way_forgotten() end
-    local heading = aim and aim.point and (vga.read_screen_heading(aim) or vga.read_heading(aim.point))
+    local aim = vga.read_navigation_aim()
+    if not (aim and aim.point) or aim.corpse then update_way_forgotten() end
+    local heading = aim and aim.point and read_navigation_heading(aim)
     navigation:SetShown(heading ~= nil and update_place())
     if not heading then return end
     update_chevrons(heading)

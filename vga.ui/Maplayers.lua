@@ -1,8 +1,8 @@
 -- Copyright 2026 Vivian Voss. Code by Vivian Voss. Licensed under the BSD-3-Clause.
 -- SPDX-License-Identifier: BSD-3-Clause
--- Scope: the world map's layers fed by what the game gives (K0805), drawn as LibVGA's map marks in the owner's signs (K0813, K0815), on the world map or, for the minimap, on the plane of the continent the player stands on (K0925); a figure's place kept as its zone and position there, turned into the plane's only when read (K0925); a quest giver from Questie marked only for a quest Questie still holds available and the figure did not refuse - its list by figure keeps quests it has let go -, its sign by its best quest; Questie's bankers, battle masters, stable masters - a hunter's too - and its mailboxes, objects not figures, by the player's faction, as our own signs (K0957): »QuestTake« in range, »QuestTakeLow« one the game shows grey, »QuestTakeHigh« one above the player's level (K0946): the player's sign turned by the facing; the party in their class colours; the quests of the zone in view - to hand in, in progress, to take where the game names a start -; the flight masters of the continent, learnt or not, the hostile ones left out, the faction in the card; own pins in orange, set by Ctrl and a click, taken off by a right click, the game's own waypoint beside them; townsfolk - vendors, repairers, barbers, the auction house, class and profession trainers - learnt by vga.ui itself whenever the player speaks with one, kept with the player's place in the account's saved variables (K0814). Each layer obeys its switch; the hatching covers everything outside the zone in view (K0812). Where Questie is installed and ready, its quest givers - the quests it holds available, by their figures' places in the zone in view - and its townsfolk - repairers, auctioneers, barbers, innkeepers, the player's class trainers, profession trainers and its vendors - are read at runtime, guarded, nothing copied, kept five seconds per map (K0814, K0822); every place at half the size of the quests in the quest view (library.read_map_mark_scale, K0822). VGA's own database comes once it is released. A quest under way from the game's quest log gets no sign at all: its point is the middle of its area, never a place to hand it in (K0967, K0968).
+-- Scope: the world map's layers fed by what the game gives (K0805), drawn as LibVGA's map marks in the owner's signs (K0813, K0815), on the world map or, for the minimap, on the plane of the continent the player stands on (K0925); a figure's place kept as its zone and position there, turned into the plane's only when read (K0925); a quest giver from Questie marked only for a quest Questie still holds available and the figure did not refuse - its list by figure keeps quests it has let go -, its sign by its best quest; Questie's bankers, battle masters, stable masters - a hunter's too - and its mailboxes, objects not figures, by the player's faction, as our own signs (K0957): »QuestTake« in range, »QuestTakeLow« one the game shows grey, »QuestTakeHigh« one above the player's level (K0946): the player's sign turned by the facing; the party in their class colours; the player's corpse, where the game names its place on the zone in view, as the owner's tombstone in dark grey, its cross glowing gold (K0977, K0978); the quests of the zone in view - to hand in, in progress, to take where the game names a start -; the flight masters of the continent, learnt or not, the hostile ones left out, the faction in the card; own pins in orange, set by Ctrl and a click, taken off by a right click, the game's own waypoint beside them; townsfolk - vendors, repairers, barbers, the auction house, class and profession trainers - learnt by vga.ui itself whenever the player speaks with one, kept with the player's place in the account's saved variables (K0814). Each layer obeys its switch; the hatching covers everything outside the zone in view (K0812). Where Questie is installed and ready, its quest givers - the quests it holds available, by their figures' places in the zone in view - and its townsfolk - repairers, auctioneers, barbers, innkeepers, the player's class trainers, profession trainers and its vendors - are read at runtime, guarded, nothing copied, kept five seconds per map (K0814, K0822); every place at half the size of the quests in the quest view (library.read_map_mark_scale, K0822). VGA's own database comes once it is released. A quest under way from the game's quest log gets no sign at all: its point is the middle of its area, never a place to hand it in (K0967, K0968).
 
--- {K0968} {K0957} {K0946} {K0925} {K0822} {K0815} {K0814} {K0813} {K0812} {K0805}
+-- {K0977} {K0968} {K0957} {K0946} {K0925} {K0822} {K0815} {K0814} {K0813} {K0812} {K0805}
 
 local _, vga = ...
 local library = LibVGA
@@ -50,6 +50,14 @@ local function read_party()
         if item then items[#items + 1] = item end
     end
     return items
+end
+
+local function read_corpse(map)
+    local spot = map and C_DeathInfo and C_DeathInfo.GetCorpseMapPosition and C_DeathInfo.GetCorpseMapPosition(map)
+    if not spot then return {} end
+    local across, down = vga.read_map_world_point(map, spot.x, spot.y, plane)
+    if not across then return {} end
+    return { { kind = "Corpse", across = across, down = down, card = { texts.map_corpse } } }
 end
 
 local function read_quest_kind(found)
@@ -238,6 +246,7 @@ function vga.update_map_layers(canvas, tier, zone, given)
     local continent = zone and zone.parent
     library.update_map_marks(canvas, "me", read_me(), size)
     library.update_map_marks(canvas, "party", read_party(), size)
+    library.update_map_marks(canvas, "corpse", tier == "zone" and read_corpse(map) or {}, size)
     library.update_map_marks(canvas, "quests", tier == "zone" and read_quests(map) or {}, size)
     library.update_map_marks(canvas, "flight", tier ~= "world" and read_flight(continent) or {}, size)
     library.update_map_marks(canvas, "pins", read_pins(), size)
