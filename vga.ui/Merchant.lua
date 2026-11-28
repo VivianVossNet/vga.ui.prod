@@ -221,7 +221,9 @@ function vga.update_merchant()
 end
 
 local function render_repair()
+    local cost = GetRepairAllCost and GetRepairAllCost() or 0
     if RepairAllItems then RepairAllItems() end
+    if vga.render_repaired then vga.render_repaired(cost) end
     vga.update_merchant()
 end
 

@@ -38,7 +38,7 @@ local function write_profile(name)
     LibVGAAccount.profiles[name] = read_layout(LibVGASettings)
     LibVGAAccount.last_profile = name
     library.render_settings_anew()
-    library.render_toast({ head = library.texts.settings, line = string.format(library.texts.profile_saved, name) })
+    library.render_toast({ head = library.texts.settings, line = string.format(library.texts.profile_saved, name), done = true })
 end
 
 local function update_profile(name)
@@ -52,7 +52,7 @@ local function update_profile(name)
     library.update_places()
     library.update_elements()
     library.render_settings_anew()
-    library.render_toast({ head = library.texts.settings, line = string.format(library.texts.profile_loaded, name) })
+    library.render_toast({ head = library.texts.settings, line = string.format(library.texts.profile_loaded, name), done = true })
 end
 
 local function delete_profile(name)

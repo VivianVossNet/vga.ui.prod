@@ -35,7 +35,7 @@ end
 
 local function update_stopped()
     if tidy.ticker then tidy.ticker:Cancel() end
-    if tidy.moves and #tidy.moves == 0 then library.render_toast({ head = library.texts.bags, line = library.texts.bags_tidied, picture = library.media .. "TabBags" }) end
+    if tidy.moves and #tidy.moves == 0 then library.render_toast({ head = library.texts.bags, line = library.texts.bags_tidied, picture = library.media .. "TabBags", done = true }) end
     tidy.ticker, tidy.moves = nil, nil
 end
 

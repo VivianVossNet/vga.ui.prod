@@ -1,8 +1,8 @@
 -- Copyright 2026 Vivian Voss. Code by Vivian Voss. Licensed under the BSD-3-Clause.
 -- SPDX-License-Identifier: BSD-3-Clause
--- Scope: The player's buffs as the accepted draft draws .buffs and .buff (manual/view/vga-probe.html): icons in a ring with gently rounded corners like the bag slots' - green for a helpful effect, red for a harmful one, white for a lasting search such as Find Minerals or Track Beasts, those following the buffs as a group of their own (K0618) -, the ring's full colour drawing back round the rim as the effect runs out, over a darkened ring of the same width and colour that always stays, driven by the game's own cooldown of the aura so it runs in a fight too, a lasting effect staying full (K0620), the time left small beneath each; from the player frame's left edge above it to the right, as many to a row as the frame's width holds, two rows at most; Blizzard's own buff frame hidden. Above the target frame the same, mirrored as the target frame is, from its right edge to the left: the target's buffs, then on a row of their own its debuffs, red (K0580) - the player's own first, each with the bags' shimmer of a light running round its rim and a star flashing at its corner, the others after them on the same row (K0615). Both are the game's own aura containers (K0584), which the game fills itself, in a fight too, where an addon may not read auras: each icon shows the game's tooltip of its aura under the mouse, and a click on one of the player's own buffs ends it; the time beneath each written short, one letter for its unit, in the smallest face, so neighbours do not run into each other (K0588); a dead target's auras are hidden, and so are the last target's once none is chosen (K0585, K0586); on a change of target the container is told to read its auras anew, which it does not do by itself, so no foe's auras pass to the next (K0591). Every row stands clear of the times beneath the row below it: the height of a time in its face, its drop of two pixels and four draft pixels more, both between a group's own rows (lineSpacing) and where a group begins a row of its own (groupLineSpacing, which the game's aura container keeps apart and which was nought, so a second row ran into the first row's times), and as much between the frame and the first row (K0694). Above the target of target its own small row of debuffs, after manual/view/vga-tot.html: the icons scaled as that frame is to the target frame, no time, only the ring running down, growing from its right edge, a child of that frame so it shows and hides with it (K0696). Besides, at the top of the screen, an area of its own for the player and one for the target, each showing exactly what its frame's shows, in the same look, but every aura, growing downwards: by default straight above its frame at the screen's top edge, a place of its own to be moved; the units' settings choose for each, apart, whether its auras stand at the frame, at the top or both, at the frame by default; at the frame at most two rows a group, as before, at the top up to forty (K0713); a top area made only once it is chosen, so at the frame alone each unit has one aura container, as before (K0718). An aura's stack count lies above the ring that runs down, on a layer of its own, so the ring never covers it (K0735). The game's own buff frame, hidden in play but shown by the game's edit mode, and its debuff frame, which shows the player's own debuffs, stand left of our map, eight draft pixels from it, the debuffs beneath the buffs, laid there again whenever the edit mode begins or ends and whenever the elements are laid, never in a fight (K0742). The own debuffs' shimmer is laid guarded, so its failure never keeps a debuff from showing - Forever's missing SetCurve hid every own debuff on foes until K0719 (K0719). When the tracking changes (MINIMAP_UPDATE_TRACKING), the player's auras are read anew, so a search switched off leaves the white group at once; that the game's container kept it without this is inferred from the owner's report, not measured (K0997).
+-- Scope: The player's buffs as the accepted draft draws .buffs and .buff (manual/view/vga-probe.html): icons in a ring with gently rounded corners like the bag slots' - green for a helpful effect, red for a harmful one, white for a lasting search such as Find Minerals or Track Beasts, those following the buffs as a group of their own (K0618) -, the ring's full colour drawing back round the rim as the effect runs out, over a darkened ring of the same width and colour that always stays, driven by the game's own cooldown of the aura so it runs in a fight too, a lasting effect staying full (K0620), the time left small beneath each; from the player frame's left edge above it to the right, as many to a row as the frame's width holds, two rows at most; Blizzard's own buff frame hidden. Above the target frame the same, mirrored as the target frame is, from its right edge to the left: the target's buffs, then on a row of their own its debuffs, red (K0580) - the player's own first, each with the bags' shimmer of a light running round its rim and a star flashing at its corner, the others after them on the same row (K0615). Both are the game's own aura containers (K0584), which the game fills itself, in a fight too, where an addon may not read auras: each icon shows the game's tooltip of its aura under the mouse, and a click on one of the player's own buffs ends it; the time beneath each written short, one letter for its unit, in the smallest face, so neighbours do not run into each other (K0588); a dead target's auras are hidden, and so are the last target's once none is chosen (K0585, K0586); on a change of target the container is told to read its auras anew, which it does not do by itself, so no foe's auras pass to the next (K0591). Every row stands clear of the times beneath the row below it: the height of a time in its face, its drop of two pixels and four draft pixels more, both between a group's own rows (lineSpacing) and where a group begins a row of its own (groupLineSpacing, which the game's aura container keeps apart and which was nought, so a second row ran into the first row's times), and as much between the frame and the first row (K0694). Above the target of target its own small row of debuffs, after manual/view/vga-tot.html: the icons scaled as that frame is to the target frame, no time, only the ring running down, growing from its right edge, a child of that frame so it shows and hides with it (K0696). Besides, at the top of the screen, an area of its own for the player and one for the target, each showing exactly what its frame's shows, in the same look, but every aura, growing downwards: by default straight above its frame at the screen's top edge, a place of its own to be moved; the units' settings choose for each, apart, whether its auras stand at the frame, at the top or both, at the frame by default; at the frame at most two rows a group, as before, at the top up to forty (K0713); a top area made only once it is chosen, so at the frame alone each unit has one aura container, as before (K0718). An aura's stack count lies above the ring that runs down, on a layer of its own, so the ring never covers it (K0735). The game's own buff frame, hidden in play but shown by the game's edit mode, stands left of our map, eight draft pixels from it, laid there again whenever the edit mode begins or ends and whenever the elements are laid, never in a fight (K0742). The player's own debuffs stand above the player frame on a row of their own beneath the buffs, red, and the weapon enchantments - poisons, oils, stones, registered with the game's container (AddItemEnchantment) - follow the buffs; the game's debuff frame, which showed them beside the map, is veiled, never hidden (K1023). The own debuffs' shimmer is laid guarded, so its failure never keeps a debuff from showing - Forever's missing SetCurve hid every own debuff on foes until K0719 (K0719). When the tracking changes (MINIMAP_UPDATE_TRACKING), the player's auras are read anew, so a search switched off leaves the white group at once; that the game's container kept it without this is inferred from the owner's report, not measured (K0997).
 
--- {K0997} {K0789} {K0781} {K0261} {K0355} {K0580} {K0584} {K0585} {K0586} {K0588} {K0591} {K0615} {K0618} {K0620} {K0694} {K0696} {K0713} {K0718} {K0719} {K0735} {K0742}
+-- {K1023} {K0997} {K0789} {K0781} {K0261} {K0355} {K0580} {K0584} {K0585} {K0586} {K0588} {K0591} {K0615} {K0618} {K0620} {K0694} {K0696} {K0713} {K0718} {K0719} {K0735} {K0742}
 
 local library = LibVGA
 local colours = library.colours
@@ -14,7 +14,7 @@ local SPENT = 0.32
 local TRACKING = { [1494] = true, [1284017] = true, [2383] = true, [8387] = true, [2481] = true, [2580] = true, [8388] = true, [5225] = true, [19883] = true, [5500] = true, [5502] = true, [5503] = true, [1241115] = true, [19878] = true, [19879] = true, [19880] = true, [19882] = true, [19884] = true, [19885] = true, [43308] = true }
 local GROW = { right = 1, left = -1, up = 1, down = -1 }
 local STRIPS = {
-    { unit = "player", frame = "VGAUnitFrame_player", name = "VGABuffs", choice = "buffs_player", corner = "BOTTOMLEFT", grow = GROW.right, groups = { { key = "buffs", filter = "HELPFUL", line = GOOD, cancel = true, candidate = { excludeSpellIDs = TRACKING } }, { key = "tracking", filter = "HELPFUL", line = STEADY, cancel = true, follows = true, candidate = { includeSpellIDs = TRACKING } } } },
+    { unit = "player", frame = "VGAUnitFrame_player", name = "VGABuffs", choice = "buffs_player", corner = "BOTTOMLEFT", grow = GROW.right, groups = { { key = "buffs", filter = "HELPFUL", line = GOOD, cancel = true, candidate = { excludeSpellIDs = TRACKING } }, { key = "tracking", filter = "HELPFUL", line = STEADY, cancel = true, follows = true, candidate = { includeSpellIDs = TRACKING } }, { key = "debuffs", filter = "HARMFUL", line = HARM, order = 4 } }, enchantments = true },
     { unit = "targettarget", frame = "VGAUnitFrame_targettarget", name = "VGATargetTargetAuras", corner = "BOTTOMRIGHT", grow = GROW.left, scaled = true, groups = { { key = "debuffs", filter = "HARMFUL", line = HARM, timeless = true } } },
     { unit = "target", frame = "VGAUnitFrame_target", name = "VGATargetAuras", choice = "buffs_target", corner = "BOTTOMRIGHT", grow = GROW.left, groups = { { key = "buffs", filter = "HELPFUL", line = GOOD }, { key = "own", filter = "HARMFUL|PLAYER", line = HARM, shimmer = true }, { key = "debuffs", filter = "HARMFUL|!PLAYER", line = HARM, follows = true } } },
 }
@@ -28,6 +28,8 @@ local TIME_DROP = 2
 local ROW_GAP = 4
 local DOCK_GAP = 8
 local DOCKING = {}
+local ENCHANTED = { line = GOOD, order = 3, follows = true }
+local WEAPON_SLOTS = { "MainHand", "OffHand", "Ranged" }
 
 local function read_scale()
     local small, full = VGAUnitFrame_targettarget, VGAUnitFrame_target
@@ -116,7 +118,7 @@ end
 local function read_group_layout(index, group, scaled)
     local size, gap = read_icon_size(scaled)
     local room = group.timeless and gap or read_time_room()
-    return { elementWidth = size, elementHeight = size, elementSpacing = gap, lineSpacing = room, groupLineSpacing = room, forceNewLine = index > 1 and not group.follows, layoutIndex = index }
+    return { elementWidth = size, elementHeight = size, elementSpacing = gap, lineSpacing = room, groupLineSpacing = room, forceNewLine = index > 1 and not group.follows, layoutIndex = group.order or index }
 end
 
 local function check_strip_shown(strip)
@@ -142,6 +144,7 @@ local function update_strip(strip)
         container:SetAuraGroupLayout(group.key, read_group_layout(index, group, strip.scaled))
         container:SetAuraGroupMaxFrameCount(group.key, most)
     end
+    if strip.enchantments and container.SetItemEnchantmentLayout then container:SetItemEnchantmentLayout(read_group_layout(ENCHANTED.order, ENCHANTED, strip.scaled)) end
     for _, button in ipairs(strip.buttons) do pcall(update_button_look, button) end
 end
 
@@ -169,8 +172,7 @@ local function update_game_auras_docked()
     local gap = library.read_draft_size(DOCK_GAP)
     BuffFrame:ClearAllPoints()
     BuffFrame:SetPoint("TOPRIGHT", VGAMapFrame, "TOPLEFT", -gap, 0)
-    DebuffFrame:ClearAllPoints()
-    DebuffFrame:SetPoint("TOPRIGHT", BuffFrame, "BOTTOMRIGHT", 0, -gap)
+    library.update_game_veiled(DebuffFrame, true)
 end
 
 local function update_game_auras_safely()
@@ -191,8 +193,16 @@ function create_top_place(strip)
     library.create_place(strip.container, strip.container:GetName(), strip.corner, UIParent, x, -edge)
 end
 
+local function create_enchantments(strip, container)
+    if not container.AddItemEnchantment then return end
+    local slots = AuraContainerItemEnchantmentSlot or { MainHand = 0, OffHand = 1, Ranged = 2 }
+    for _, name in ipairs(WEAPON_SLOTS) do
+        if slots[name] then container:AddItemEnchantment(slots[name], { initializeFrame = create_initializer(strip, ENCHANTED) }) end
+    end
+end
+
 local function create_strip(shape)
-    local strip = { unit = shape.unit, frame = shape.frame, corner = shape.corner, groups = shape.groups, scaled = shape.scaled, choice = shape.choice, top = shape.top, buttons = {} }
+    local strip = { unit = shape.unit, frame = shape.frame, corner = shape.corner, groups = shape.groups, scaled = shape.scaled, choice = shape.choice, top = shape.top, enchantments = shape.enchantments, buttons = {} }
     local container = CreateFrame("AuraContainer", shape.name, UIParent, "CustomAuraContainerTemplate")
     container:SetUnit(shape.unit)
     container:SetFlowLayoutAnchorPoint(shape.corner)
@@ -200,6 +210,7 @@ local function create_strip(shape)
     for index, group in ipairs(shape.groups) do
         container:AddAuraGroup(group.key, group.filter, { initializeFrame = create_initializer(strip, group), layout = read_group_layout(index, group, shape.scaled), candidateFilters = group.candidate })
     end
+    if shape.enchantments then create_enchantments(strip, container) end
     strip.container = container
     strips[#strips + 1] = strip
     if shape.top then create_top_place(strip) end

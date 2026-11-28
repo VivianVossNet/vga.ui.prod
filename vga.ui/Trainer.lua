@@ -1,8 +1,8 @@
 -- Copyright 2026 Vivian Voss. Code by Vivian Voss. Licensed under the BSD-3-Clause.
 -- SPDX-License-Identifier: BSD-3-Clause
--- Scope: vga.ui's trainer, as the accepted draft draws it (manual/view/vga-npc-windows.html, K0830, K0831): LibVGA's list dialog (library.create_list_dialog, K0871) headed with the trainer's name, each service's tooltip, as the game gives it, over its picture and name (K0911), the picture of a service to be learnt only later veiled red as everywhere (K0933), a profession's recipe - its level 0, its skill named by the game - with no second line and, while later, a red chip with the rank it needs, »ab 75«, which GetTrainerServiceSkillReq gives as its second answer (K0939), the player's own rank in the skill, »Kochkunst 12/75«, as a green badge at the foot's left, the chosen skill in the grey note after it (K0938), since Forever gives no rank a recipe needs (K0935, K0936, K0937), a choice of what is shown - Lernbar, Später, Gelernt, what can be learnt now by default -, every skill as LibVGA's item row with its picture, its rank beneath and its cost in our coins; a click chooses a skill; the foot carries »Alles lernen«, which learns every skill that can be learnt now and is paid for, as the adviser proposed and the owner took, and the gold »Lernen« for the chosen one, the chosen skill in the note; above the group the search and the choice, the heads Fähigkeit, Lernbar - »Zustand« until the owner found it unfitting (K0940) -, Kosten, each skill in its cell with rank and level beneath and its state as a chip, the player's gold in the status line (K0836). The game's trainer window is veiled, never hidden, so the visit stays open (K0835). The game's GetTrainerServiceInfo is read in either order - name, rank, kind as the old client answers, or name, kind, picture, level as the new -, its raw answer for the first skill kept once in LibVGASettings.measures.trainer_service_info; the search and the choice are the list dialog's tools, LibVGA's search bar (library.create_search_bar, K0873) fed here, side by side, the search taking the room the choice leaves (K0849). A skill the player cannot pay for yet shows its cost in red, its chip still »Lernbar«, and »Lernen« is off while it is chosen; »Alles lernen« learns what the gold pays for (K0994).
+-- Scope: vga.ui's trainer, as the accepted draft draws it (manual/view/vga-npc-windows.html, K0830, K0831): LibVGA's list dialog (library.create_list_dialog, K0871) headed with the trainer's name, each service's tooltip, as the game gives it, over its picture and name (K0911), the picture of a service to be learnt only later veiled red as everywhere (K0933), a profession's recipe - its level 0, its skill named by the game - with no second line and, while later, a red chip with the rank it needs, »ab 75«, which GetTrainerServiceSkillReq gives as its second answer (K0939), the player's own rank in the skill, »Kochkunst 12/75«, as a green badge at the foot's left, the chosen skill in the grey note after it (K0938), since Forever gives no rank a recipe needs (K0935, K0936, K0937), a choice of what is shown - Lernbar, Später, Gelernt, what can be learnt now by default -, every skill as LibVGA's item row with its picture, a recipe's name in the quality of the item it makes - read from the made item the game's tooltip data of the service names (C_TooltipInfo.GetTrainerService, C_Item.GetItemQualityByID), loaded where the game does not know it yet (K1025) -, its rank beneath and its cost in our coins; a click chooses a skill; the foot carries »Alles lernen«, which learns every skill that can be learnt now and is paid for, as the adviser proposed and the owner took, and the gold »Lernen« for the chosen one, the chosen skill in the note; above the group the search and the choice, the heads Fähigkeit, Lernbar - »Zustand« until the owner found it unfitting (K0940) -, Kosten, each skill in its cell with rank and level beneath and its state as a chip, the player's gold in the status line (K0836). The game's trainer window is veiled, never hidden, so the visit stays open (K0835). The game's GetTrainerServiceInfo is read in either order - name, rank, kind as the old client answers, or name, kind, picture, level as the new -, its raw answer for the first skill kept once in LibVGASettings.measures.trainer_service_info; the search and the choice are the list dialog's tools, LibVGA's search bar (library.create_search_bar, K0873) fed here, side by side, the search taking the room the choice leaves (K0849). A skill the player cannot pay for yet shows its cost in red, its chip still »Lernbar«, and »Lernen« is off while it is chosen; »Alles lernen« learns what the gold pays for (K0994). At each look at a trainer the lowest level of a skill still beyond the character is kept (LibVGACharacter.trainer_next), so vga.ui/Risetoast.lua can tell »Neue Fähigkeiten beim Lehrer« when that level is reached (K1040).
 
--- {K0994} {K0940} {K0939} {K0938} {K0937} {K0936} {K0933} {K0911} {K0909} {K0873} {K0860} {K0871} {K0849} {K0839} {K0838} {K0836} {K0835} {K0830} {K0831} {K0832}
+-- {K1040} {K1025} {K0994} {K0940} {K0939} {K0938} {K0937} {K0936} {K0933} {K0911} {K0909} {K0873} {K0860} {K0871} {K0849} {K0839} {K0838} {K0836} {K0835} {K0830} {K0831} {K0832}
 
 local _, vga = ...
 local library = LibVGA
@@ -41,6 +41,16 @@ local function read_skill_rank(name)
     end
 end
 
+local function read_made_quality(index)
+    if not (C_TooltipInfo and C_TooltipInfo.GetTrainerService and C_Item and C_Item.GetItemQualityByID) then return 1 end
+    local data = C_TooltipInfo.GetTrainerService(index)
+    local item = Enum and Enum.TooltipDataType and Enum.TooltipDataType.Item
+    if not (data and data.id and data.type == item) then return 1 end
+    local quality = C_Item.GetItemQualityByID(data.id)
+    if quality == nil and C_Item.RequestLoadItemDataByID then C_Item.RequestLoadItemDataByID(data.id) end
+    return quality or 1
+end
+
 local function read_skill(index)
     if not GetTrainerServiceSkillReq then return nil end
     local name, needed = GetTrainerServiceSkillReq(index)
@@ -58,7 +68,7 @@ local function read_services()
             local skill, needed
             local level = needed_level or (GetTrainerServiceLevelReq and GetTrainerServiceLevelReq(index)) or 0
             if level == 0 then skill, needed = read_skill(index) end
-            services[#services + 1] = { index = index, name = name, rank = rank or "", level = level, kind = kind, icon = icon, cost = GetTrainerServiceCost and GetTrainerServiceCost(index) or 0, skill = skill, needed = needed }
+            services[#services + 1] = { index = index, name = name, rank = rank or "", level = level, kind = kind, icon = icon, cost = GetTrainerServiceCost and GetTrainerServiceCost(index) or 0, skill = skill, needed = needed, quality = read_made_quality(index) }
         end
     end
     return services
@@ -113,7 +123,7 @@ local function update_row(row, item)
     row.item = item
     local texts = library.texts
     local sub = read_sub(item, texts)
-    library.update_item_row(row, { icon = item.icon, name = item.name, quality = 1, sub = sub, unusable = item.kind == "unavailable" }, sheet.pad, sheet.pad + columns.rights[1])
+    library.update_item_row(row, { icon = item.icon, name = item.name, quality = item.quality, sub = sub, unusable = item.kind == "unavailable" }, sheet.pad, sheet.pad + columns.rights[1])
     library.update_item_row_chosen(row, window.chosen_index == item.index)
     local words = { available = texts.learnable, unavailable = read_later_word(item, texts), used = texts.learnt }
     local later_red = item.kind == "unavailable" and item.needed ~= nil
@@ -147,8 +157,19 @@ local function read_own_skill()
     end
 end
 
+local function write_trainer_next()
+    local own, next_level = UnitLevel("player") or 0, nil
+    for index = 1, (GetNumTrainerServices and GetNumTrainerServices() or 0) do
+        local level = GetTrainerServiceLevelReq and GetTrainerServiceLevelReq(index) or 0
+        if level > own and (not next_level or level < next_level) then next_level = level end
+    end
+    LibVGACharacter = LibVGACharacter or {}
+    LibVGACharacter.trainer_next = next_level
+end
+
 function vga.update_trainer()
     if not (window and window:IsShown()) then return end
+    write_trainer_next()
     window.items = read_services()
     local skill = read_own_skill()
     library.update_list_dialog(window, window.items, window.chosen_name, skill and { kind = "green", word = skill } or nil)
@@ -213,8 +234,8 @@ local function update_closed()
     if window and window:IsShown() then window:Hide() end
 end
 
-local HEARD = { TRAINER_SHOW = update_opened, TRAINER_CLOSED = update_closed, TRAINER_UPDATE = vga.update_trainer, PLAYER_MONEY = vga.update_trainer }
+local HEARD = { TRAINER_SHOW = update_opened, TRAINER_CLOSED = update_closed, TRAINER_UPDATE = vga.update_trainer, PLAYER_MONEY = vga.update_trainer, GET_ITEM_INFO_RECEIVED = vga.update_trainer }
 
 local events = CreateFrame("Frame")
-library.update_events(events, { "TRAINER_SHOW", "TRAINER_CLOSED", "TRAINER_UPDATE", "PLAYER_MONEY" })
+library.update_events(events, { "TRAINER_SHOW", "TRAINER_CLOSED", "TRAINER_UPDATE", "PLAYER_MONEY", "GET_ITEM_INFO_RECEIVED" })
 events:SetScript("OnEvent", function(_, event) library.update_safely("trainer " .. event, HEARD[event]) end)

@@ -1,8 +1,8 @@
 -- Copyright 2026 Vivian Voss. Code by Vivian Voss. Licensed under the BSD-3-Clause.
 -- SPDX-License-Identifier: BSD-3-Clause
--- Scope: LibVGA's dialog as the accepted drafts draw it (manual/view/vga-scale.html .dlg, vga-template.css .vt): the metal frame, the head with the mark, the gold title - on one line, left, ending before the leftmost of the head's buttons, a title too long for it cut with »…« (K0907) - and the close button, further buttons of the same make with an icon to its left where a dialog asks for them, its rows divided by hairlines; always free to move, its ground down to a floor. Rows that stand together outside a fieldset stand on one rounded, faintly lighter card, in the way of the macOS System Settings (K0565). A stepper in a row is measured as it is laid (K0721). The dialog opened or clicked last stands in front of every other, whole, so no two dialogs interleave (K0737). A row may carry LibVGA's mark of the active row - the whole row on a quiet gold ground, its name gold and bold (library.create_active_mark, K0779; before a gold pill, K0778, and an orange chevron, K0729) -, so the label never moves; the profiles mark the active one so. A dialog may own a foot, named when it is made: a quiet note at its left, its buttons at its right - plain ones first, the gold one last -, ten draft pixels above a row of 22 and fourteen below, fourteen from the sides, eight between the buttons; its user names their words, kinds and actions and never lays them, and the dialog's frame height with or without it is read by library.read_dialog_frame_height (K0783). A foot with buttons may carry a status line of its own beneath them - its note at the left, money at the right, under a hairline (plan.status, library.update_dialog_status, K0836), as the merchant's gold stands under its repair row. A foot without buttons is a status line thirty draft pixels high - the bags' and the loot window's -, its note at the left and, where asked, the money at the right, where asked on a darker band under a hairline; its user fills it by library.update_dialog_foot (K0784). Every row but a heading keeps the room of LibVGA's applied tick at its right, its control beside it, so a setting shows its tick when applied and nothing moves (library.create_tick, K0794). A dialog shown before it was ever placed stands in the middle of the screen (library.update_dialog_placed, K0816); one that belongs beside a window of the game stands at its right (library.update_dialog_beside, K0835), since the game draws no frame without a place. Every dialog carries LibVGA's pin in its head as its own part, beside the close, made by the dialog's maker (K0767): grey while free, when the dialog can be dragged, gold while pinned, when its place is fixed and it cannot; its meaning in a tooltip, with a note of the owner's where it means more; its state kept on the dialog unless its user hands another keeper (library.update_dialog_pin_state), so the bags remember theirs and a fixed tooltip starts free (K0764). A foot without buttons is its status line alone (K0836). A window that ends a visit of the game when it closes hears its closing only after its first hiding (library.update_dialog_closing, K0838): a new frame stands shown, so hiding it once at its making would end the very visit that made it, the merchant's, the talk, the quest, the trainer's, the flight master's, the bank's, as the auction house's did (K0681). A window for a figure of the game names it by library.read_figure_name - the game's »npc«, else the target, since a merchant reached through its talk is not always given as »npc« - and is titled »word · name« by library.read_figure_title, the word alone where no name is known (K0839); library.read_figure_id reads the figure's number from its GUID, nil where it is no creature or kept secret (K0848). A foot's button its user hides is passed over, the shown ones closing up at the right, so one dialog may change its pair of buttons with its moment - the talk's »Auf Wiedersehen« alone, the quest's two (K0840). The foot may carry a badge at its left, LibVGA's chip of a kind and a word, the note after it - a positive hint as the trainer's own skill rank (badge, K0938).
+-- Scope: LibVGA's dialog as the accepted drafts draw it (manual/view/vga-scale.html .dlg, vga-template.css .vt): the metal frame, the head with the mark, the gold title - on one line, left, ending before the leftmost of the head's buttons, a title too long for it cut with »…« (K0907) - and the close button, further buttons of the same make with an icon to its left where a dialog asks for them, its rows divided by hairlines; always free to move, its ground down to a floor. Rows that stand together outside a fieldset stand on one rounded, faintly lighter card, in the way of the macOS System Settings (K0565). A stepper in a row is measured as it is laid (K0721). The dialog opened or clicked last stands in front of every other, whole, so no two dialogs interleave (K0737). A row may carry, where its maker is given a look, a note beneath its name in the small quiet face and, before both, a stripe in a colour of its user's, four draft pixels wide, ten clear of the name - the row twice as tall as its name and note need, its words measured with them (library.create_row's look, library.read_row_label_width, K1035). A row may carry LibVGA's mark of the active row - the whole row on a quiet gold ground, its name gold and bold (library.create_active_mark, K0779; before a gold pill, K0778, and an orange chevron, K0729) -, so the label never moves; the profiles mark the active one so. A dialog may own a foot, named when it is made: a quiet note at its left, its buttons at its right - plain ones first, the gold one last -, ten draft pixels above a row of 22 and fourteen below, fourteen from the sides, eight between the buttons; its user names their words, kinds and actions and never lays them, and the dialog's frame height with or without it is read by library.read_dialog_frame_height (K0783). A foot with buttons may carry a status line of its own beneath them - its note at the left, money at the right, under a hairline (plan.status, library.update_dialog_status, K0836), as the merchant's gold stands under its repair row. A foot without buttons is a status line thirty draft pixels high - the bags' and the loot window's -, its note at the left and, where asked, the money at the right, where asked on a darker band under a hairline; its user fills it by library.update_dialog_foot (K0784). Every row but a heading keeps the room of LibVGA's applied tick at its right, its control beside it, so a setting shows its tick when applied and nothing moves (library.create_tick, K0794). A dialog shown before it was ever placed stands in the middle of the screen (library.update_dialog_placed, K0816); one that belongs beside a window of the game stands at its right (library.update_dialog_beside, K0835), since the game draws no frame without a place. Every dialog carries LibVGA's pin in its head as its own part, beside the close, made by the dialog's maker (K0767): grey while free, when the dialog can be dragged, gold while pinned, when its place is fixed and it cannot; its meaning in a tooltip, with a note of the owner's where it means more; its state kept on the dialog unless its user hands another keeper (library.update_dialog_pin_state), so the bags remember theirs and a fixed tooltip starts free (K0764). A foot without buttons is its status line alone (K0836). A window that ends a visit of the game when it closes hears its closing only after its first hiding (library.update_dialog_closing, K0838): a new frame stands shown, so hiding it once at its making would end the very visit that made it, the merchant's, the talk, the quest, the trainer's, the flight master's, the bank's, as the auction house's did (K0681). A window for a figure of the game names it by library.read_figure_name - the game's »npc«, else the target, since a merchant reached through its talk is not always given as »npc« - and is titled »word · name« by library.read_figure_title, the word alone where no name is known (K0839); library.read_figure_id reads the figure's number from its GUID, nil where it is no creature or kept secret (K0848). A foot's button its user hides is passed over, the shown ones closing up at the right, so one dialog may change its pair of buttons with its moment - the talk's »Auf Wiedersehen« alone, the quest's two (K0840). The foot may carry a badge at its left, LibVGA's chip of a kind and a word, the note after it - a positive hint as the trainer's own skill rank (badge, K0938).
 
--- {K0938} {K0907} {K0848} {K0840} {K0839} {K0838} {K0681} {K0794} {K0792} {K0784} {K0783} {K0779} {K0778} {K0767} {K0764} {K0256} {K0296} {K0299} {K0324} {K0330} {K0337} {K0415} {K0565} {K0721} {K0729} {K0737}
+-- {K1035} {K0938} {K0907} {K0848} {K0840} {K0839} {K0838} {K0681} {K0794} {K0792} {K0784} {K0783} {K0779} {K0778} {K0767} {K0764} {K0256} {K0296} {K0299} {K0324} {K0330} {K0337} {K0415} {K0565} {K0721} {K0729} {K0737}
 
 local library = LibVGA
 local CARD = { 1, 1, 1 }
@@ -20,6 +20,7 @@ local colours = library.colours
 local BLACK = { 0, 0, 0 }
 local HAIRLINE = { 0.137, 0.149, 0.173 }
 local FIELDSET = { 0.235, 0.247, 0.282 }
+local STRIPE = { 4, 10 }
 local FIELDSET_LINES = { "top_left", "top_right", "left", "right", "bottom" }
 
 local function create_close(dialog)
@@ -350,7 +351,18 @@ function library.update_dialog(dialog)
     dialog.body:SetPoint("BOTTOMRIGHT", -inner, inner + library.read_dialog_foot_height(dialog))
 end
 
-function library.create_row(parent, label, kind)
+local function create_row_look(row, look)
+    if look.note then
+        row.note = library.create_text(row, "small", colours.quiet)
+        row.note:SetText(look.note)
+    end
+    if look.stripe then
+        row.stripe = row:CreateTexture(nil, "ARTWORK")
+        row.stripe:SetColorTexture(look.stripe[1], look.stripe[2], look.stripe[3], 1)
+    end
+end
+
+function library.create_row(parent, label, kind, look)
     local row = CreateFrame("Frame", nil, parent)
     row.kind = kind
     row.label = library.create_text(row, kind == "heading" and "small" or "body")
@@ -362,6 +374,7 @@ function library.create_row(parent, label, kind)
             row.fieldset[name]:SetColorTexture(FIELDSET[1], FIELDSET[2], FIELDSET[3], 1)
         end
     end
+    if look then create_row_look(row, look) end
     row.line = library.create_hairline(row)
     if kind ~= "heading" then row.tick = library.create_tick(row) end
     return row
@@ -381,6 +394,7 @@ end
 function library.read_row_height(row)
     if row and row.kind == "heading" then return library.read_size(1) + library.read_size(-4) end
     if row and row.kind == "wide" then return library.read_size(0) * 4.4 + 2 * library.read_size(-2) end
+    if row and row.note then return library.read_size(2) + library.read_size(-1) + 2 * library.read_size(-2) end
     return library.read_size(2) + 2 * library.read_size(-2)
 end
 
@@ -463,10 +477,20 @@ local function update_fieldset(heading, last, inset)
     lines.right:SetWidth(1)
 end
 
+local function read_stripe_room(row)
+    if not row.stripe then return 0 end
+    return library.read_draft_size(STRIPE[1]) + library.read_draft_size(STRIPE[2])
+end
+
+function library.read_row_label_width(row)
+    local words = math.max(row.label:GetStringWidth(), row.note and row.note:GetStringWidth() or 0)
+    return words + read_stripe_room(row)
+end
+
 function library.read_rows_width(rows, column)
     local label, wide = 0, 0
     for _, row in ipairs(rows) do
-        label = math.max(label, row.label:GetStringWidth())
+        label = math.max(label, library.read_row_label_width(row))
         if row.kind == "wide" and row.control then wide = math.max(wide, library.read_pictures_width(row.control) + 3 * library.read_size(0)) end
     end
     return math.max(math.ceil(label) + column + 3 * library.read_size(0), wide)
@@ -517,11 +541,26 @@ function library.create_row_mark(row)
     return row.mark
 end
 
+local function update_row_look(row, left)
+    if row.stripe then
+        row.stripe:SetSize(library.read_draft_size(STRIPE[1]), library.read_size(2))
+        row.stripe:ClearAllPoints()
+        row.stripe:SetPoint("LEFT", row, "LEFT", left, 0)
+    end
+    left = left + read_stripe_room(row)
+    if not row.note then return left end
+    row.note:SetFontObject(library.read_font("small"))
+    row.note:ClearAllPoints()
+    row.note:SetPoint("TOPLEFT", row, "LEFT", left, -1)
+    return left
+end
+
 local function update_row_label(row, pad, inset)
     row.label:SetFontObject(library.read_font(row.kind == "heading" and "small" or "body"))
     if row.kind == "heading" then row.label:SetTextColor(unpack(colours.quiet)) end
     row.label:ClearAllPoints()
-    row.label:SetPoint("LEFT", row, "LEFT", row.kind == "heading" and inset + pad - math.max(3, library.read_size(-6)) or pad, 0)
+    local left = row.kind == "heading" and inset + pad - math.max(3, library.read_size(-6)) or update_row_look(row, pad)
+    row.label:SetPoint(row.note and "BOTTOMLEFT" or "LEFT", row, "LEFT", left, row.note and 1 or 0)
     if row.mark then library.update_active_mark(row.mark, true) end
 end
 

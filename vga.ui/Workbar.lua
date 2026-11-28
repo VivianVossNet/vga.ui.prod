@@ -1,8 +1,8 @@
 -- Copyright 2026 Vivian Voss. Code by Vivian Voss. Licensed under the BSD-3-Clause.
 -- SPDX-License-Identifier: BSD-3-Clause
--- Scope: the work bar, as manual/view/vga-bank-view.html draws it (K1019, K1020): a row of keys in the stance keys' look - LibVGA's cells, thirty draft pixels, three apart - standing four pixels above the bars' widget, its right edge sixteen draft pixels in from the widget's, the stance bar's place mirrored, at the bars' scale: at the right the key of the bank as last seen (vga.create_bank_key), then, twice the gap away, a key for each learnt profession that opens a window of its own - asked of C_TradeSkillUI.CanTradeSkillShowCraftingUI for the profession's first spell in the spell book (GetProfessions, GetProfessionInfo, C_SpellBook.GetSpellBookItemInfo) -, a protected key of our own casting that spell, as the game's professions book does through C_SpellBook.CastSpellBookItem (read in Forever's Blizzard_ProfessionsBook), its picture the profession's, the game's tooltip of the spell under the mouse; gathering professions without a window get none. The protected keys hang from the bar itself, never from the bank's plain key, as the game allows (manual/16 R2.3). Keys are set and the bar placed only out of a fight; a change in a fight waits for its end.
+-- Scope: the work bar, as manual/view/vga-bank-view.html draws it (K1019, K1020): a row of keys in the stance keys' look - LibVGA's cells, thirty draft pixels, three apart - standing four pixels above the bars' widget, its right edge sixteen draft pixels in from the widget's, the stance bar's place mirrored, at the bars' scale: at the right the key of the bank as last seen (vga.create_bank_key), then, four gaps away (K1024), a key for every learnt profession - every one of the five places GetProfessions answers, a place left empty, first aid say, never ending the reading, gathering professions too (K1024) -, a protected key of our own for each active ability of the profession - its spells stand together in the spell book from the profession's offset, as many as GetProfessionInfo counts, a second one such as disenchanting or smelting with its own picture (K1026), save the fishing's »Köder und Angelzubehör« (spell 1278067), which needs no key of its own (K1030) - (GetProfessionInfo, C_SpellBook.GetSpellBookItemInfo), casting it, as the game's professions book does through C_SpellBook.CastSpellBookItem (read in Forever's Blizzard_ProfessionsBook), its picture the profession's, the game's tooltip of the spell and the profession's rank under the mouse. The protected keys hang from the bar itself, never from the bank's plain key, as the game allows (manual/16 R2.3). Keys are set and the bar placed only out of a fight; a change in a fight waits for its end.
 
--- {K1020} {K1019}
+-- {K1030} {K1026} {K1024} {K1020} {K1019}
 
 local _, vga = ...
 local library = LibVGA
@@ -10,32 +10,46 @@ local KEY = 30
 local GAP = 3
 local ABOVE = 4
 local INWARD = 16
-local MOST = 5
+local MOST = 12
+local PROFESSION_PLACES = 5
+local APART = 4
+local SKIPPED = { [1278067] = true }
 local BOOK = Enum and Enum.SpellBookSpellBank and Enum.SpellBookSpellBank.Player or 0
 local bar
 
-local function read_profession_spell(index)
-    local name, picture, _, _, _, offset = GetProfessionInfo(index)
-    local entry = C_SpellBook and C_SpellBook.GetSpellBookItemInfo and C_SpellBook.GetSpellBookItemInfo((offset or 0) + 1, BOOK)
-    local spell = entry and entry.spellID
-    if not (spell and C_TradeSkillUI and C_TradeSkillUI.CanTradeSkillShowCraftingUI and C_TradeSkillUI.CanTradeSkillShowCraftingUI(spell)) then return nil end
-    return { name = name, picture = picture, spell = spell }
+local function check_passive(slot)
+    return C_SpellBook and C_SpellBook.IsSpellBookItemPassive and C_SpellBook.IsSpellBookItemPassive(slot, BOOK) or false
+end
+
+local function write_profession_spells(found, index)
+    local name, picture, rank, most, count, offset = GetProfessionInfo(index)
+    if not name then return end
+    for number = 1, math.max(count or 1, 1) do
+        local slot = (offset or 0) + number
+        local entry = C_SpellBook and C_SpellBook.GetSpellBookItemInfo and C_SpellBook.GetSpellBookItemInfo(slot, BOOK)
+        local spell = entry and entry.spellID
+        if spell and not SKIPPED[spell] and not check_passive(slot) then
+            local own = number > 1 and C_Spell and C_Spell.GetSpellTexture and C_Spell.GetSpellTexture(spell)
+            found[#found + 1] = { name = name, picture = own or picture, spell = spell, rank = rank, most = most }
+        end
+    end
 end
 
 local function read_professions()
     local found = {}
     if not (GetProfessions and GetProfessionInfo) then return found end
-    for _, index in ipairs({ GetProfessions() }) do
-        local profession = index and read_profession_spell(index)
-        if profession then found[#found + 1] = profession end
+    local indices = { GetProfessions() }
+    for place = 1, PROFESSION_PLACES do
+        if indices[place] then write_profession_spells(found, indices[place]) end
     end
     return found
 end
 
 local function render_key_tip(key)
-    if not key.spell then return end
+    if not key.profession then return end
     GameTooltip:SetOwner(key, "ANCHOR_TOP")
-    GameTooltip:SetSpellByID(key.spell)
+    if key.profession.spell then GameTooltip:SetSpellByID(key.profession.spell) else GameTooltip:AddLine(key.profession.name, 1, 1, 1) end
+    if key.profession.rank then GameTooltip:AddLine(string.format("%d / %d", key.profession.rank, key.profession.most or key.profession.rank), library.colours.gold[1], library.colours.gold[2], library.colours.gold[3]) end
     GameTooltip:Show()
 end
 
@@ -54,12 +68,12 @@ end
 
 local function update_keys(size, gap)
     local professions = read_professions()
-    local right = size + 2 * gap
+    local right = size + APART * gap
     for index, key in ipairs(bar.professions) do
         local profession = professions[index]
         key:SetShown(profession ~= nil)
         if profession then
-            key.spell = profession.spell
+            key.profession = profession
             key:SetAttribute("spell", profession.spell)
             library.update_cell_size(key, size)
             library.update_cell(key, { picture = profession.picture })

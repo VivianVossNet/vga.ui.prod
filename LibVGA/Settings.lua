@@ -1,8 +1,8 @@
 -- Copyright 2026 Vivian Voss. Code by Vivian Voss. Licensed under the BSD-3-Clause.
 -- SPDX-License-Identifier: BSD-3-Clause
--- Scope: vga.ui's one settings dialog as the accepted draft orders it (manual/view/vga-settings.html), LibVGA's window with pages (library.create_paged_window, K0790), standing high on the screen, its top fixed, as tall as its tallest tab, whichever is shown, so no content ever changes the dialog's size (K0637), as wide as its sidebar and its widest page: at the left a sidebar in the way of the macOS System Settings (Sidebar.lua, K0565) - Darstellung: Allgemein; Im Kampf: Einheiten, Plaketten, Bögen, Schadensmesser (K0721); Leisten: Aktionsleisten, Erfahrung; Welt: Quests, Minimap, Taschen; set apart Anordnen and Profile -, at the right the chosen page under its title, as many rows a page as its room holds - the seven of the UX adviser's draft (K0383) a guide, never a limit -, and where a page grows unclear, a new tab or a row moved to the tab it belongs to (K0990); Allgemein ending in the red »Alles zurücksetzen …«, which asks once; the last tab, Anordnen, reached from everywhere, with the alignment - free or on a grid of eight or of sixteen pixels - and the gold »Anordnen …«, which closes the dialog and shows the handles; every choice working at once - a new face measured again a moment later, when the game has loaded its file, so that every width follows it; the one menu there is - a widget's gold corner opens it on the widget's tab, the widget's own settings in the group »Widgets« at the tab's foot; and the command /vga. The units' page switches the game's own »Ziel des Ziels« (showTargetOfTarget, K0696), out of combat. The page Komfort, with the star, gathers the game's own conveniences, out of combat: »Schnell plündern« (autoLootDefault, K0705) and »Zauber auf Fenster unter der Maus« (enableMouseoverCast, K0697), moved there from the bags' and the units' pages (K0712). The page Komfort carries the reading time after an answer in the talk with a figure - a slider from »sofort« to three seconds in half seconds, one by default (library.talk_delay_stops, library.talk_delay_default, K0841, K0889). It carries too the immersion in the talk, on by default: the figure sends its bubbles one by one at twenty-five letters a second with typing dots (K0844, K0889). It carries »Quests ohne Dialog«, off by default (LibVGASettings.quest_auto, vga.ui/Questauto.lua, K0981), and »Karte des Spiels« (K0990). And where the bags' fixed items stand, »Rechts unten« at the end by default or »Links oben« at the start (LibVGASettings.bag_pins_place, K0898). Beside the choice row it makes LibVGA's settings rows with the other controls, each an object with one task, fed by parameters and returning the row with its control as row.control: a row with a slider (library.create_slider_row), a row with a popup (library.create_popup_row) and a row with pictures (library.create_pictures_row); its own pages and every tab of vga.ui use them instead of putting a row and a control together by hand (K0872).
+-- Scope: vga.ui's one settings dialog as the accepted draft orders it (manual/view/vga-settings.html), LibVGA's window with pages (library.create_paged_window, K0790), standing high on the screen, its top fixed, as tall as its tallest tab, whichever is shown, so no content ever changes the dialog's size (K0637), as wide as its sidebar and its widest page: at the left a sidebar in the way of the macOS System Settings (Sidebar.lua, K0565) - Darstellung: Allgemein; Im Kampf: Einheiten, Plaketten, Bögen, Schadensmesser (K0721); Leisten: Aktionsleisten, Erfahrung; Welt: Quests, Minimap, Taschen; set apart Anordnen and Profile -, at the right the chosen page under its title, as many rows a page as its room holds - the seven of the UX adviser's draft (K0383) a guide, never a limit -, and where a page grows unclear, a new tab or a row moved to the tab it belongs to (K0990); Allgemein ending in the red »Alles zurücksetzen …«, which asks once; the last tab, Anordnen, reached from everywhere, with the alignment - free or on a grid of eight or of sixteen pixels - and the gold »Anordnen …«, which closes the dialog and shows the handles; every choice working at once - a new face measured again a moment later, when the game has loaded its file, so that every width follows it; the one menu there is - a widget's gold corner opens it on the widget's tab, the widget's own settings in the group »Widgets« at the tab's foot; and the command /vga. The units' page switches the game's own »Ziel des Ziels« (showTargetOfTarget, K0696), out of combat. The page Komfort, with the star, gathers the game's own conveniences, out of combat: »Schnell plündern« (autoLootDefault, K0705) and »Zauber auf Fenster unter der Maus« (enableMouseoverCast, K0697), moved there from the bags' and the units' pages (K0712). The page Komfort carries the reading time after an answer in the talk with a figure - a slider from »sofort« to three seconds in half seconds, one by default (library.talk_delay_stops, library.talk_delay_default, K0841, K0889). It carries too the immersion in the talk, on by default: the figure sends its bubbles one by one at twenty-five letters a second with typing dots (K0844, K0889). It carries »Quests ohne Dialog«, off by default (LibVGASettings.quest_auto, vga.ui/Questauto.lua, K0981), and »Karte des Spiels« (K0990). Beneath Komfort the tab »Hinweise«, with a bell, a switch for each kind of LibVGA's toast - quests, discoveries, the character's rise, the rest area, the map's features, the mail, PvP, duels, trade, gear, bags, other notices (K1040) -, each with its note beneath and a stripe in its kind's rim colour before it, all on by default, and at the end »Anzeigedauer«, two, four or six seconds, four by default (K1041) (library.read_notice_on, library.write_notice, manual/view/vga-toast-colours.html, K1035); the comfort page's one switch of K1031 is gone. And where the bags' fixed items stand, »Rechts unten« at the end by default or »Links oben« at the start (LibVGASettings.bag_pins_place, K0898). Beside the choice row it makes LibVGA's settings rows with the other controls, each an object with one task, fed by parameters and returning the row with its control as row.control: a row with a slider (library.create_slider_row), a row with a popup (library.create_popup_row) and a row with pictures (library.create_pictures_row); its own pages and every tab of vga.ui use them instead of putting a row and a control together by hand (K0872).
 
--- {K0990} {K0981} {K0898} {K0889} {K0872} {K0844} {K0841} {K0811} {K0796} {K0790} {K0268} {K0311} {K0316} {K0324} {K0330} {K0337} {K0383} {K0384} {K0430} {K0565} {K0637} {K0696} {K0697} {K0705} {K0712} {K0721}
+-- {K1041} {K1040} {K1035} {K1031} {K0990} {K0981} {K0898} {K0889} {K0872} {K0844} {K0841} {K0811} {K0796} {K0790} {K0268} {K0311} {K0316} {K0324} {K0330} {K0337} {K0383} {K0384} {K0430} {K0565} {K0637} {K0696} {K0697} {K0705} {K0712} {K0721}
 
 local library = LibVGA
 
@@ -14,9 +14,10 @@ local GROUPS = {
     { title = "in_fight", keys = { "units", "plates", "arcs", "meter" } },
     { title = "bars", keys = { "mainbar", "experience" }, names = { mainbar = "action_bars" } },
     { title = "world", keys = { "quests", "map", "bags" } },
-    { keys = { "comfort" } },
+    { keys = { "comfort", "notices" } },
     { keys = { "arrange", "profiles" } },
 }
+local NOTICES = { "quest", "discovery", "rise", "rest", "map", "mail", "pvp", "duel", "trade", "gear", "bags", "other" }
 local FROM_TOP = 0.12
 local FONT_LOADED = 0.3
 
@@ -35,8 +36,8 @@ local function read_switch_order(labels)
     return nil
 end
 
-function library.create_choice_row(page, label, labels, chosen, on_choose)
-    local row = library.create_row(page, label)
+function library.create_choice_row(page, label, labels, chosen, on_choose, look)
+    local row = library.create_row(page, label, nil, look)
     local on_index = read_switch_order(labels)
     if on_index then
         row.control = library.create_switch(row, chosen == on_index, function(on) on_choose(on and on_index or 3 - on_index) end)
@@ -233,6 +234,36 @@ local function create_comfort_page(page)
     }
 end
 
+local function create_notice_row(page, kind)
+    local texts = library.texts
+    local look = { note = texts["notice_" .. kind .. "_note"], stripe = library.read_toast_rim(kind) }
+    return library.create_choice_row(page, texts["notice_" .. kind], { texts.on, texts.off }, library.read_notice_on(kind) and 1 or 2, function(index) library.write_notice(kind, index == 1) end, look)
+end
+
+local function read_stay_labels()
+    local labels = {}
+    for index, seconds in ipairs(library.read_toast_stays()) do labels[index] = string.format(library.texts.seconds_short, seconds) end
+    return labels
+end
+
+local function read_stay_index()
+    for index, seconds in ipairs(library.read_toast_stays()) do
+        if seconds == library.read_toast_stay() then return index end
+    end
+    return 2
+end
+
+local function write_toast_stay(index)
+    local seconds = library.read_toast_stays()[index]
+    LibVGASettings.toast_stay = seconds ~= library.read_toast_stays()[2] and seconds or nil
+end
+
+local function create_notices_page(page)
+    page.rows = {}
+    for _, kind in ipairs(NOTICES) do page.rows[#page.rows + 1] = create_notice_row(page, kind) end
+    page.rows[#page.rows + 1] = library.create_choice_row(page, library.texts.toast_stay, read_stay_labels(), read_stay_index(), write_toast_stay)
+end
+
 local function create_arrange_page(page)
     local texts = library.texts
     page.rows = {
@@ -250,6 +281,7 @@ local function read_pages()
         { key = "units", title = texts.units, icon = "TabUnits", build = create_units_page },
         { key = "plates", title = texts.plates, icon = "TabPlates", build = create_plates_page },
         { key = "comfort", title = texts.comfort, icon = "StarFull", build = create_comfort_page },
+        { key = "notices", title = texts.notices, icon = "TabNotices", build = create_notices_page },
     }
     for _, key in ipairs(ORDER) do
         local element = library.elements[key]
