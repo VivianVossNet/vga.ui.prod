@@ -1,8 +1,8 @@
 -- Copyright 2026 Vivian Voss. Code by Vivian Voss. Licensed under the BSD-3-Clause.
 -- SPDX-License-Identifier: BSD-3-Clause
--- Scope: vga.ui's trainer, as the accepted draft draws it (manual/view/vga-npc-windows.html, K0830, K0831): LibVGA's list dialog (library.create_list_dialog, K0871) headed with the trainer's name, each service's tooltip, as the game gives it, over its picture and name (K0911), the picture of a service to be learnt only later veiled red as everywhere (K0933), a profession's recipe - its level 0, its skill named by the game - with no second line and, while later, a red chip with the rank it needs, »ab 75«, which GetTrainerServiceSkillReq gives as its second answer (K0939), the player's own rank in the skill, »Kochkunst 12/75«, as a green badge at the foot's left, the chosen skill in the grey note after it (K0938), since Forever gives no rank a recipe needs (K0935, K0936, K0937), a choice of what is shown - Lernbar, Später, Gelernt, what can be learnt now by default -, every skill as LibVGA's item row with its picture, its rank beneath and its cost in our coins; a click chooses a skill; the foot carries »Alles lernen«, which learns every skill that can be learnt now and is paid for, as the adviser proposed and the owner took, and the gold »Lernen« for the chosen one, the chosen skill in the note; above the group the search and the choice, the heads Fähigkeit, Lernbar - »Zustand« until the owner found it unfitting (K0940) -, Kosten, each skill in its cell with rank and level beneath and its state as a chip, the player's gold in the status line (K0836). The game's trainer window is veiled, never hidden, so the visit stays open (K0835). The game's GetTrainerServiceInfo is read in either order - name, rank, kind as the old client answers, or name, kind, picture, level as the new -, its raw answer for the first skill kept once in LibVGASettings.measures.trainer_service_info; the search and the choice are the list dialog's tools, LibVGA's search bar (library.create_search_bar, K0873) fed here, side by side, the search taking the room the choice leaves (K0849).
+-- Scope: vga.ui's trainer, as the accepted draft draws it (manual/view/vga-npc-windows.html, K0830, K0831): LibVGA's list dialog (library.create_list_dialog, K0871) headed with the trainer's name, each service's tooltip, as the game gives it, over its picture and name (K0911), the picture of a service to be learnt only later veiled red as everywhere (K0933), a profession's recipe - its level 0, its skill named by the game - with no second line and, while later, a red chip with the rank it needs, »ab 75«, which GetTrainerServiceSkillReq gives as its second answer (K0939), the player's own rank in the skill, »Kochkunst 12/75«, as a green badge at the foot's left, the chosen skill in the grey note after it (K0938), since Forever gives no rank a recipe needs (K0935, K0936, K0937), a choice of what is shown - Lernbar, Später, Gelernt, what can be learnt now by default -, every skill as LibVGA's item row with its picture, its rank beneath and its cost in our coins; a click chooses a skill; the foot carries »Alles lernen«, which learns every skill that can be learnt now and is paid for, as the adviser proposed and the owner took, and the gold »Lernen« for the chosen one, the chosen skill in the note; above the group the search and the choice, the heads Fähigkeit, Lernbar - »Zustand« until the owner found it unfitting (K0940) -, Kosten, each skill in its cell with rank and level beneath and its state as a chip, the player's gold in the status line (K0836). The game's trainer window is veiled, never hidden, so the visit stays open (K0835). The game's GetTrainerServiceInfo is read in either order - name, rank, kind as the old client answers, or name, kind, picture, level as the new -, its raw answer for the first skill kept once in LibVGASettings.measures.trainer_service_info; the search and the choice are the list dialog's tools, LibVGA's search bar (library.create_search_bar, K0873) fed here, side by side, the search taking the room the choice leaves (K0849). A skill the player cannot pay for yet shows its cost in red, its chip still »Lernbar«, and »Lernen« is off while it is chosen; »Alles lernen« learns what the gold pays for (K0994).
 
--- {K0940} {K0939} {K0938} {K0937} {K0936} {K0933} {K0911} {K0909} {K0873} {K0860} {K0871} {K0849} {K0839} {K0838} {K0836} {K0835} {K0830} {K0831} {K0832}
+-- {K0994} {K0940} {K0939} {K0938} {K0937} {K0936} {K0933} {K0911} {K0909} {K0873} {K0860} {K0871} {K0849} {K0839} {K0838} {K0836} {K0835} {K0830} {K0831} {K0832}
 
 local _, vga = ...
 local library = LibVGA
@@ -96,6 +96,17 @@ local function read_later_word(item, texts)
     return string.format(texts.from_level, item.level)
 end
 
+local function check_short(item)
+    return item ~= nil and item.kind == "available" and item.cost > (GetMoney and GetMoney() or 0)
+end
+
+local function read_chosen_item()
+    for _, item in ipairs(window.items or {}) do
+        if item.index == window.chosen_index then return item end
+    end
+    return nil
+end
+
 local function update_row(row, item)
     local sheet = window.listing.table
     local columns = sheet.columns
@@ -108,6 +119,7 @@ local function update_row(row, item)
     local later_red = item.kind == "unavailable" and item.needed ~= nil
     library.update_chip(row.state, later_red and "red" or STATES[item.kind] or "grey", nil, words[item.kind] or "")
     library.update_money(row.money, item.cost)
+    library.update_money_tinted(row.money, check_short(item) and library.read_chip_colour("red") or nil)
     library.update_grid_columns(row, columns, sheet.pad, { { row.state, 2, "right" }, { row.money, 3, "right" } })
 end
 
@@ -140,6 +152,8 @@ function vga.update_trainer()
     window.items = read_services()
     local skill = read_own_skill()
     library.update_list_dialog(window, window.items, window.chosen_name, skill and { kind = "green", word = skill } or nil)
+    local chosen = read_chosen_item()
+    library.update_button_enabled(window.foot.buttons[2], chosen ~= nil and not check_short(chosen))
 end
 
 local function render_kind(index)
