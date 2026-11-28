@@ -2,7 +2,7 @@
 ## Title: vga.ui
 ## Notes: The Video Game Almanach's interface for World of Warcraft: Forever - unit frames, bars, bags, minimap, quests and more, drawn with LibVGA.
 ## Author: Vivian Voss
-## Version: 0.9.38
+## Version: 0.9.39
 ## IconTexture: Interface/AddOns/LibVGA/Media/Mark
 ## Dependencies: LibVGA
 ## SavedVariables: VGAAuctions
@@ -36,11 +36,13 @@ Stacksplit.lua
 Merchant.lua
 Talk.lua
 Questauto.lua
+Questtoast.lua
 Gossip.lua
 Questdialog.lua
 Trainer.lua
 Taxi.lua
 Bank.lua
+Bankkept.lua
 Tipwindow.lua
 Auctionsell.lua
 Auctionbuy.lua
@@ -58,6 +60,7 @@ Barsettings.lua
 Arcs.lua
 Petbar.lua
 Stancebar.lua
+Workbar.lua
 Navigation.lua
 Maprim.lua
 Mappins.lua

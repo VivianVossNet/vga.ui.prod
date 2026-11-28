@@ -1,8 +1,8 @@
 -- Copyright 2026 Vivian Voss. Code by Vivian Voss. Licensed under the BSD-3-Clause.
 -- SPDX-License-Identifier: BSD-3-Clause
--- Scope: vga.ui's bank, as the accepted draft A draws it (manual/view/vga-bank.html, K0894): LibVGA's window with pages (library.create_paged_window), in its sidebar every tab of the character's bank the player has bought, under its own name, and, while another can be bought, »Reiter kaufen«; a tab's page its slots eight to a row and six high, as the game's bank lays a tab of 48, each LibVGA's container slot - the game's own item button in a holder carrying the tab's number, so taking, dropping, moving, splitting, a right click and the tooltip are the game's own (library.create_container_slot, K0893) -, beneath them »Reagenzien einlagern«, which deposits as the game's own button does (C_Bank.AutoDepositItemsIntoBank); the page »Reiter kaufen« names the next tab, »Reiter 2 von 9«, and the game's own words for it, its cost in our coins and the gold »Kaufen«, off while the gold does not reach; »Kaufen« asks first in LibVGA's confirm dialog with the game's own question and amount line (library.render_confirm, K0897), only its »Kaufen« buying (C_Bank.PurchaseBankTab); once bought, the window turns to the new tab and »Reiter kaufen« offers the next or goes; the player's gold in the status line. Only what Forever offers is built, as measured (K0895): the character's bank, its tabs, their buying and the deposit; Forever offers no warband bank and no moving of gold into the character's. On a client without bank tabs the one page shows the old bank and its bag places under »Taschenplätze« (K0850). The game's bank window is veiled, never hidden, so the visit stays open; closing ours ends it through the game's close (K0835, K0890).
+-- Scope: vga.ui's bank, as the accepted draft A draws it (manual/view/vga-bank.html, K0894): LibVGA's window with pages (library.create_paged_window), in its sidebar every tab of the character's bank the player has bought, under its own name, and, while another can be bought, »Reiter kaufen«; a tab's page its slots eight to a row and six high, as the game's bank lays a tab of 48, each LibVGA's container slot - the game's own item button in a holder carrying the tab's number, so taking, dropping, moving, splitting, a right click and the tooltip are the game's own (library.create_container_slot, K0893) -, beneath them »Reagenzien einlagern«, which deposits as the game's own button does (C_Bank.AutoDepositItemsIntoBank); the page »Reiter kaufen« names the next tab, »Reiter 2 von 9«, and the game's own words for it, its cost in our coins and the gold »Kaufen«, off while the gold does not reach; »Kaufen« asks first in LibVGA's confirm dialog with the game's own question and amount line (library.render_confirm, K0897), only its »Kaufen« buying (C_Bank.PurchaseBankTab); once bought, the window turns to the new tab and »Reiter kaufen« offers the next or goes; the player's gold in the status line. Only what Forever offers is built, as measured (K0895): the character's bank, its tabs, their buying and the deposit; Forever offers no warband bank and no moving of gold into the character's. On a client without bank tabs the one page shows the old bank and its bag places under »Taschenplätze« (K0850). The game's bank window is veiled, never hidden, so the visit stays open; closing ours ends it through the game's close (K0835, K0890). Its tabs' slots are laid by LibVGA's slot page (library.create_slot_page), which the bank kept from the last visit lays too; vga.read_bank_pages names the pages there are, each with its title and container, for that keeping (K1017).
 
--- {K0897} {K0896} {K0895} {K0894} {K0893} {K0891} {K0890} {K0873} {K0860} {K0850} {K0838} {K0836} {K0835} {K0830} {K0831} {K0832}
+-- {K1017} {K0897} {K0896} {K0895} {K0894} {K0893} {K0891} {K0890} {K0873} {K0860} {K0850} {K0838} {K0836} {K0835} {K0830} {K0831} {K0832}
 
 local _, vga = ...
 local library = LibVGA
@@ -57,32 +57,20 @@ local function read_slot(bag, slot, parent)
     return holder.slots[slot]
 end
 
-local function read_slots_width()
-    return COLUMNS * library.read_draft_size(CELL + GAP) - library.read_draft_size(GAP)
-end
+local SLOTS = { columns = COLUMNS, cell = CELL, gap = GAP }
 
-local function read_rows(cells, count)
-    local rows = {}
-    for index = 1, count do
-        local row = math.floor((index - 1) / COLUMNS) + 1
-        rows[row] = rows[row] or {}
-        rows[row][#rows[row] + 1] = cells[index]
-    end
-    return rows
+local function read_slots_width()
+    return library.read_slot_page_width(SLOTS)
 end
 
 local function update_slots(page, bag)
-    local size, cells = library.read_draft_size(CELL), {}
+    local cells = {}
     for slot = 1, C_Container.GetContainerNumSlots(bag) or 0 do
         local button = read_slot(bag, slot, page.slots)
-        button:SetSize(size, size)
-        button:Show()
         library.update_container_slot(button, bag, slot, {})
         cells[slot] = button
     end
-    page.cells = cells
-    local _, height = library.update_grid(page.slots_grid, read_rows(cells, #cells), nil)
-    page.slots:SetSize(read_slots_width(), height or 0)
+    library.update_slot_page(page, cells)
 end
 
 local function update_bags(page)
@@ -187,6 +175,18 @@ local function update_size()
     window:SetHeight(library.read_dialog_frame_height(window) + band + height + library.read_size(0))
 end
 
+function vga.read_bank_pages()
+    local found = {}
+    if not check_tabbed() then return { { title = library.texts.bank, bag = BANK } } end
+    local named = read_bought_tabs()
+    for index = 1, TABS do
+        if named[index] then found[#found + 1] = { title = named[index], bag = read_tab_bag(index) } end
+    end
+    return found
+end
+
+vga.bank_slot_plan = SLOTS
+
 function vga.update_bank()
     if not (window and window:IsShown()) then return end
     library.update_safely("bank tabs", window.tabbed and update_sidebar_tabs or update_sidebar_old)
@@ -221,8 +221,7 @@ local function read_columns(count)
 end
 
 local function create_slots(page)
-    page.slots = CreateFrame("Frame", nil, page)
-    page.slots_grid = library.create_grid(page.slots, { columns = read_columns(COLUMNS), gap = GAP, row = CELL, row_gap = GAP, y = "top" })
+    library.create_slot_page(page, SLOTS)
     page.grid = library.create_grid(page, { columns = { "auto" }, row = 0, row_gap = 10, y = "top", x = "right" })
 end
 

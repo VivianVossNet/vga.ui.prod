@@ -2,7 +2,7 @@
 -- SPDX-License-Identifier: BSD-3-Clause
 -- Scope: vga.ui's player frame, target frame and pet frames, each where Blizzard's own stands in the player's layout, and the target of target beside the target frame; each fills LibVGA's unit frame (library.create_unit_frame, K0864): the player as the primary tier left-aligned, the target as the primary tier mirrored to it, the player's pet and the target's pet as the secondary tier mirrored below them, the target of target as the tertiary tier - a party member's row - mirrored, on a line with the target frame at its right, a place of its own to be moved (K0698). What is the game's and the place's stays here: which units have a frame, their places, Blizzard's own frames hidden, the events that fill them, the shine of a gain on the player's bars, the player's pulse in a fight or a resting place (K0551), and the target of target shown only while the game's own setting »Ziel des Ziels« (showTargetOfTarget) is on, which the units' settings switch too; the target's pet and the target of target read anew five times a second, since the game sends no events for those units (K0696).
 
--- {K0865} {K0864} {K0789} {K0481} {K0551} {K0267} {K0268} {K0275} {K0276} {K0294} {K0297} {K0299} {K0300} {K0302} {K0329} {K0330} {K0334} {K0342} {K0345} {K0346} {K0360} {K0614} {K0724} {K0696} {K0698} {K0702} {K0717}
+-- {K0999} {K0865} {K0864} {K0789} {K0481} {K0551} {K0267} {K0268} {K0275} {K0276} {K0294} {K0297} {K0299} {K0300} {K0302} {K0329} {K0330} {K0334} {K0342} {K0345} {K0346} {K0360} {K0614} {K0724} {K0696} {K0698} {K0702} {K0717}
 
 local _, vga = ...
 local library = LibVGA
@@ -92,7 +92,7 @@ local function update_event(event, unit)
         library.create_place(player, "player", "CENTER", PlayerFrame or UIParent, 0, 0)
         local target = create_unit("target", { tier = "primary", side = "right", kind = true })
         library.create_place(target, "target", "CENTER", TargetFrame or UIParent, 0, 0)
-        local pet = create_unit("pet", { tier = "secondary", side = "right" })
+        local pet = create_unit("pet", { tier = "secondary", side = "right", experience = true })
         library.create_place(pet, "pet", "TOPRIGHT", player, 0, -(library.read_cast_room() + 2 * library.read_size(-4)), "BOTTOMRIGHT")
         local target_pet = create_unit("targetpet", { tier = "secondary", side = "right" })
         library.create_place(target_pet, "targetpet", "TOPRIGHT", target, 0, -(library.read_cast_room() + 2 * library.read_size(-4)), "BOTTOMRIGHT")
@@ -101,7 +101,7 @@ local function update_event(event, unit)
         C_Timer.NewTicker(TICK, function() library.update_safely("units watched", update_watched_units) end)
         delete_blizzard_frames()
         library.create_element("units", { title = UNITFRAME_LABEL or "Units", update = update_units })
-        for _, name in ipairs({ "PLAYER_TARGET_CHANGED", "UNIT_HEALTH", "UNIT_MAXHEALTH", "UNIT_POWER_UPDATE", "UNIT_MAXPOWER", "UNIT_DISPLAYPOWER", "UNIT_LEVEL", "UNIT_NAME_UPDATE", "UNIT_PORTRAIT_UPDATE", "UNIT_CLASSIFICATION_CHANGED", "PLAYER_ENTERING_WORLD", "UNIT_PET", "PLAYER_REGEN_ENABLED", "PLAYER_REGEN_DISABLED", "UNIT_MODEL_CHANGED", "QUEST_LOG_UPDATE", "UNIT_QUEST_LOG_CHANGED", "COMBAT_TEXT_UPDATE", "PLAYER_UPDATE_RESTING", "PARTY_LEADER_CHANGED", "GROUP_ROSTER_UPDATE", "PLAYER_DEAD", "PLAYER_ALIVE", "PLAYER_UNGHOST" }) do
+        for _, name in ipairs({ "PLAYER_TARGET_CHANGED", "UNIT_HEALTH", "UNIT_MAXHEALTH", "UNIT_POWER_UPDATE", "UNIT_MAXPOWER", "UNIT_DISPLAYPOWER", "UNIT_LEVEL", "UNIT_NAME_UPDATE", "UNIT_PORTRAIT_UPDATE", "UNIT_CLASSIFICATION_CHANGED", "PLAYER_ENTERING_WORLD", "UNIT_PET", "PLAYER_REGEN_ENABLED", "PLAYER_REGEN_DISABLED", "UNIT_MODEL_CHANGED", "QUEST_LOG_UPDATE", "UNIT_QUEST_LOG_CHANGED", "COMBAT_TEXT_UPDATE", "PLAYER_UPDATE_RESTING", "PARTY_LEADER_CHANGED", "GROUP_ROSTER_UPDATE", "PLAYER_DEAD", "PLAYER_ALIVE", "PLAYER_UNGHOST", "UNIT_PET_EXPERIENCE" }) do
             pcall(events.RegisterEvent, events, name)
         end
         update_units()
@@ -113,6 +113,8 @@ local function update_event(event, unit)
     elseif event == "PLAYER_TARGET_CHANGED" or event == "PLAYER_ENTERING_WORLD" or event == "UNIT_PET" or event == "PLAYER_REGEN_ENABLED" or event == "QUEST_LOG_UPDATE" or event == "UNIT_QUEST_LOG_CHANGED" or event == "PARTY_LEADER_CHANGED" or event == "GROUP_ROSTER_UPDATE" or event == "PLAYER_DEAD" or event == "PLAYER_ALIVE" or event == "PLAYER_UNGHOST" then
         library.update_unit_frame_glow(frames.player)
         update_units()
+    elseif event == "UNIT_PET_EXPERIENCE" then
+        if frames.pet then library.update_unit_frame(frames.pet) end
     elseif event == "COMBAT_TEXT_UPDATE" then
         local bar = GAINS[unit] and frames.player and frames.player[GAINS[unit]]
         if bar then library.render_bar_shine(bar) end

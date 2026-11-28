@@ -1,8 +1,8 @@
 -- Copyright 2026 Vivian Voss. Code by Vivian Voss. Licensed under the BSD-3-Clause.
 -- SPDX-License-Identifier: BSD-3-Clause
--- Scope: LibVGA's unit frame, a meta-object (K0864, K0860): one object in three tiers, each left- or right-aligned by its side - the primary, the player and the target, the secondary, the same frame small for the pets, and the tertiary, a party member's row worn by the party and by the target of target (K0698). The portrait tiers: the level's shield, the name and its class or kind, health and power, the portrait's rim one smooth, rounded frame in one colour over the picture, its corners and sides cut from one texture - seven outside, three thick, four inside -, clicked to target; the group's leader marked by a small filled gold crown centred on the portrait's top edge (K0614), its gold shaded in its own texture, shown untinted (K0724); the player's portrait pulsing red in a fight and blue in a resting place, the red winning until the fight is over (K0551); a dead unit's portrait grey and still until it lives (K0702); a player's class not a word but the class dot where the word stood, its name in a tooltip (K0717); the target's kind beside a chevron and its quest bag at the portrait. The tertiary row: the level in gold, the class dot, the name with the leader's crown after its words on the reading side (K0614, K0755), a thin health bar, all grey with an OFFLINE beneath while the member is offline, and where a pet is given, its bar inside the row, shorter, a secure button of its own. Made by library.create_unit_frame(name, unit, plan) - plan.tier primary, secondary or tertiary, plan.side left or right, plan.widget the widget its corner opens (a widget frame with its own ground), else plan.parent the frame it stands in, plan.pet a row's pet by name and unit -, laid by library.update_unit_frame_layout, filled from its unit by library.update_unit_frame (for a row the whole row), library.update_unit_frame_values (health and power of the portrait tiers) and library.update_unit_frame_glow (the player's pulse); its size read by library.read_unit_frame_size, the level's colour against the player by library.read_level_colour and a power's bar by library.read_power_kind. What a frame shows beyond its tier is asked by its plan, never read from its unit's name (K0865): plan.always for a unit that is always there, never watched - the player -; plan.glow for the pulse in a fight and at rest; plan.kind for the rank's chevron, the quest bag, the name at the right and the enemy's colour of the health.
+-- Scope: LibVGA's unit frame, a meta-object (K0864, K0860): one object in three tiers, each left- or right-aligned by its side - the primary, the player and the target, the secondary, the same frame small for the pets, and the tertiary, a party member's row worn by the party and by the target of target (K0698). The portrait tiers: the level's shield, the name and its class or kind, health and power, the portrait's rim one smooth, rounded frame in one colour over the picture, its corners and sides cut from one texture - seven outside, three thick, four inside -, clicked to target; the group's leader marked by a small filled gold crown centred on the portrait's top edge (K0614), its gold shaded in its own texture, shown untinted (K0724); the player's portrait pulsing red in a fight and blue in a resting place, the red winning until the fight is over (K0551); a dead unit's portrait grey and still until it lives (K0702); a player's class not a word but the class dot where the word stood, its name in a tooltip (K0717); the target's kind beside a chevron and its quest bag at the portrait. The tertiary row: the level in gold, the class dot, the name with the leader's crown after its words on the reading side (K0614, K0755), a thin health bar, all grey with an OFFLINE beneath while the member is offline, and where a pet is given, its bar inside the row, shorter, a secure button of its own. Made by library.create_unit_frame(name, unit, plan) - plan.tier primary, secondary or tertiary, plan.side left or right, plan.widget the widget its corner opens (a widget frame with its own ground), else plan.parent the frame it stands in, plan.pet a row's pet by name and unit -, laid by library.update_unit_frame_layout, filled from its unit by library.update_unit_frame (for a row the whole row), library.update_unit_frame_values (health and power of the portrait tiers) and library.update_unit_frame_glow (the player's pulse); its size read by library.read_unit_frame_size, the level's colour against the player by library.read_level_colour and a power's bar by library.read_power_kind. What a frame shows beyond its tier is asked by its plan, never read from its unit's name (K0865): plan.always for a unit that is always there, never watched - the player -; plan.glow for the pulse in a fight and at rest; plan.kind for the rank's chevron, the quest bag, the name at the right and the enemy's colour of the health. A frame asked for its unit's experience (plan.experience, the pet's) carries LibVGA's progress ring round its portrait in the experience's blue, as far as GetPetExperience says it has come, gone while it gathers none, its share, level and points in a tooltip under the mouse, as manual/view/vga-pet-xp.html draws it in E (K0999).
 
--- {K0865} {K0864} {K0860} {K0267} {K0268} {K0275} {K0276} {K0277} {K0278} {K0279} {K0294} {K0297} {K0299} {K0300} {K0302} {K0329} {K0330} {K0334} {K0342} {K0345} {K0346} {K0354} {K0360} {K0379} {K0481} {K0551} {K0614} {K0698} {K0702} {K0717} {K0724} {K0755}
+-- {K0999} {K0865} {K0864} {K0860} {K0267} {K0268} {K0275} {K0276} {K0277} {K0278} {K0279} {K0294} {K0297} {K0299} {K0300} {K0302} {K0329} {K0330} {K0334} {K0342} {K0345} {K0346} {K0354} {K0360} {K0379} {K0481} {K0551} {K0614} {K0698} {K0702} {K0717} {K0724} {K0755}
 
 local library = LibVGA
 local colours = library.colours
@@ -25,6 +25,8 @@ local OFFLINE_SMALLER = 4
 local POWERS = { [0] = "power", [1] = "rage", [2] = "focus", [3] = "energy", [6] = "runic" }
 local FIGHT = { 0.86, 0.12, 0.1 }
 local RESTING = { 0.2, 0.5, 0.95 }
+local PET_XP = { 0.435, 0.706, 0.937 }
+local create_experience
 local FIGHT_LOW = 0.2
 local FIGHT_HIGH = 0.75
 local FIGHT_PULSE = 1.4
@@ -211,10 +213,44 @@ local function create_row(row, pet)
     row.pet.health:SetAlpha(0.85)
 end
 
+local function read_experience()
+    if not GetPetExperience then return nil end
+    local have, need = GetPetExperience()
+    if not (have and need and need > 0) then return nil end
+    return have, need
+end
+
+local function render_experience_tip(frame)
+    local have, need = read_experience()
+    if not have then return end
+    local texts = library.texts
+    GameTooltip:SetOwner(frame, "ANCHOR_RIGHT")
+    GameTooltip:AddLine(library.read_unit_name(frame.unit) .. " · " .. texts.level .. " " .. (UnitLevel(frame.unit) or ""), colours.gold[1], colours.gold[2], colours.gold[3])
+    GameTooltip:AddLine(string.format(texts.pet_xp_share, math.floor(have / need * 100)), 1, 1, 1)
+    GameTooltip:AddLine(string.format(texts.pet_xp_points, BreakUpLargeNumbers and BreakUpLargeNumbers(have) or have, BreakUpLargeNumbers and BreakUpLargeNumbers(need) or need), colours.quiet[1], colours.quiet[2], colours.quiet[3])
+    GameTooltip:Show()
+end
+
+local function render_experience_tip_hidden(frame)
+    if GameTooltip:GetOwner() == frame then GameTooltip:Hide() end
+end
+
+function create_experience(frame)
+    frame.experience = library.create_progress_ring(frame.rounding, frame.rim)
+    frame:HookScript("OnEnter", function(self) library.update_safely("pet experience tip", render_experience_tip, self) end)
+    frame:HookScript("OnLeave", render_experience_tip_hidden)
+end
+
+local function update_experience(frame)
+    if not frame.experience then return end
+    local have, need = read_experience()
+    library.update_progress_ring(frame.experience, have and have / need or nil, PET_XP)
+end
+
 function library.create_unit_frame(name, unit, plan)
     local frame = plan.widget and create_widget_button(name, unit, plan) or create_unit_button(name, plan.parent, unit)
     frame.tier, frame.side = plan.tier, plan.side
-    frame.glow, frame.kind = plan.glow, plan.kind
+    frame.glow, frame.kind, frame.gathers = plan.glow, plan.kind, plan.experience
     if plan.tier == "tertiary" then
         create_row(frame, plan.pet)
         return frame
@@ -223,6 +259,7 @@ function library.create_unit_frame(name, unit, plan)
     create_shield(frame)
     create_portrait_texts(frame)
     create_portrait_bars(frame)
+    if plan.experience then create_experience(frame) end
     return frame
 end
 
@@ -515,6 +552,7 @@ local function update_portrait_frame(frame)
     update_face(frame)
     frame.rim_colour = read_rim_colour(unit)
     update_rim_colour(frame, frame.rim_colour)
+    update_experience(frame)
     if frame.chevron then
         update_target_parts(frame)
     elseif frame.tier == "primary" then

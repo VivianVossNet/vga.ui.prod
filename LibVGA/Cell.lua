@@ -1,8 +1,8 @@
 -- Copyright 2026 Vivian Voss. Code by Vivian Voss. Licensed under the BSD-3-Clause.
 -- SPDX-License-Identifier: BSD-3-Clause
--- Scope: LibVGA's cell, as the accepted catalogue draws it (manual/view/vga-catalogue.html »Zelle«, K0775) after the main bar's keys and the bags' slots (manual/view/vga-probe.html .slot, .key; K0726) - its parts made here once for every cell that shows them: the quest's question mark and the fixed item's two blue rounded corners, at the upper right and the lower left, a third of the cell long (library.create_cell_pinned, K0899, K0901) -: a square of the draft's size, a black rounded line round it, the picture cropped and filling it up to its edge's inner side, the edge three draft pixels wide with gently rounded corners in the slot's grey - gold while the cell is active -, the game's cooldown veil over the picture (library.create_cooldown), its key small at its upper right, a light under the mouse. A key is a protected button of the game's made with the template and name its owner gives, so it may act in a fight; its owner fills it - picture, whether it is active or cannot be used, its cooldown and its key - and places it (K0781). The same parts dress a button or frame the game or its user owns - a ground, a black line, the bold edge, each where asked, the edge on another frame where it must lie above the button - in the user's own colours (library.create_cell_dress): the action keys, the bags' slots, the loot's and the split dialog's slots, the game menu's holders. A round cell is the rounded picture in a fine ring, gold while the mouse rests on it, on a dark ground - the quest items beside the tracker and the minimap's collected buttons -, the game's own masks on a foreign picture replaced by LibVGA's rounded one (library.update_cell_round_mask, K0793). A cell given an item's quality rims itself in that quality's colour from uncommon up, as the bank's draft draws it (K0836). A round cell may be a portrait (plan.portrait): the picture a circle, ringed two draft pixels wide in gold while lit, else in silver, a black line of one draft pixel round it, all of LibVGA's disc, as the talk's draft draws .face (library.update_portrait_cell, K0858). A cell may carry a quest item's mark, a small gold question mark at its lower left, as far in from the edge as its count stands at the right (library.create_cell_quest, K0874).
+-- Scope: LibVGA's cell, as the accepted catalogue draws it (manual/view/vga-catalogue.html »Zelle«, K0775) after the main bar's keys and the bags' slots (manual/view/vga-probe.html .slot, .key; K0726) - its parts made here once for every cell that shows them: the quest's question mark and the fixed item's two blue rounded corners, at the upper right and the lower left, a third of the cell long (library.create_cell_pinned, K0899, K0901) -: a square of the draft's size, a black rounded line round it, the picture cropped and filling it up to its edge's inner side, the edge three draft pixels wide with gently rounded corners in the slot's grey - gold while the cell is active -, the game's cooldown veil over the picture (library.create_cooldown), its key small at its upper right, a light under the mouse. A key is a protected button of the game's made with the template and name its owner gives, so it may act in a fight; its owner fills it - picture, whether it is active or cannot be used, its cooldown and its key - and places it (K0781). The same parts dress a button or frame the game or its user owns - a ground, a black line, the bold edge, each where asked, the edge on another frame where it must lie above the button - in the user's own colours (library.create_cell_dress): the action keys, the bags' slots, the loot's and the split dialog's slots, the game menu's holders. A round cell is the rounded picture in a fine ring, gold while the mouse rests on it, on a dark ground - the quest items beside the tracker and the minimap's collected buttons -, the game's own masks on a foreign picture replaced by LibVGA's rounded one (library.update_cell_round_mask, K0793). A cell given an item's quality rims itself in that quality's colour from uncommon up, as the bank's draft draws it (K0836). A round cell may be a portrait (plan.portrait): the picture a circle, ringed two draft pixels wide in gold while lit, else in silver, a black line of one draft pixel round it, all of LibVGA's disc, as the talk's draft draws .face (library.update_portrait_cell, K0858). A cell may carry a quest item's mark, a small gold question mark at its lower left, as far in from the edge as its count stands at the right (library.create_cell_quest, K0874). A cell made for an item (plan.item) shows its count at its lower right and, under the mouse, the game's tooltip of its link, as the bank kept from the last visit shows its items (state.count, state.link, K1017).
 
--- {K0901} {K0874} {K0858} {K0836} {K0801} {K0793} {K0781} {K0726} {K0775}
+-- {K1017} {K0901} {K0874} {K0858} {K0836} {K0801} {K0793} {K0781} {K0726} {K0775}
 
 local library = LibVGA
 local COUNT_RIGHT = 4
@@ -149,6 +149,24 @@ function library.update_cell_lit(cell, lit)
     library.update_ring(cell.ring, 1, lit and colours.gold or colours.metal_top, 1)
 end
 
+local function render_cell_tip(cell)
+    if not cell.link then return end
+    GameTooltip:SetOwner(cell, "ANCHOR_RIGHT")
+    GameTooltip:SetHyperlink(cell.link)
+    GameTooltip:Show()
+end
+
+local function render_cell_tip_hidden(cell)
+    if GameTooltip:GetOwner() == cell then GameTooltip:Hide() end
+end
+
+local function create_cell_item(cell)
+    cell.count = library.create_text(cell, "figures_small", colours.ink)
+    cell.count:SetPoint("BOTTOMRIGHT", cell, "BOTTOMRIGHT", -library.read_draft_size(3), library.read_draft_size(2))
+    cell:SetScript("OnEnter", render_cell_tip)
+    cell:SetScript("OnLeave", render_cell_tip_hidden)
+end
+
 function library.create_cell(parent, plan)
     if plan.kind == "round" then return create_round(CreateFrame(plan.frame or "Button", plan.name, parent, plan.template), plan) end
     local cell = CreateFrame(plan.kind == "key" and "CheckButton" or "Button", plan.name, parent, plan.template)
@@ -163,6 +181,7 @@ function library.create_cell(parent, plan)
     cell.hotkey = library.create_text(cell, "caption")
     cell:SetHighlightTexture("Interface\\Buttons\\WHITE8X8")
     cell:GetHighlightTexture():SetVertexColor(1, 1, 1, 0.15)
+    if plan.item then create_cell_item(cell) end
     return cell
 end
 
@@ -187,4 +206,6 @@ function library.update_cell(cell, state)
     library.update_ring(cell.edge, EDGE_WIDTH, read_edge_colour(state), 1)
     library.update_cooldown(cell.cooldown, state.start, state.duration)
     cell.hotkey:SetText(state.hotkey or "")
+    cell.link = state.link
+    if cell.count then cell.count:SetText(state.count and state.count > 1 and state.count or "") end
 end
