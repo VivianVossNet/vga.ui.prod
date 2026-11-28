@@ -1,8 +1,8 @@
 -- Copyright 2026 Vivian Voss. Code by Vivian Voss. Licensed under the BSD-3-Clause.
 -- SPDX-License-Identifier: BSD-3-Clause
--- Scope: LibVGA's toast, as the accepted catalogue draws it (manual/view/vga-catalogue.html »Toast«, K0772, K0775) after vga-auctions.html's toast with the tooltip's gold corner: a small notice of what must be reported - a picture at its left, its head word in small gold capitals, its line beneath and a second where one is given, each broken over as many lines as its words need, never cut off, the toast growing with them, only the head kept to one line (K1022) -, on the dark ground in a fine line, rounded ten draft pixels, 360 wide; at the top centre of the screen, at most three, the newest on top, each going after a few seconds, fading out. A toast given a key (plan.key) that is still shown is counted on in its place, its words new and its time begun again, never a second stacked - a quest's objective, a profession's rank (K1038). A toast of a thing done, and done well, carries LibVGA's green tick at its right, kept while it shows (plan.done, library.update_tick_kept); its room is kept in every toast so nothing moves (K1039, K1042). It stays as long as the tab »Hinweise« says - two, four or six seconds, four by default (LibVGASettings.toast_stay, library.read_toast_stays, K1041). Its user names its kind (plan.kind), and the kind gives the rim, after manual/view/vga-toast-colours.html (K1034): white for a known place entered (K1044), blue for the rest area, the map's features and the mail, gold for a quest, a discovery and the character's rise, copper for PvP and a duel, wine red for damaged gear and full bags, green for trade (K1040), and for every other notice the light grey, quiet, which stands off the black outline as clearly as the colours (K1033). A place toast and its discovery stand bare and centred (plan.centred): no head word, no picture, their words in the middle across and down, twice as large - LibVGA's faces »grand«, three steps of the scale above body, and »grand_small«, a third smaller than three steps above small (K1046, K1047). A discovery runs, once, the bags' shimmer round its rim, its light ending in a star flashing at the top left corner (plan.shimmer, library.render_rim_run, K1048). A discovery and a level reached carry (plan.ornate), centred above and beneath, the book ornament of Z1 in the rim's colour, four pixels clear of the rim, the one beneath turned over, and the toasts stacked keep room for it (Media/Ornament.tga, tools/questmark/ornament.py, K1037). Each kind can be silenced on the settings' tab »Hinweise«: library.render_toast shows nothing of a kind switched off (LibVGASettings.notices, library.read_notice_on, library.write_notice, K1035); library.read_toast_rim gives the tab each kind's colour. Its user names picture, head, line, second line and kind and calls library.render_toast; nothing else (K0794).
+-- Scope: LibVGA's toast, as the accepted catalogue draws it (manual/view/vga-catalogue.html »Toast«, K0772, K0775) after vga-auctions.html's toast with the tooltip's gold corner: a small notice of what must be reported - a picture at its left, its head word in small gold capitals, its line beneath and a second where one is given, each broken over as many lines as its words need, never cut off, the toast growing with them, only the head kept to one line (K1022) -, on the dark ground in a fine line, its corners rounded parallel to its gold corner's arc (library.read_corner_parallel_radius, K1051), 360 wide; at the top centre of the screen, at most three, the newest on top, each going after a few seconds, fading out. A toast given a key (plan.key) that is still shown is counted on in its place, its words new and its time begun again, never a second stacked - a quest's objective, a profession's rank (K1038). A toast of a thing done, and done well, carries LibVGA's green tick at its right, kept while it shows (plan.done, library.update_tick_kept); its room is kept in every toast so nothing moves (K1039, K1042). It stays as long as the tab »Hinweise« says - two, four or six seconds, four by default (LibVGASettings.toast_stay, library.read_toast_stays, K1041). Its user names its kind (plan.kind), and the kind gives the rim, after manual/view/vga-toast-colours.html (K1034): white for a known place entered (K1044), blue for the rest area, the map's features and the mail, gold for a quest, a discovery and the character's rise, copper for PvP and a duel, wine red for damaged gear and full bags, green for trade (K1040), and for every other notice the light grey, quiet, which stands off the black outline as clearly as the colours (K1033). A place toast and its discovery stand bare and centred (plan.centred), the centring set before the words and the words held at both sides, so every place toast is centred, counted on or not (K1050, K1051): no head word, no picture, their words in the middle across and down, twice as large - LibVGA's faces »grand«, three steps of the scale above body, and »grand_small«, a third smaller than three steps above small (K1046, K1047). A discovery runs, once, the bags' shimmer round its rim, its light ending in a star flashing at the top left corner (plan.shimmer, library.render_rim_run, K1048). A discovery and a level reached carry (plan.ornate), centred above and beneath, the book ornament of Z1 in the rim's colour, four pixels clear of the rim, the one beneath turned over, and the toasts stacked keep room for it (Media/Ornament.tga, tools/questmark/ornament.py, K1037). Each kind can be silenced on the settings' tab »Hinweise«: library.render_toast shows nothing of a kind switched off (LibVGASettings.notices, library.read_notice_on, library.write_notice, K1035); library.read_toast_rim gives the tab each kind's colour. Its user names picture, head, line, second line and kind and calls library.render_toast; nothing else (K0794).
 
--- {K1048} {K1047} {K1046} {K1044} {K1042} {K1041} {K1040} {K1039} {K1038} {K1037} {K1035} {K1034} {K1033} {K1032} {K1022} {K0794} {K0772} {K0775}
+-- {K1051} {K1050} {K1048} {K1047} {K1046} {K1044} {K1042} {K1041} {K1040} {K1039} {K1038} {K1037} {K1035} {K1034} {K1033} {K1032} {K1022} {K0794} {K0772} {K0775}
 
 local library = LibVGA
 local colours = library.colours
@@ -99,9 +99,9 @@ local function update_ornaments(toast, ornate, rim)
     end
 end
 
-local function update_text(text, kind, words, left, width)
+local function update_text(text, kind, words, left, width, across)
     text:SetFontObject(library.read_font(kind))
-    text:SetJustifyH("LEFT")
+    text:SetJustifyH(across or "LEFT")
     text:SetText(words or "")
     text:SetShown(words ~= nil)
     text:SetWidth(width)
@@ -118,7 +118,7 @@ end
 
 local function update_look(toast, plan)
     local draft = library.read_draft_size
-    local width, pad, picture, radius = draft(WIDTH), draft(PAD), draft(PICTURE), draft(10)
+    local width, pad, picture, radius = draft(WIDTH), draft(PAD), draft(PICTURE), library.read_corner_parallel_radius()
     library.update_surface(toast.outline, -2, radius + 2, BLACK, BLACK)
     local rim = library.read_toast_rim(plan.kind)
     library.update_surface(toast.edge, -1, radius + 1, rim, rim)
@@ -134,16 +134,14 @@ local function update_look(toast, plan)
     toast.picture:SetShown(not plan.centred)
     if plan.centred then left, room = pad, width - 2 * pad end
     update_text(toast.head, "caption", not plan.centred and plan.head and library.read_capitals(plan.head) or nil, left, room)
-    update_text(toast.line, plan.centred and "grand" or "body", plan.line, left, room)
-    update_text(toast.second, plan.centred and "grand_small" or "small", plan.second, left, room)
-    if plan.centred then
-        toast.line:SetJustifyH("CENTER")
-        toast.second:SetJustifyH("CENTER")
-    end
+    local across = plan.centred and "CENTER" or "LEFT"
+    update_text(toast.line, plan.centred and "grand" or "body", plan.line, left, room, across)
+    update_text(toast.second, plan.centred and "grand_small" or "small", plan.second, left, room, across)
     local top, step = pad, 2
     for _, text in ipairs({ toast.head, toast.line, toast.second }) do
         if text:IsShown() then
             text:SetPoint("TOPLEFT", toast, "TOPLEFT", left, -top)
+            if plan.centred then text:SetPoint("TOPRIGHT", toast, "TOPRIGHT", -pad, -top) end
             top = top + library.read_string_height(text) + step
         end
     end
@@ -174,7 +172,7 @@ function library.render_toast(plan)
     if not library.read_notice_on(plan.kind or "other") then return end
     library.create_toast()
     local toast = read_toast_kept(plan.key) or table.remove(toasts)
-    toast.key = plan.key
+    toast.key, toast.kind = plan.key, plan.kind
     table.insert(toasts, 1, toast)
     update_look(toast, plan)
     toast.time = 0

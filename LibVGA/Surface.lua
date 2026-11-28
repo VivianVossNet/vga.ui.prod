@@ -1,9 +1,11 @@
 -- Copyright 2026 Vivian Voss. Code by Vivian Voss. Licensed under the BSD-3-Clause.
 -- SPDX-License-Identifier: BSD-3-Clause
--- Scope: LibVGA's rounded surfaces, drawn of a corner texture and three bands; notches, the inverse corners that round whatever lies beneath them; thin rings, a line with rounded corners and nothing inside, or bold ones whose corners round by twice their width ({K0413}); and the gold corner that opens an element's options. A cell's picture - an action key's, a bag's, a menu button's - fills the cell up to its edge's inner side, its square corners under the edge's rounding (read_cell_inset, update_cell_picture; K0536, K0544). Every inset, radius and thickness is laid on whole screen pixels in its frame's own scale (read_whole_pixels, the game's PixelUtil), so lines keep one width and the pieces of a surface meet without a seam (K0562).
+-- Scope: LibVGA's rounded surfaces, drawn of a corner texture and three bands; notches, the inverse corners that round whatever lies beneath them; thin rings, a line with rounded corners and nothing inside, or bold ones whose corners round by twice their width ({K0413}); and the gold corner that opens an element's options. A cell's picture - an action key's, a bag's, a menu button's - fills the cell up to its edge's inner side, its square corners under the edge's rounding (read_cell_inset, update_cell_picture; K0536, K0544). Every inset, radius and thickness is laid on whole screen pixels in its frame's own scale (read_whole_pixels, the game's PixelUtil), so lines keep one width and the pieces of a surface meet without a seam (K0562). The gold corner's arc is three eighths of its size - measured in GoldCornerSmall and GoldCornerLarge, 24 of 64 pixels - and it sits three pixels inside its frame; library.read_corner_parallel_radius gives the radius a frame's own corners take to run parallel to that arc, its arc plus those three pixels (K1051).
 
--- {K0256} {K0267} {K0334} {K0346} {K0349} {K0413} {K0536} {K0544} {K0562}
+-- {K1051} {K0256} {K0267} {K0334} {K0346} {K0349} {K0413} {K0536} {K0544} {K0562}
 
+local CORNER_INSET = 3
+local CORNER_ARC = 0.375
 local library = LibVGA
 local CELL_GAP = 0
 
@@ -121,7 +123,11 @@ function library.update_corner(corner)
     local size = library.read_size(corner.large and 2 or -2)
     corner:ClearAllPoints()
     corner:SetSize(size, size)
-    corner:SetPoint("TOPRIGHT", corner:GetParent(), "TOPRIGHT", -3, -3)
+    corner:SetPoint("TOPRIGHT", corner:GetParent(), "TOPRIGHT", -CORNER_INSET, -CORNER_INSET)
+end
+
+function library.read_corner_parallel_radius(large)
+    return library.read_size(large and 2 or -2) * CORNER_ARC + CORNER_INSET
 end
 
 function library.create_notches(frame, layer, level, art)
