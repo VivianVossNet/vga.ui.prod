@@ -1,14 +1,15 @@
 -- Copyright 2026 Vivian Voss. Code by Vivian Voss. Licensed under the BSD-3-Clause.
 -- SPDX-License-Identifier: BSD-3-Clause
--- Scope: the character's rise as LibVGA's toast (K1040), of the kind »rise«, gold rimmed, silenced by its switch on the tab »Hinweise«, as manual/view/vga-toasts.html lists it: a level reached (PLAYER_LEVEL_UP), »Stufe 20 erreicht«, with the book ornament above and beneath and LibVGA's green tick (K1037, K1042); at that level, where the trainer last seen had a skill waiting for it (LibVGACharacter.trainer_next, kept by vga.ui/Trainer.lua), »Neue Fähigkeiten beim Lehrer«, once; a profession's rank rising, »Kochkunst 74 → 75«, counted on in one toast per profession while it shows (plan.key, K1038), read from every one of the five places GetProfessions answers, a place left empty never ending the reading (manual/16 R4.4a); a faction's standing rising, »Sturmwind: Wohlwollend« with the tick, by the game's own name of the standing (FACTION_STANDING_LABEL…), read through C_Reputation where Forever has it, else GetFactionInfo. The first reading of ranks and standings only takes note. The pictures are the game's, not yet seen in Forever.
+-- Scope: the character's rise as LibVGA's toast (K1040), of the kind »rise«, gold rimmed, silenced by its switch on the tab »Hinweise«, as manual/view/vga-toasts.html lists it: a level reached (PLAYER_LEVEL_UP), »Stufe 20 erreicht«, with the book ornament above and beneath and LibVGA's green tick (K1037, K1042); at that level, where the trainer last seen had a skill waiting for it (LibVGACharacter.trainer_next, kept by vga.ui/Trainer.lua), »Neue Fähigkeiten beim Lehrer«, once; a profession's rank rising, »Kochkunst 74 → 75«, counted on in one toast per profession while it shows (plan.key, K1038), read from every one of the five places GetProfessions answers, a place left empty never ending the reading (manual/16 R4.4a); a faction's standing rising, »Sturmwind: Wohlwollend« with the tick, by the game's own name of the standing (FACTION_STANDING_LABEL…), read through C_Reputation where Forever has it, else GetFactionInfo. The game's own banner of the level, EventToastManagerFrame, which shows other great notices too, is faded - never hidden (manual/16 R1.1) - for the ten seconds of its level-up notice while »Aufstieg« is on, then shown again (K1045). The first reading of ranks and standings only takes note. The pictures are the game's, not yet seen in Forever.
 
--- {K1042} {K1040} {K1038} {K1037}
+-- {K1045} {K1042} {K1040} {K1038} {K1037}
 
 local library = LibVGA
 local LEVEL_PICTURE = "Interface\\Icons\\Spell_Holy_SurgeOfLight"
 local TRAINER_PICTURE = "Interface\\Icons\\INV_Misc_Book_09"
 local REPUTATION_PICTURE = "Interface\\Icons\\INV_Misc_Note_02"
 local PLACES = 5
+local BANNER = 10
 local ranks
 local standings
 
@@ -25,8 +26,15 @@ local function render_trainer(level)
     render(library.texts.rise_trainer, TRAINER_PICTURE)
 end
 
+local function update_banner_faded()
+    if not (EventToastManagerFrame and library.read_notice_on("rise")) then return end
+    EventToastManagerFrame:SetAlpha(0)
+    C_Timer.After(BANNER, function() EventToastManagerFrame:SetAlpha(1) end)
+end
+
 local function render_level(level)
     level = tonumber(level) or UnitLevel("player")
+    update_banner_faded()
     render(string.format(library.texts.rise_level, level), LEVEL_PICTURE, { ornate = true, done = true })
     render_trainer(level)
 end

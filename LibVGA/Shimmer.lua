@@ -1,8 +1,8 @@
 -- Copyright 2026 Vivian Voss. Code by Vivian Voss. Licensed under the BSD-3-Clause.
 -- SPDX-License-Identifier: BSD-3-Clause
--- Scope: LibVGA's shimmer for something new: the button brightened, every three seconds a light running once round its rim that ends in a star flashing at its corner - the bags' new items' (K0403, K0477) and the action keys' newly learned spells' (K0482) -, laid by its owner each frame with the cycle's phase and the button's side, taken away whole by delete_shimmer; or, by create_running_shimmer, laid once as an animation that runs by itself, for frames the addon may not touch each frame - the game's aura buttons while auras are secret (K0615). Its light runs round the rim in four straight legs of Translation animations, one after another - right, down, left, up -, not along a Path: Forever's Path has no SetCurve, whose call broke every own debuff's button on foes since K0615 (K0719), and without it the light ran the top edge alone and stood at the right (K0720). And a timed run for a key whose work repeats at a known pace - the auto attack's swings (K0881): library.create_swing_run makes, on a frame of its own above the key, the bags' bold ring in white at the key's rim width, so it lies exactly on the key's rim; library.render_swing_run starts it anew for a given number of seconds - and, given a reader of the next round's seconds, starts it again at once at each round's end, for as long as it runs (K0883) -, the white frame growing from the top's left end clockwise round the rim, from nothing to whole, as manual/view/vga-mainbar.html's section C draws it, and standing whole once the time is over; library.update_swing_run_stopped takes it away. A duration the game keeps secret, or none, starts nothing. It touches no attribute of the key, which may be protected.
+-- Scope: LibVGA's shimmer for something new: the button brightened, every three seconds a light running once round its rim that ends in a star flashing at its corner - the bags' new items' (K0403, K0477) and the action keys' newly learned spells' (K0482) -, laid by its owner each frame with the cycle's phase and the button's side, taken away whole by delete_shimmer; or, by create_running_shimmer, laid once as an animation that runs by itself, for frames the addon may not touch each frame - the game's aura buttons while auras are secret (K0615). Its light runs round the rim in four straight legs of Translation animations, one after another - right, down, left, up -, not along a Path: Forever's Path has no SetCurve, whose call broke every own debuff's button on foes since K0615 (K0719), and without it the light ran the top edge alone and stood at the right (K0720). And a timed run for a key whose work repeats at a known pace - the auto attack's swings (K0881): library.create_swing_run makes, on a frame of its own above the key, the bags' bold ring in white at the key's rim width, so it lies exactly on the key's rim; library.render_swing_run starts it anew for a given number of seconds - and, given a reader of the next round's seconds, starts it again at once at each round's end, for as long as it runs (K0883) -, the white frame growing from the top's left end clockwise round the rim, from nothing to whole, as manual/view/vga-mainbar.html's section C draws it, and standing whole once the time is over; library.update_swing_run_stopped takes it away. A duration the game keeps secret, or none, starts nothing. It touches no attribute of the key, which may be protected. And the same run once round any rectangle, for a notice that earns it - the gold place toast of a discovery (K1048): library.create_rim_run makes it on a frame, library.render_rim_run lays its legs to the frame's width and height, each leg as long in time as in length, and plays it once, the light starting at the top left, running clockwise all round and ending in the star flashing at that corner, as the bags' does.
 
--- {K0719} {K0720} {K0403} {K0482} {K0615} {K0881} {K0883}
+-- {K1048} {K0719} {K0720} {K0403} {K0482} {K0615} {K0881} {K0883}
 
 local library = LibVGA
 local colours = library.colours
@@ -95,7 +95,20 @@ end
 
 local RIM_LEGS = { { 1, 0 }, { 0, -1 }, { -1, 0 }, { 0, 1 } }
 
-local function create_running_dot(frame, group, side, index, step)
+local function update_running_legs(slides, width, height, delay)
+    local run, round = RUN_END * CYCLE, 2 * (width + height)
+    local start = delay
+    for leg, move in ipairs(RIM_LEGS) do
+        local length = move[1] ~= 0 and width or height
+        local slide = slides[leg]
+        slide:SetOffset(move[1] * width, move[2] * height)
+        slide:SetStartDelay(start)
+        slide:SetDuration(run * length / round)
+        start = start + run * length / round
+    end
+end
+
+local function create_running_dot(frame, group, width, height, index, step)
     local dot, size = frame:CreateTexture(nil, "OVERLAY", nil, 7), read_draft(4)
     local colour = index == 1 and { 1, 1, 1 } or colours.gold_high
     dot:SetTexture(library.media .. "Disc")
@@ -104,15 +117,14 @@ local function create_running_dot(frame, group, side, index, step)
     dot:SetPoint("CENTER", frame, "TOPLEFT", 0, 0)
     dot:SetVertexColor(colour[1], colour[2], colour[3], 1)
     dot:SetAlpha(0)
-    local delay, run = step[1] * RUN_END * CYCLE, RUN_END * CYCLE
-    for leg, move in ipairs(RIM_LEGS) do
-        local slide = group:CreateAnimation("Translation")
-        slide:SetTarget(dot)
-        slide:SetOffset(move[1] * side, move[2] * side)
-        slide:SetStartDelay(delay + (leg - 1) * run / #RIM_LEGS)
-        slide:SetDuration(run / #RIM_LEGS)
+    local delay, run, slides = step[1] * RUN_END * CYCLE, RUN_END * CYCLE, {}
+    for leg in ipairs(RIM_LEGS) do
+        slides[leg] = group:CreateAnimation("Translation")
+        slides[leg]:SetTarget(dot)
     end
+    update_running_legs(slides, width, height, delay)
     create_alpha(group, dot, step[2], step[2], delay, run)
+    return slides
 end
 
 local function create_scale(group, target, from, to, delay, duration)
@@ -155,11 +167,25 @@ function library.create_running_shimmer(frame, side)
     bright:SetBlendMode("ADD")
     local group = frame:CreateAnimationGroup()
     group:SetLooping("REPEAT")
-    for index, step in ipairs(TRAIL) do create_running_dot(frame, group, side, index, step) end
+    for index, step in ipairs(TRAIL) do create_running_dot(frame, group, side, side, index, step) end
     create_running_star(frame, group)
     create_alpha(group, bright, 1, 1, 0, CYCLE)
     group:Play()
     return group
+end
+
+function library.create_rim_run(frame)
+    local run = { group = frame:CreateAnimationGroup(), trail = {} }
+    run.group:SetLooping("NONE")
+    for index, step in ipairs(TRAIL) do run.trail[index] = create_running_dot(frame, run.group, 1, 1, index, step) end
+    create_running_star(frame, run.group)
+    return run
+end
+
+function library.render_rim_run(run, width, height)
+    for index, step in ipairs(TRAIL) do update_running_legs(run.trail[index], width, height, step[1] * RUN_END * CYCLE) end
+    run.group:Stop()
+    run.group:Play()
 end
 
 function library.delete_shimmer(button)
